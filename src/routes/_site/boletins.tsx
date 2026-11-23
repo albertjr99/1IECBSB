@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileDown, Newspaper } from "lucide-react";
+import { FileDown } from "lucide-react";
 import { listarBoletinsPublicos } from "@/lib/api-boletim";
 import { dataPorExtenso } from "@/lib/boletim";
 import { CapaPagina } from "@/components/site/Layout";
@@ -15,28 +15,30 @@ function Boletins() {
   const [atual, ...anteriores] = lista;
   return (
     <>
-      <CapaPagina rotulo="Toda semana" titulo="Boletim dominical" texto="Pastoral, avisos, escala, agenda e motivos de oração da semana." />
+      <CapaPagina titulo="Boletim dominical" texto="Pastoral, avisos, escala, agenda e motivos de oração da semana." />
       <section className="container-site py-16">
         {!atual ? (
-          <p className="rounded-3xl bg-white p-10 text-center text-tinta-suave ring-1 ring-linha/60">Nenhum boletim publicado ainda.</p>
+          <p className="rounded-lg bg-white p-10 text-center text-tinta-suave border border-linha/70">Nenhum boletim publicado ainda.</p>
         ) : (
           <>
-            <Link to="/boletim/$data" params={{ data: atual.data }} className="group flex flex-col gap-6 overflow-hidden rounded-3xl bg-marca p-8 text-white sm:flex-row sm:items-center sm:p-10">
-              <span className="grid size-20 shrink-0 place-items-center rounded-2xl bg-white/10"><Newspaper size={36} /></span>
-              <span className="flex-1">
-                <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-white/70">Boletim desta semana</span>
-                <span className="mt-1 block text-2xl font-bold sm:text-3xl font-[family-name:var(--font-titulo)]">{dataPorExtenso(atual.data)}</span>
-              </span>
-              <span className="btn-destaque">Ler o boletim</span>
-            </Link>
+            <div className="flex flex-col gap-6 border-l-4 border-destaque pl-6 sm:flex-row sm:items-center sm:justify-between sm:pl-8">
+              <div>
+                <p className="text-tinta-suave">Boletim desta semana</p>
+                <h2 className="mt-1 text-[1.75rem] font-semibold text-marca-funda">{dataPorExtenso(atual.data)}</h2>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/boletim/$data" params={{ data: atual.data }} className="btn-primario">Ler o boletim</Link>
+                <a href={`/api/boletim/${atual.data}/pdf?baixar=1`} className="btn-contorno"><FileDown size={17} /> PDF</a>
+              </div>
+            </div>
             {anteriores.length > 0 && (
               <>
-                <h2 className="mt-14 text-xl font-bold text-marca-funda">Boletins anteriores</h2>
+                <h2 className="mt-14 text-xl font-semibold text-marca-funda">Boletins anteriores</h2>
                 <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {anteriores.map((b) => (
-                    <li key={b.id} className="flex items-center gap-3 rounded-2xl bg-white p-4 ring-1 ring-linha/60">
+                    <li key={b.id} className="flex items-center gap-3 rounded-md bg-white p-4 border border-linha/70">
                       <Link to="/boletim/$data" params={{ data: b.data }} className="flex-1 font-semibold text-tinta hover:text-marca">{dataPorExtenso(b.data)}</Link>
-                      <a href={`/api/boletim/${b.data}/pdf?baixar=1`} className="rounded-full p-2 text-marca hover:bg-marca-clara" title="Baixar PDF"><FileDown size={18} /></a>
+                      <a href={`/api/boletim/${b.data}/pdf?baixar=1`} className="rounded-md p-2 text-marca hover:bg-marca-clara" title="Baixar PDF"><FileDown size={18} /></a>
                     </li>
                   ))}
                 </ul>

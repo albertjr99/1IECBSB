@@ -44,7 +44,8 @@
   }
   h1, h2, h3, h4 {
     font-family: var(--font-titulo);
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    letter-spacing: -0.015em;
     line-height: 1.15;
   }
   ::selection {
@@ -59,32 +60,29 @@
 @utility container-site {
   @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
 }
+/* Rótulo discreto acima de um título — usado com parcimônia. */
 @utility rotulo-secao {
-  @apply inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.18em] text-destaque;
+  @apply text-[12.5px] font-semibold uppercase tracking-[0.12em] text-destaque;
   font-family: var(--font-titulo);
-  &::before {
-    content: "";
-    @apply inline-block h-[2px] w-6 bg-destaque;
-  }
 }
 @utility titulo-secao {
-  @apply text-3xl font-bold text-marca-funda sm:text-[2.6rem];
+  @apply text-[1.85rem] font-semibold leading-tight tracking-[-0.015em] text-marca-funda sm:text-[2.25rem];
 }
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold tracking-wide transition-all duration-200 disabled:opacity-50;
-  font-family: var(--font-titulo);
+  @apply inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-[14.5px] font-semibold transition-colors duration-150 disabled:opacity-50;
+  font-family: var(--font-texto);
 }
 @utility btn-primario {
-  @apply btn bg-marca text-white shadow-sm hover:bg-marca-escura hover:shadow-md;
+  @apply btn bg-marca text-white hover:bg-marca-escura;
 }
 @utility btn-destaque {
-  @apply btn bg-destaque text-white shadow-sm hover:bg-destaque-escuro hover:shadow-md;
+  @apply btn bg-destaque text-white hover:bg-destaque-escuro;
 }
 @utility btn-contorno {
-  @apply btn border border-marca/25 bg-white text-marca hover:border-marca hover:bg-marca-clara;
+  @apply btn border border-marca/30 bg-transparent text-marca hover:border-marca hover:bg-marca-clara;
 }
 @utility btn-claro {
-  @apply btn border border-white/40 bg-white/10 text-white backdrop-blur hover:bg-white hover:text-marca-funda;
+  @apply btn border border-white/45 bg-transparent text-white hover:border-white hover:bg-white/10;
 }
 @utility texto-corrido {
   & p + p {
@@ -96,28 +94,12 @@
   font-style: italic;
 }
 
-/* Arco da marca usado como textura de fundo */
-.arco-fundo {
-  background-image: url("/simbolo-branco.svg");
-  background-repeat: no-repeat;
-  background-size: 120% auto;
-  background-position: 50% 130%;
-}
-
 @keyframes pulso-vivo {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.45; transform: scale(0.8); }
 }
 .ponto-vivo {
   animation: pulso-vivo 1.4s ease-in-out infinite;
-}
-
-@keyframes surgir {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
-}
-.surgir {
-  animation: surgir 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

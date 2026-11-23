@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CalendarDays, ExternalLink, MapPin, Navigation, Play, X } from "lucide-react";
+import { ExternalLink, MapPin, Navigation, Play, X } from "lucide-react";
 import type { Evento } from "@/lib/conteudo";
 import type { Video } from "@/server/youtube";
 import { cn, dataCurta, diaMes, duracaoTexto, periodo } from "@/lib/utils";
@@ -10,30 +10,24 @@ import { LinkSite } from "./Link";
 export function CartaoEvento({ ev }: { ev: Evento }) {
   const { dia, mes } = diaMes(ev.data);
   return (
-    <article className="group flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-linha/60 transition-shadow hover:shadow-xl">
-      <div className="relative aspect-[16/10] overflow-hidden bg-marca">
-        {ev.imagem ? (
-          <img src={ev.imagem} alt="" loading="lazy" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        ) : (
-          <div className="arco-fundo absolute inset-0 opacity-20" />
-        )}
-        <div className="absolute left-4 top-4 rounded-2xl bg-white px-3 py-2 text-center shadow">
-          <div className="text-2xl font-extrabold leading-none text-marca font-[family-name:var(--font-titulo)]">{dia}</div>
-          <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-destaque">{mes}</div>
+    <article className="flex flex-col overflow-hidden rounded-lg border border-linha/70 bg-white">
+      {ev.imagem && <img src={ev.imagem} alt="" loading="lazy" className="aspect-[16/10] w-full object-cover" />}
+      <div className="flex flex-1 gap-5 p-6">
+        <div className="w-12 shrink-0 border-r border-linha/70 pr-4 text-center">
+          <div className="text-[1.7rem] font-semibold leading-none text-marca-funda tabular-nums">{dia}</div>
+          <div className="mt-1 text-[12px] font-semibold uppercase text-destaque">{mes}</div>
         </div>
-      </div>
-      <div className="flex flex-1 flex-col p-6">
-        <h3 className="text-xl font-bold text-marca-funda">{ev.titulo}</h3>
-        <div className="mt-3 grid gap-1 text-[14.5px] text-tinta-suave">
-          <span className="inline-flex items-center gap-2"><CalendarDays size={15} className="text-destaque" />{periodo(ev.data, ev.dataFim)}{ev.horario && ` · ${ev.horario}`}</span>
-          {ev.local && <span className="inline-flex items-center gap-2"><MapPin size={15} className="text-destaque" />{ev.local}</span>}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <h3 className="text-[1.15rem] font-semibold leading-snug text-marca-funda">{ev.titulo}</h3>
+          <p className="mt-1.5 text-[14.5px] text-tinta-suave">{periodo(ev.data, ev.dataFim)}{ev.horario && ` · ${ev.horario}`}</p>
+          {ev.local && <p className="text-[14.5px] text-tinta-suave">{ev.local}</p>}
+          {ev.descricao && <p className="mt-3 line-clamp-3 text-[15px] leading-relaxed text-tinta-suave">{ev.descricao}</p>}
+          {ev.link && (
+            <LinkSite para={ev.link} className="mt-auto inline-flex items-center gap-1 pt-4 text-[14.5px] font-semibold text-marca hover:text-marca-escura">
+              {ev.rotuloLink || "Saiba mais"} →
+            </LinkSite>
+          )}
         </div>
-        {ev.descricao && <p className="mt-3 line-clamp-3 text-[15px] text-tinta-suave">{ev.descricao}</p>}
-        {ev.link && (
-          <LinkSite para={ev.link} className="mt-auto pt-5 text-[14px] font-bold text-marca hover:text-destaque font-[family-name:var(--font-titulo)]">
-            {ev.rotuloLink || "Saiba mais"} →
-          </LinkSite>
-        )}
       </div>
     </article>
   );
@@ -44,15 +38,14 @@ export function CartaoEvento({ ev }: { ev: Evento }) {
 export function CartaoVideo({ v, onAbrir }: { v: Video; onAbrir: (v: Video) => void }) {
   return (
     <button type="button" onClick={() => onAbrir(v)} className="group flex flex-col text-left">
-      <div className="relative aspect-video overflow-hidden rounded-2xl bg-marca-funda">
-        {v.thumb && <img src={v.thumb} alt="" loading="lazy" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-        <span className="absolute left-1/2 top-1/2 grid size-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-destaque opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-          <Play size={22} fill="currentColor" />
+      <div className="relative aspect-video overflow-hidden rounded-md bg-marca-funda">
+        {v.thumb && <img src={v.thumb} alt="" loading="lazy" className="size-full object-cover" />}
+        <span className="absolute inset-0 grid place-items-center bg-black/0 transition-colors group-hover:bg-black/25">
+          <Play size={34} fill="white" className="text-white opacity-0 drop-shadow transition-opacity group-hover:opacity-100" />
         </span>
-        {v.duracao > 0 && <span className="absolute bottom-2.5 right-2.5 rounded-md bg-black/75 px-1.5 py-0.5 text-[12px] font-semibold text-white">{duracaoTexto(v.duracao)}</span>}
+        {v.duracao > 0 && <span className="absolute bottom-2 right-2 rounded bg-black/75 px-1.5 py-0.5 text-[12px] font-medium text-white tabular-nums">{duracaoTexto(v.duracao)}</span>}
       </div>
-      <h3 className="mt-3 line-clamp-2 text-[15.5px] font-semibold leading-snug text-tinta group-hover:text-marca font-[family-name:var(--font-titulo)]">{v.titulo}</h3>
+      <h3 className="mt-3 line-clamp-2 text-[16px] font-semibold leading-snug text-tinta group-hover:text-marca">{v.titulo}</h3>
       <p className="mt-1 text-[13.5px] text-tinta-suave">{dataCurta(v.publicado)}</p>
     </button>
   );
@@ -74,7 +67,7 @@ export function PlayerVideo({ v, onFechar }: { v: Video | null; onFechar: () => 
           <h3 className="text-lg font-semibold">{v.titulo}</h3>
           <button onClick={onFechar} className="grid size-10 shrink-0 place-items-center rounded-full bg-white/10 hover:bg-white/20" aria-label="Fechar"><X size={20} /></button>
         </div>
-        <div className="aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl">
+        <div className="aspect-video overflow-hidden rounded-md bg-black shadow-2xl">
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`}
             title={v.titulo}
@@ -96,7 +89,7 @@ export function EsqueletoVideos({ n = 3 }: { n?: number }) {
     <>
       {Array.from({ length: n }).map((_, i) => (
         <div key={i} className="animate-pulse">
-          <div className="aspect-video rounded-2xl bg-marca/10" />
+          <div className="aspect-video rounded-md bg-marca/10" />
           <div className="mt-3 h-4 w-4/5 rounded bg-marca/10" />
           <div className="mt-2 h-3 w-1/3 rounded bg-marca/10" />
         </div>
@@ -127,7 +120,7 @@ export function Mapa({ consulta, className }: { consulta: string; className?: st
     : `https://www.google.com/maps?q=${q}&hl=pt-BR&z=16&output=embed`;
 
   return (
-    <div ref={setRef} className={cn("relative overflow-hidden rounded-3xl bg-marca-clara", className)}>
+    <div ref={setRef} className={cn("relative overflow-hidden rounded-lg bg-marca-clara", className)}>
       {carregar ? (
         <iframe title="Mapa de localização" src={src} className="absolute inset-0 size-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
       ) : (

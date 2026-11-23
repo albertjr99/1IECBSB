@@ -21,7 +21,7 @@ function Papel({ variante = 0, children, className }: { variante?: number; child
     ["100% 35%", "0% 85%"],
   ][variante % 4]!;
   return (
-    <div className={cn("relative isolate overflow-hidden rounded-[1.75rem] bg-[#e7e8ec] shadow-[0_18px_40px_-24px_rgba(0,30,70,0.45)] ring-1 ring-black/5", className)}>
+    <div className={cn("relative isolate overflow-hidden rounded-xl bg-[#e7e8ec] ring-1 ring-black/5", className)}>
       <div
         aria-hidden
         className="absolute -inset-10 -z-10 blur-2xl"
@@ -40,7 +40,7 @@ function CartaoDia({ d, i, hoje }: { d: DiaAgenda; i: number; hoje: boolean }) {
   return (
     <Papel variante={i} className="flex h-full flex-col p-6 pt-[34%] sm:p-7 sm:pt-[34%]">
       {hoje && (
-        <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-destaque px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow">
+        <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded bg-destaque px-2.5 py-1 text-[12px] font-semibold text-white">
           <span className="size-1.5 rounded-full bg-white" /> Hoje
         </span>
       )}
@@ -133,8 +133,8 @@ export function AgendaSemanal({ comCapa = true }: { comCapa?: boolean }) {
   return (
     <div className="relative">
       <div className="mb-4 hidden justify-end gap-2 sm:flex">
-        <button onClick={() => irPara(ativo - 1)} disabled={ativo === 0} aria-label="Anterior" className="grid size-11 place-items-center rounded-full border border-marca/20 bg-white text-marca shadow-sm transition hover:border-marca disabled:opacity-35"><ChevronLeft size={20} /></button>
-        <button onClick={() => irPara(ativo + 1)} disabled={ativo >= total - 1} aria-label="Próximo" className="grid size-11 place-items-center rounded-full border border-marca/20 bg-white text-marca shadow-sm transition hover:border-marca disabled:opacity-35"><ChevronRight size={20} /></button>
+        <button onClick={() => irPara(ativo - 1)} disabled={ativo === 0} aria-label="Anterior" className="grid size-10 place-items-center rounded-md border border-linha bg-white text-marca transition hover:border-marca disabled:opacity-35"><ChevronLeft size={20} /></button>
+        <button onClick={() => irPara(ativo + 1)} disabled={ativo >= total - 1} aria-label="Próximo" className="grid size-10 place-items-center rounded-md border border-linha bg-white text-marca transition hover:border-marca disabled:opacity-35"><ChevronRight size={20} /></button>
       </div>
       <div
         ref={trilho}
@@ -168,7 +168,7 @@ export function AgendaCompacta() {
   return (
     <ul className="grid gap-3">
       {p.dias.map((d) => (
-        <li key={d.id} className="rounded-2xl bg-white p-5 ring-1 ring-linha/60">
+        <li key={d.id} className="border-t border-linha pt-4">
           <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-destaque">{d.dia}</p>
           <ul className="mt-2 grid gap-1">
             {d.itens.map((it) => (

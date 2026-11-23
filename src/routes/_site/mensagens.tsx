@@ -67,9 +67,9 @@ function Mensagens() {
 
   return (
     <>
-      <CapaPagina rotulo="Assista" titulo={m.titulo} texto={m.subtitulo} />
+      <CapaPagina titulo={m.titulo} texto={m.subtitulo} />
       <section className="container-site py-12">
-        <div className="sticky top-[76px] z-20 -mx-5 bg-fundo/95 px-5 py-4 backdrop-blur sm:-mx-8 sm:px-8">
+        <div className="sticky top-[76px] z-20 -mx-5 border-b border-linha/60 bg-fundo px-5 py-4 sm:-mx-8 sm:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
             <label className="relative block lg:w-80">
               <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-tinta-suave" />
@@ -77,7 +77,7 @@ function Mensagens() {
                 value={texto}
                 onChange={(e) => setTexto(e.target.value)}
                 placeholder="Buscar por título, tema, pregador…"
-                className="w-full rounded-full border border-linha bg-white py-3 pl-11 pr-10 text-[15px] outline-none focus:border-marca"
+                className="w-full rounded-md border border-linha bg-white py-2.5 pl-11 pr-10 text-[15px] outline-none focus:border-marca"
               />
               {texto && (
                 <button onClick={() => setTexto("")} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-tinta-suave hover:bg-fundo" aria-label="Limpar busca"><X size={16} /></button>
@@ -91,8 +91,8 @@ function Mensagens() {
                     key={c.id || "todos"}
                     onClick={() => navegar({ search: (s: Busca) => ({ ...s, filtro: c.id || undefined }), replace: true })}
                     className={cn(
-                      "shrink-0 rounded-full px-4 py-2 text-[13.5px] font-semibold transition-colors font-[family-name:var(--font-titulo)]",
-                      ativo ? "bg-marca text-white" : "bg-white text-tinta-suave ring-1 ring-linha hover:text-marca hover:ring-marca/40",
+                      "shrink-0 rounded-md px-3.5 py-2 text-[14px] font-medium transition-colors",
+                      ativo ? "bg-marca text-white" : "border border-linha bg-white text-tinta-suave hover:border-marca/40 hover:text-marca",
                     )}
                   >
                     {c.rotulo}
@@ -108,7 +108,7 @@ function Mensagens() {
         </p>
 
         {erro && !videos.length ? (
-          <div className="mt-8 rounded-3xl bg-white p-10 text-center ring-1 ring-linha/60">
+          <div className="mt-8 rounded-lg bg-white p-10 text-center border border-linha/70">
             <p className="text-tinta-suave">{erro}</p>
             <a href={geral.redes.youtube} target="_blank" rel="noopener noreferrer" className="btn-destaque mt-5"><IconeYoutube /> Ver no YouTube</a>
           </div>
@@ -120,7 +120,7 @@ function Mensagens() {
         )}
 
         {!carregando && !erro && videos.length === 0 && (
-          <p className="mt-8 rounded-3xl bg-white p-10 text-center text-tinta-suave ring-1 ring-linha/60">Nenhum vídeo encontrado.</p>
+          <p className="mt-8 rounded-lg bg-white p-10 text-center text-tinta-suave border border-linha/70">Nenhum vídeo encontrado.</p>
         )}
 
         {videos.length < total && !carregando && (

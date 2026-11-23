@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarClock, Radio } from "lucide-react";
+import { CalendarClock } from "lucide-react";
 import { useConteudo } from "@/lib/contexto";
 import { useAoVivo } from "@/lib/ao-vivo";
 import { listarVideos } from "@/lib/api";
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_site/ao-vivo")({ component: AoVivo, head
 
 function Player({ id, titulo }: { id: string; titulo: string }) {
   return (
-    <div className="aspect-video overflow-hidden rounded-3xl bg-black shadow-2xl">
+    <div className="aspect-video overflow-hidden rounded-lg bg-black shadow-2xl">
       <iframe
         src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`}
         title={titulo}
@@ -37,25 +37,24 @@ function AoVivo() {
 
   return (
     <>
-      <CapaPagina rotulo="Transmissão" titulo="Ao vivo" texto="Acompanhe os cultos e estudos em tempo real, onde você estiver." />
+      <CapaPagina titulo="Ao vivo" texto="Acompanhe os cultos e estudos em tempo real, onde você estiver." />
       <section className="container-site py-14">
         {!s ? (
-          <div className="aspect-video animate-pulse rounded-3xl bg-marca/10" />
+          <div className="aspect-video animate-pulse rounded-lg bg-marca/10" />
         ) : s.aoVivo ? (
           <>
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-destaque px-4 py-1.5 text-[12px] font-bold uppercase tracking-wider text-white">
+            <p className="mb-4 inline-flex items-center gap-2 rounded-md bg-destaque px-3 py-1.5 text-[13px] font-semibold text-white">
               <span className="ponto-vivo size-2 rounded-full bg-white" /> Transmitindo agora
             </p>
             <Player id={s.aoVivo.id} titulo={s.aoVivo.titulo} />
-            <h2 className="mt-5 text-2xl font-bold text-marca-funda">{s.aoVivo.titulo}</h2>
+            <h2 className="mt-5 text-2xl font-semibold text-marca-funda">{s.aoVivo.titulo}</h2>
           </>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
             <div>
-              <div className="flex items-start gap-4 rounded-3xl bg-white p-6 ring-1 ring-linha/60">
-                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-marca-clara text-marca"><Radio /></span>
+              <div className="flex items-start gap-4 border-l-4 border-marca pl-5">
                 <div>
-                  <h2 className="text-xl font-bold text-marca-funda">Não estamos ao vivo agora</h2>
+                  <h2 className="text-xl font-semibold text-marca-funda">Não estamos ao vivo agora</h2>
                   {s.agendado ? (
                     <p className="mt-1 flex items-center gap-2 text-tinta-suave">
                       <CalendarClock size={16} className="text-destaque" />
@@ -68,9 +67,9 @@ function AoVivo() {
               </div>
               {ultimo && (
                 <div className="mt-6">
-                  <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.16em] text-destaque">Última mensagem</p>
+                  <h3 className="mb-3 text-lg font-semibold text-marca-funda">Última mensagem</h3>
                   <Player id={ultimo.id} titulo={ultimo.titulo} />
-                  <h3 className="mt-4 text-xl font-bold text-marca-funda">{ultimo.titulo}</h3>
+                  <h3 className="mt-4 text-xl font-semibold text-marca-funda">{ultimo.titulo}</h3>
                 </div>
               )}
               <div className="mt-6 flex flex-wrap gap-3">
@@ -79,7 +78,7 @@ function AoVivo() {
               </div>
             </div>
             <div className="grid content-start gap-4">
-              <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-tinta-suave">Horários da semana</p>
+              <h3 className="text-lg font-semibold text-marca-funda">Horários da semana</h3>
               <AgendaCompacta />
             </div>
           </div>

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, HandHeart, MapPin, Radio } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
 import { useConteudo } from "@/lib/contexto";
 import { useAoVivo } from "@/lib/ao-vivo";
 import { listarVideos } from "@/lib/api";
 import type { Video } from "@/server/youtube";
 import { hojeISO, paragrafos } from "@/lib/utils";
 import { LinkSite } from "@/components/site/Link";
+import { CabecalhoSecao } from "@/components/site/Layout";
 import { BotoesRota, CartaoEvento, CartaoVideo, EsqueletoVideos, Mapa, PlayerVideo } from "@/components/site/Blocos";
 import { AgendaSemanal } from "@/components/site/AgendaSemanal";
 
@@ -16,29 +17,28 @@ function Hero() {
   const c = useConteudo();
   const h = c.inicio.hero;
   const vivo = useAoVivo(c.mensagens.canal);
-  const proxima = c.programacao.dias[0];
+  const domingo = c.programacao.dias.find((d) => d.diaSemana === 0) ?? c.programacao.dias[0];
 
   return (
-    <section className="relative isolate overflow-hidden bg-marca-funda text-white">
-      {h.imagem ? (
+    <section className="relative isolate bg-marca-funda text-white">
+      {h.imagem && (
         <>
           <img src={h.imagem} alt="" className="absolute inset-0 -z-10 size-full object-cover" />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-marca-funda via-marca-funda/85 to-marca-funda/30" />
-        </>
-      ) : (
-        <>
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_70%_20%,color-mix(in_oklab,var(--cor-primaria)_80%,white_6%),transparent_60%)]" />
-          <img src="/simbolo-branco.svg" alt="" aria-hidden className="pointer-events-none absolute -bottom-[8%] left-1/2 -z-10 w-[130%] max-w-none -translate-x-1/2 opacity-[0.06] sm:w-[105%]" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-marca-funda via-marca-funda/90 to-marca-funda/40" />
         </>
       )}
-
-      <div className="container-site grid min-h-[min(82vh,720px)] items-center gap-12 py-20 lg:grid-cols-[1.35fr_1fr]">
+      <div className="container-site grid gap-12 py-20 sm:py-28 lg:grid-cols-[1.4fr_1fr] lg:items-end">
         <div>
-          {h.sobretitulo && <p className="surgir rotulo-secao !text-white/80">{h.sobretitulo}</p>}
-          <h1 className="surgir mt-4 text-[2.4rem] font-extrabold leading-[1.05] sm:text-6xl" style={{ animationDelay: "60ms" }}>{h.titulo}</h1>
-          {h.subtitulo && <p className="surgir mt-6 max-w-xl text-lg text-white/80 sm:text-xl" style={{ animationDelay: "120ms" }}>{h.subtitulo}</p>}
+          {vivo?.aoVivo && (
+            <Link to="/ao-vivo" className="mb-8 inline-flex items-center gap-2.5 text-[14px] font-semibold text-white hover:underline">
+              <span className="ponto-vivo size-2 rounded-full bg-destaque" /> Transmissão ao vivo agora — assistir
+            </Link>
+          )}
+          {h.sobretitulo && <p className="text-lg text-white/70">{h.sobretitulo}</p>}
+          <h1 className="mt-2 max-w-3xl text-[2.25rem] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[3.1rem]">{h.titulo}</h1>
+          {h.subtitulo && <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">{h.subtitulo}</p>}
           {h.botoes.length > 0 && (
-            <div className="surgir mt-9 flex flex-wrap gap-3" style={{ animationDelay: "180ms" }}>
+            <div className="mt-10 flex flex-wrap gap-3">
               {h.botoes.map((b, i) => (
                 <LinkSite key={i} para={b.link} className={i === 0 ? "btn-destaque" : "btn-claro"}>{b.rotulo}</LinkSite>
               ))}
@@ -46,42 +46,23 @@ function Hero() {
           )}
         </div>
 
-        <div className="surgir hidden justify-self-end lg:block" style={{ animationDelay: "260ms" }}>
-          {vivo?.aoVivo ? (
-            <Link to="/ao-vivo" className="block w-[380px] overflow-hidden rounded-3xl bg-white text-tinta shadow-2xl transition-transform hover:-translate-y-1">
-              <div className="relative aspect-video bg-black">
-                <img src={vivo.aoVivo.thumb} alt="" className="size-full object-cover" />
-                <span className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-destaque px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
-                  <span className="ponto-vivo size-2 rounded-full bg-white" /> Ao vivo agora
-                </span>
-              </div>
-              <div className="p-5">
-                <p className="line-clamp-2 font-semibold font-[family-name:var(--font-titulo)]">{vivo.aoVivo.titulo}</p>
-                <span className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-destaque">Assistir <ArrowRight size={15} /></span>
-              </div>
-            </Link>
-          ) : proxima ? (
-            <div className="w-[340px] rounded-3xl border border-white/15 bg-white/[0.07] p-7 backdrop-blur-md">
-              <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-white/60">Venha nos visitar</p>
-              <p className="mt-3 text-3xl font-extrabold uppercase font-[family-name:var(--font-titulo)]">{proxima.dia}</p>
-              <ul className="mt-3 grid gap-1.5">
-                {proxima.itens.map((x) => (
-                  <li key={x.id} className="flex justify-between gap-4 text-[15px]"><span className="text-white/85">{x.titulo}</span><span className="font-bold font-[family-name:var(--font-titulo)]">{x.horario}</span></li>
-                ))}
-              </ul>
-              <div className="mt-6 flex items-start gap-2 border-t border-white/15 pt-5 text-[15px] text-white/75">
-                <MapPin size={17} className="mt-0.5 shrink-0" />
-                <span>{c.geral.endereco.linha1}<br />{c.geral.endereco.linha2}</span>
-              </div>
-              {vivo?.agendado && (
-                <Link to="/ao-vivo" className="mt-5 flex items-center gap-2 rounded-2xl bg-white/10 p-3 text-[14px] hover:bg-white/15">
-                  <Radio size={16} className="text-white" />
-                  Transmissão agendada: {new Date(vivo.agendado.inicio).toLocaleString("pt-BR", { weekday: "short", hour: "2-digit", minute: "2-digit" })}
-                </Link>
-              )}
-            </div>
-          ) : null}
-        </div>
+        {domingo && (
+          <div className="border-t border-white/20 pt-6 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-white/55">Cultos de {domingo.dia.toLowerCase()}</p>
+            <ul className="mt-4 divide-y divide-white/10">
+              {domingo.itens.map((x) => (
+                <li key={x.id} className="flex items-baseline justify-between gap-6 py-2.5 text-[16px]">
+                  <span className="text-white/85">{x.titulo}</span>
+                  <span className="font-semibold tabular-nums">{x.horario}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 flex gap-2 text-[14.5px] text-white/60">
+              <MapPin size={16} className="mt-0.5 shrink-0" />
+              {c.geral.endereco.linha1}, {c.geral.endereco.linha2}
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -92,14 +73,7 @@ function Programacao() {
   if (!p.dias.length) return null;
   return (
     <section className="container-site overflow-hidden py-20 sm:py-24">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="rotulo-secao">Semana em curso</p>
-          <h2 className="titulo-secao mt-3">{p.titulo}</h2>
-          {p.subtitulo && <p className="mt-3 max-w-xl text-tinta-suave">{p.subtitulo}</p>}
-        </div>
-        <Link to="/programacao" className="btn-contorno">Agenda e eventos</Link>
-      </div>
+      <CabecalhoSecao titulo={p.titulo} texto={p.subtitulo} link="/programacao" rotuloLink="Agenda e eventos" />
       <div className="mt-8"><AgendaSemanal /></div>
       {p.aviso && <p className="mt-4 text-center text-sm text-tinta-suave">{p.aviso}</p>}
     </section>
@@ -107,30 +81,31 @@ function Programacao() {
 }
 
 function BoasVindas() {
-  const { inicio, geral } = useConteudo();
+  const { inicio } = useConteudo();
   const b = inicio.boasVindas;
-  return (
-    <section className="bg-papel">
-      <div className="container-site grid items-center gap-12 py-20 sm:py-24 lg:grid-cols-2">
-        <div className="relative">
-          {b.imagem ? (
-            <img src={b.imagem} alt="" className="aspect-[4/3] w-full rounded-[2rem] object-cover shadow-xl" />
-          ) : (
-            <div className="relative grid aspect-[4/3] place-items-center overflow-hidden rounded-[2rem] bg-marca shadow-xl">
-              <img src="/simbolo-negativo.svg" alt={geral.nome} className="w-3/5" />
-            </div>
-          )}
-          <div aria-hidden className="absolute -bottom-5 -right-5 -z-0 hidden h-28 w-28 rounded-[1.5rem] bg-destaque/90 sm:block" style={{ zIndex: -1 }} />
-        </div>
-        <div>
-          <p className="rotulo-secao">Quem somos</p>
-          <h2 className="titulo-secao mt-3">{b.titulo}</h2>
-          <div className="texto-corrido mt-5 text-[17.5px] text-tinta-suave">
-            {paragrafos(b.texto).map((p, i) => <p key={i}>{p}</p>)}
-          </div>
-          {b.link && <LinkSite para={b.link} className="btn-primario mt-8">{b.rotuloBotao || "Saiba mais"} <ArrowRight size={16} /></LinkSite>}
-        </div>
+  const corpo = (
+    <>
+      <h2 className="titulo-secao">{b.titulo}</h2>
+      <div className="texto-corrido mt-5 text-[17.5px] leading-relaxed text-tinta-suave">
+        {paragrafos(b.texto).map((p, i) => <p key={i}>{p}</p>)}
       </div>
+      {b.link && (
+        <LinkSite para={b.link} className="mt-7 inline-flex items-center gap-1.5 text-[15px] font-semibold text-marca hover:text-marca-escura">
+          {b.rotuloBotao || "Saiba mais"} <ArrowRight size={16} />
+        </LinkSite>
+      )}
+    </>
+  );
+  return (
+    <section className="border-y border-linha/60 bg-papel">
+      {b.imagem ? (
+        <div className="container-site grid items-center gap-12 py-20 sm:py-24 lg:grid-cols-2">
+          <img src={b.imagem} alt="" className="aspect-[4/3] w-full rounded-lg object-cover" />
+          <div>{corpo}</div>
+        </div>
+      ) : (
+        <div className="container-site py-20 sm:py-24"><div className="max-w-3xl">{corpo}</div></div>
+      )}
     </section>
   );
 }
@@ -150,17 +125,10 @@ function UltimasMensagens() {
 
   if (videos && videos.length === 0) return null;
   return (
-    <section className="relative overflow-hidden bg-marca-funda text-white">
-      <div aria-hidden className="arco-fundo pointer-events-none absolute inset-0 opacity-[0.04]" />
-      <div className="container-site relative py-20 sm:py-24">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="rotulo-secao !text-white/80">Pregações e estudos</p>
-            <h2 className="mt-3 text-3xl font-bold sm:text-[2.6rem]">Últimas mensagens</h2>
-          </div>
-          <Link to="/mensagens" className="btn-claro">Ver todas <ArrowRight size={16} /></Link>
-        </div>
-        <div className="mt-10 grid gap-8 md:grid-cols-3 [&_h3]:!text-white [&_p]:!text-white/60">
+    <section className="bg-marca-funda text-white">
+      <div className="container-site py-20 sm:py-24">
+        <CabecalhoSecao titulo="Últimas mensagens" texto="Cultos e estudos bíblicos da igreja." link="/mensagens" rotuloLink="Todas as mensagens" claro />
+        <div className="mt-10 grid gap-8 md:grid-cols-3 [&_h3]:!text-white [&_p]:!text-white/55">
           {videos ? videos.map((v) => <CartaoVideo key={v.id} v={v} onAbrir={setAberto} />) : <EsqueletoVideos />}
         </div>
       </div>
@@ -176,14 +144,7 @@ function Eventos() {
   if (!proximos.length) return null;
   return (
     <section className="container-site py-20 sm:py-24">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="rotulo-secao">Agenda</p>
-          <h2 className="titulo-secao mt-3">{e.titulo}</h2>
-          {e.subtitulo && <p className="mt-3 max-w-xl text-tinta-suave">{e.subtitulo}</p>}
-        </div>
-        <Link to="/programacao" hash="eventos" className="btn-contorno">Todos os eventos</Link>
-      </div>
+      <CabecalhoSecao titulo={e.titulo} texto={e.subtitulo} link="/programacao#eventos" rotuloLink="Todos os eventos" />
       <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {proximos.map((ev) => <CartaoEvento key={ev.id} ev={ev} />)}
       </div>
@@ -196,13 +157,11 @@ function Versiculo() {
   const v = inicio.versiculo;
   if (!v.texto) return null;
   return (
-    <section className="relative overflow-hidden bg-destaque text-white">
-      <div aria-hidden className="arco-fundo pointer-events-none absolute inset-0 opacity-[0.08]" />
-      <div className="container-site relative py-20 text-center sm:py-24">
-        <span aria-hidden className="block text-7xl leading-none text-white/30 escritura">“</span>
-        <blockquote className="escritura mx-auto -mt-4 max-w-4xl text-[1.9rem] leading-snug sm:text-[2.6rem]">{v.texto}</blockquote>
-        {v.referencia && <p className="mt-6 text-[13px] font-bold uppercase tracking-[0.2em] text-white/80">{v.referencia}</p>}
-      </div>
+    <section className="border-y border-linha/60 bg-papel">
+      <figure className="container-site max-w-4xl py-16 text-center sm:py-20">
+        <blockquote className="escritura text-[1.65rem] leading-snug text-marca-funda sm:text-[2.1rem]">{v.texto}</blockquote>
+        {v.referencia && <figcaption className="mt-5 text-[14px] font-semibold text-destaque">{v.referencia}</figcaption>}
+      </figure>
     </section>
   );
 }
@@ -210,17 +169,13 @@ function Versiculo() {
 function Contribua() {
   const { contribua: c } = useConteudo();
   return (
-    <section className="container-site py-20 sm:py-24">
-      <div className="relative overflow-hidden rounded-[2rem] bg-marca px-8 py-12 text-white sm:px-14 sm:py-14">
-        <div aria-hidden className="arco-fundo pointer-events-none absolute inset-0 opacity-[0.08]" />
-        <div className="relative grid items-center gap-8 md:grid-cols-[auto_1fr_auto]">
-          <span className="grid size-16 place-items-center rounded-2xl bg-white/10"><HandHeart size={30} /></span>
-          <div>
-            <h2 className="text-2xl font-bold sm:text-3xl">{c.titulo}</h2>
-            <p className="mt-2 max-w-2xl text-white/75">{c.texto}</p>
-          </div>
-          <Link to="/contribua" className="btn-destaque">Como contribuir</Link>
+    <section className="container-site py-16 sm:py-20">
+      <div className="flex flex-col gap-6 border-l-4 border-destaque pl-6 sm:flex-row sm:items-center sm:justify-between sm:pl-8">
+        <div className="max-w-2xl">
+          <h2 className="text-2xl font-semibold text-marca-funda">{c.titulo}</h2>
+          <p className="mt-2 text-tinta-suave">{c.texto}</p>
         </div>
+        <Link to="/contribua" className="btn-primario shrink-0">Como contribuir</Link>
       </div>
     </section>
   );
@@ -229,18 +184,16 @@ function Contribua() {
 function Localizacao() {
   const { geral: g } = useConteudo();
   return (
-    <section id="localizacao" className="scroll-mt-24 bg-papel">
+    <section id="localizacao" className="scroll-mt-24 border-t border-linha/60 bg-papel">
       <div className="container-site grid gap-10 py-20 sm:py-24 lg:grid-cols-[1fr_1.4fr] lg:items-center">
         <div>
-          <p className="rotulo-secao">Localização</p>
-          <h2 className="titulo-secao mt-3">Como chegar</h2>
-          <p className="mt-5 flex gap-3 text-lg text-tinta">
-            <MapPin className="mt-1 shrink-0 text-destaque" />
-            <span>{g.endereco.linha1}<br />{g.endereco.linha2}{g.endereco.cep && <><br /><span className="text-tinta-suave">CEP {g.endereco.cep}</span></>}</span>
-          </p>
+          <h2 className="titulo-secao">Como chegar</h2>
+          <address className="mt-5 not-italic text-lg leading-relaxed text-tinta">
+            {g.endereco.linha1}<br />{g.endereco.linha2}{g.endereco.cep && <><br /><span className="text-tinta-suave">CEP {g.endereco.cep}</span></>}
+          </address>
           <div className="mt-7"><BotoesRota consulta={g.endereco.consultaMapa} /></div>
         </div>
-        <Mapa consulta={g.endereco.consultaMapa} className="aspect-[4/3] shadow-xl lg:aspect-[16/11]" />
+        <Mapa consulta={g.endereco.consultaMapa} className="aspect-[4/3] lg:aspect-[16/11]" />
       </div>
     </section>
   );

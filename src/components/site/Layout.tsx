@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Clock, Mail, MapPin, Menu, Phone, X } from "lucide-react";
+import { ArrowRight, Clock, Mail, MapPin, Menu, Phone, X } from "lucide-react";
 import { useConteudo } from "@/lib/contexto";
 import { useAoVivo } from "@/lib/ao-vivo";
 import { cn, linkTelefone, linkWhatsapp } from "@/lib/utils";
@@ -82,7 +82,7 @@ function SeloAoVivo() {
   return (
     <Link
       to="/ao-vivo"
-      className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-destaque px-3.5 py-1.5 text-[11.5px] font-bold uppercase tracking-wider text-white shadow-sm hover:bg-destaque-escuro"
+      className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md bg-destaque px-3 py-1.5 text-[12.5px] font-semibold text-white hover:bg-destaque-escuro"
     >
       <span className="ponto-vivo size-2 rounded-full bg-white" />
       Ao vivo
@@ -134,9 +134,8 @@ function Cabecalho() {
                 key={m.id}
                 para={m.para}
                 className={cn(
-                  "relative whitespace-nowrap rounded-full px-3 py-2 text-[13.5px] font-semibold text-tinta-suave transition-colors hover:text-marca",
-                  "font-[family-name:var(--font-titulo)]",
-                  ativo(m.para) && "text-marca after:absolute after:inset-x-3 after:-bottom-[3px] after:h-[2px] after:rounded-full after:bg-destaque",
+                  "relative whitespace-nowrap px-3 py-2 text-[14.5px] font-medium text-tinta-suave transition-colors hover:text-marca",
+                  ativo(m.para) && "text-marca after:absolute after:inset-x-3 after:-bottom-[20px] after:h-[2px] after:bg-marca",
                 )}
               >
                 {m.rotulo}
@@ -147,7 +146,7 @@ function Cabecalho() {
           <div className="flex items-center gap-2">
             <SeloAoVivo />
             {contribua && (
-              <LinkSite para={contribua.para} className="btn-primario hidden !px-5 !py-2.5 sm:inline-flex">{contribua.rotulo}</LinkSite>
+              <LinkSite para={contribua.para} className="btn-primario hidden !h-10 sm:inline-flex">{contribua.rotulo}</LinkSite>
             )}
             <button
               type="button"
@@ -170,7 +169,7 @@ function Cabecalho() {
                 key={m.id}
                 para={m.para}
                 className={cn(
-                  "rounded-lg px-3 py-3 text-[15px] font-semibold font-[family-name:var(--font-titulo)]",
+                  "rounded-md px-3 py-3 text-[16px] font-medium",
                   ativo(m.para) ? "bg-marca-clara text-marca" : "text-tinta hover:bg-fundo",
                 )}
               >
@@ -191,7 +190,6 @@ function Rodape() {
   const zap = linkWhatsapp(g.whatsapp, "Olá! Vim pelo site.");
   return (
     <footer className="relative overflow-hidden bg-marca-funda text-white/80">
-      <div aria-hidden className="arco-fundo pointer-events-none absolute inset-0 opacity-[0.05]" />
       <div className="container-site relative grid gap-10 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <Marca negativo />
@@ -200,7 +198,7 @@ function Rodape() {
         </div>
         <div>
           <h4 className="text-[12px] font-bold uppercase tracking-[0.18em] text-white">Navegue</h4>
-          <ul className="mt-4 grid gap-2 text-[15px]">
+          <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-[15px]">
             {c.menu.filter((m) => m.visivel).map((m) => (
               <li key={m.id}><LinkSite para={m.para} className="hover:text-white">{m.rotulo}</LinkSite></li>
             ))}
@@ -219,7 +217,7 @@ function Rodape() {
             {g.horarioAtendimento && <li className="flex gap-3"><Clock size={17} className="mt-1 shrink-0 text-white/60" />{g.horarioAtendimento}</li>}
           </ul>
           {zap && (
-            <a href={zap} target="_blank" rel="noopener noreferrer" className="btn-claro mt-5 !py-2.5">
+            <a href={zap} target="_blank" rel="noopener noreferrer" className="btn-claro mt-5 !h-10">
               <IconeWhatsapp size={16} /> WhatsApp
             </a>
           )}
@@ -259,15 +257,30 @@ export function LayoutSite({ children }: { children: ReactNode }) {
   );
 }
 
-/** Cabeçalho das páginas internas. */
-export function CapaPagina({ rotulo, titulo, texto }: { rotulo?: string; titulo: string; texto?: string }) {
+/** Cabeçalho de seção: título, texto opcional e um link discreto à direita. */
+export function CabecalhoSecao({ titulo, texto, link, rotuloLink, claro = false }: { titulo: string; texto?: string; link?: string; rotuloLink?: string; claro?: boolean }) {
   return (
-    <section className="relative overflow-hidden bg-marca text-white">
-      <div aria-hidden className="arco-fundo pointer-events-none absolute inset-0 opacity-[0.08]" />
-      <div className="container-site relative py-16 sm:py-20">
-        {rotulo && <p className="rotulo-secao !text-white/85 before:!bg-destaque">{rotulo}</p>}
-        <h1 className="surgir mt-3 max-w-3xl text-4xl font-bold sm:text-5xl">{titulo}</h1>
-        {texto && <p className="surgir mt-4 max-w-2xl text-lg text-white/80" style={{ animationDelay: "80ms" }}>{texto}</p>}
+    <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+      <div className="max-w-2xl">
+        <h2 className={claro ? "text-[1.85rem] font-semibold tracking-[-0.015em] text-white sm:text-[2.25rem]" : "titulo-secao"}>{titulo}</h2>
+        {texto && <p className={claro ? "mt-2 text-white/70" : "mt-2 text-tinta-suave"}>{texto}</p>}
+      </div>
+      {link && rotuloLink && (
+        <LinkSite para={link} className={`inline-flex items-center gap-1.5 text-[15px] font-semibold ${claro ? "text-white/85 hover:text-white" : "text-marca hover:text-marca-escura"}`}>
+          {rotuloLink} <ArrowRight size={16} />
+        </LinkSite>
+      )}
+    </div>
+  );
+}
+
+/** Cabeçalho das páginas internas. */
+export function CapaPagina({ titulo, texto }: { rotulo?: string; titulo: string; texto?: string }) {
+  return (
+    <section className="border-b border-white/10 bg-marca-funda text-white">
+      <div className="container-site py-14 sm:py-16">
+        <h1 className="max-w-3xl text-[2.2rem] font-semibold leading-tight tracking-[-0.02em] sm:text-[2.75rem]">{titulo}</h1>
+        {texto && <p className="mt-3 max-w-2xl text-[17px] leading-relaxed text-white/70">{texto}</p>}
       </div>
     </section>
   );

@@ -20,13 +20,12 @@ function Moldura({ children }: { children: React.ReactNode }) {
   const { geral } = useConteudo();
   return (
     <div className="relative min-h-screen overflow-hidden bg-marca-funda px-4 py-10 sm:py-16">
-      <img src="/simbolo-branco.svg" alt="" aria-hidden className="pointer-events-none absolute -bottom-[10%] left-1/2 w-[160%] max-w-none -translate-x-1/2 opacity-[0.06] sm:w-[110%]" />
       <div className="relative mx-auto max-w-xl">
         <div className="mb-6 flex items-center justify-center gap-3 text-white">
           <img src="/simbolo-negativo.svg" alt="" className="w-12" />
           <span className="text-[11px] font-semibold uppercase leading-tight tracking-[0.08em] text-white/85">{geral.nome}</span>
         </div>
-        <div className="surgir rounded-3xl bg-white p-6 shadow-2xl sm:p-9">{children}</div>
+        <div className="rounded-lg bg-white p-6 sm:p-9">{children}</div>
         <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-[12px] text-white/50"><ShieldCheck size={13} /> Link pessoal e intransferível — vale um único voto.</p>
       </div>
     </div>
@@ -44,7 +43,7 @@ function Cedula() {
   const [comprovante, setComprovante] = useState<string | null>(null);
 
   if (!d.encontrada) {
-    return <Moldura><h1 className="text-xl font-bold text-marca-funda">Link inválido</h1><p className="mt-2 text-tinta-suave">Este link de votação não existe ou foi removido. Confira com a secretaria da igreja.</p></Moldura>;
+    return <Moldura><h1 className="text-xl font-semibold text-marca-funda">Link inválido</h1><p className="mt-2 text-tinta-suave">Este link de votação não existe ou foi removido. Confira com a secretaria da igreja.</p></Moldura>;
   }
 
   const enviar = async () => {
@@ -64,7 +63,6 @@ function Cedula() {
 
   return (
     <Moldura>
-      <p className="rotulo-secao">Votação online</p>
       <h1 className="mt-2 text-2xl font-bold text-marca-funda sm:text-[1.75rem]">{d.titulo}</h1>
       {d.descricao && <p className="mt-3 whitespace-pre-line text-[15.5px] text-tinta-suave">{d.descricao}</p>}
       <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 border-y border-linha/60 py-3 text-[13px] text-tinta-suave">
@@ -75,7 +73,7 @@ function Cedula() {
       {comprovante ? (
         <div className="mt-8 text-center">
           <CheckCircle2 size={56} className="mx-auto text-emerald-600" />
-          <h2 className="mt-3 text-xl font-bold text-marca-funda">Voto registrado!</h2>
+          <h2 className="mt-3 text-xl font-semibold text-marca-funda">Voto registrado!</h2>
           <p className="mt-1 text-tinta-suave">Obrigado, {d.eleitor.split(" ")[0]}. Seu voto foi computado.</p>
           <p className="mt-5 text-[12px] uppercase tracking-wider text-tinta-suave">Comprovante</p>
           <p className="font-mono text-lg font-bold tracking-widest text-marca">{comprovante}</p>
@@ -106,7 +104,7 @@ function Cedula() {
           <p className="mt-1 text-tinta-suave">O resultado aparece aqui quando a votação for encerrada.</p>
         </div>
       ) : d.situacao === "agendada" || d.situacao === "rascunho" ? (
-        <div className="mt-6 rounded-2xl bg-marca-clara p-5 text-marca">
+        <div className="mt-6 rounded-md bg-marca-clara p-5 text-marca">
           <p className="font-semibold">A votação ainda não começou.</p>
           {d.situacao === "agendada" && <p className="mt-1 text-[14px]">Abre {quando(d.inicio)}. Volte por este mesmo link.</p>}
         </div>
@@ -122,7 +120,7 @@ function Cedula() {
                 disabled={confirmando}
                 onClick={() => setEscolha(o.id)}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl border-2 px-5 py-4 text-left text-[16px] font-semibold transition-all",
+                  "flex items-center gap-3 rounded-md border px-5 py-4 text-left text-[16px] font-medium transition-colors",
                   escolha === o.id ? "border-marca bg-marca-clara text-marca" : "border-linha hover:border-marca/40",
                 )}
               >
@@ -137,7 +135,7 @@ function Cedula() {
           {!confirmando ? (
             <button disabled={!escolha} onClick={() => setConfirmando(true)} className="btn-primario mt-6 w-full !py-4 text-[15px]">Continuar</button>
           ) : (
-            <div className="surgir mt-6 rounded-2xl border border-marca/30 bg-marca-clara p-5">
+            <div className="mt-6 rounded-md border border-marca/30 bg-marca-clara p-5">
               <p className="text-[15px]">Confirma o voto em <strong>“{textoOpcao}”</strong>? Depois de confirmado, não é possível alterar.</p>
               <div className="mt-4 flex gap-2">
                 <button disabled={enviando} onClick={() => setConfirmando(false)} className="btn-contorno flex-1">Voltar</button>

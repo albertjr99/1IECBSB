@@ -279,11 +279,11 @@ export const CONTEUDO_PADRAO: Conteudo = {
       "Conheça a nossa história, aquilo em que cremos e o propósito que nos move.",
     historiaTitulo: "Nossa história",
     historia:
-      "Escreva aqui a história da igreja: quando e como começou, quem foram os fundadores e os marcos da caminhada até hoje.\n\nEste texto é editado no painel, em A Igreja.",
+      "Há 54 anos, a Primeira Igreja Evangélica Congregacional de Brasília reúne famílias na Asa Sul para adorar a Deus, estudar as Escrituras e anunciar o evangelho de Jesus Cristo. A igreja é filiada à União das Igrejas Evangélicas Congregacionais do Brasil (UIECB).\n\nAlém dos cultos, da Escola Bíblica Dominical e dos estudos de quarta-feira, a igreja mantém departamentos para crianças, juniores, jovens, mulheres, homens e casais, um trabalho de assistência social e o apoio a campos missionários em Joinville, Pirenópolis, Florianópolis e na Espanha.",
     imagem: "",
-    missao: "Glorificar a Deus, anunciando o evangelho de Cristo e edificando vidas pela Palavra.",
-    visao: "Ser uma igreja bíblica, acolhedora e missionária em Brasília e além.",
-    valores: ["Centralidade das Escrituras", "Adoração", "Comunhão", "Missão", "Serviço"],
+    missao: "",
+    visao: "",
+    valores: [],
     feTitulo: "O que cremos",
     feIntroducao:
       "Somos uma igreja evangélica congregacional. Estes são alguns pontos centrais da nossa fé.",
@@ -325,12 +325,16 @@ export const CONTEUDO_PADRAO: Conteudo = {
   },
   ministerios: {
     titulo: "Ministérios",
-    introducao: "Há um lugar para você servir e crescer. Conheça os ministérios da igreja.",
+    introducao: "Departamentos e ministérios da igreja. Há um lugar para você servir e crescer.",
     itens: [
-      { id: "louvor", nome: "Louvor", descricao: "Conduz a igreja na adoração com música.", imagem: "", lider: "", quando: "", contato: "" },
-      { id: "infantil", nome: "Ministério Infantil", descricao: "Ensino da Palavra para as crianças.", imagem: "", lider: "", quando: "", contato: "" },
-      { id: "jovens", nome: "Jovens", descricao: "Comunhão e discipulado para a juventude.", imagem: "", lider: "", quando: "", contato: "" },
-      { id: "mulheres", nome: "Mulheres", descricao: "Encontros, estudos e congressos.", imagem: "", lider: "", quando: "", contato: "" },
+      { id: "louvor", nome: "Ministério de Louvor", descricao: "Conduz a igreja na adoração com música nos cultos e estudos.", imagem: "", lider: "", quando: "", contato: "" },
+      { id: "infantil", nome: "Departamento Infantil", descricao: "Ensino da Palavra para as crianças, com o Culto Infantil durante o culto matutino.", imagem: "", lider: "", quando: "Domingos, 9h", contato: "" },
+      { id: "juniores", nome: "Juniores", descricao: "Discipulado e comunhão para os juniores da igreja.", imagem: "", lider: "", quando: "", contato: "" },
+      { id: "jovens", nome: "União de Jovens", descricao: "Encontros nos lares e Culto Jovem para a juventude da igreja.", imagem: "", lider: "", quando: "2º e 4º sábados, 18h30 · 3º sábado, 19h (Culto Jovem)", contato: "" },
+      { id: "uaf", nome: "União Auxiliadora Feminina", descricao: "Reunião Sarah Kalley: estudo, oração e comunhão entre as mulheres da igreja.", imagem: "", lider: "", quando: "Terças, 14h30", contato: "" },
+      { id: "uhc", nome: "União de Homens Congregacionais", descricao: "Comunhão e serviço entre os homens da igreja.", imagem: "", lider: "", quando: "", contato: "" },
+      { id: "casais", nome: "Ministério de Casais", descricao: "Encontro para casais com oração e ação.", imagem: "", lider: "", quando: "3ª sexta-feira do mês, 20h", contato: "" },
+      { id: "assistencia", nome: "Assistência Social", descricao: "Cuidado com os mais necessitados, com arrecadação e distribuição de doações.", imagem: "", lider: "Irmã Silvana Silva", quando: "", contato: "" },
     ],
   },
   mensagens: {

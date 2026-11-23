@@ -12,22 +12,22 @@ function Lideranca() {
   const { lideranca: l } = useConteudo();
   return (
     <>
-      <CapaPagina rotulo="Quem nos serve" titulo={l.titulo} texto={l.introducao} />
+      <CapaPagina titulo={l.titulo} texto={l.introducao} />
       <div className="container-site py-16">
         {l.grupos.filter((g) => g.membros.length).map((g) => (
           <section key={g.id} className="py-8">
-            <h2 className="text-2xl font-bold text-marca-funda">{g.nome}</h2>
+            <h2 className="titulo-secao">{g.nome}</h2>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {g.membros.map((m) => (
-                <article key={m.id} className="overflow-hidden rounded-3xl bg-white ring-1 ring-linha/60">
+                <article key={m.id} className="overflow-hidden rounded-lg bg-white border border-linha/70">
                   {m.foto ? (
                     <img src={m.foto} alt={m.nome} className="aspect-[4/4.2] w-full object-cover object-top" loading="lazy" />
                   ) : (
-                    <div className="grid aspect-[4/4.2] place-items-center bg-marca-clara text-5xl font-extrabold text-marca/40 font-[family-name:var(--font-titulo)]">{iniciais(m.nome)}</div>
+                    <div className="grid aspect-[4/4.2] place-items-center bg-[#e9ebef] text-4xl font-medium text-marca/35">{iniciais(m.nome)}</div>
                   )}
-                  <div className="p-6">
-                    <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-destaque">{m.cargo}</p>
-                    <h3 className="mt-1 text-xl font-bold text-marca-funda">{m.nome}</h3>
+                  <div className="p-5">
+                    <h3 className="text-lg font-semibold leading-snug text-marca-funda">{m.nome}</h3>
+                    <p className="mt-1 text-[15px] text-tinta-suave">{m.cargo}</p>
                     {m.bio && <p className="mt-3 text-[15px] text-tinta-suave">{m.bio}</p>}
                   </div>
                 </article>

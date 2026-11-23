@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BookOpen, Compass, Target } from "lucide-react";
 import { useConteudo } from "@/lib/contexto";
 import { paragrafos } from "@/lib/utils";
 import { CapaPagina } from "@/components/site/Layout";
@@ -7,37 +6,31 @@ import { CapaPagina } from "@/components/site/Layout";
 export const Route = createFileRoute("/_site/sobre")({ component: Sobre, head: () => ({ meta: [{ title: "A Igreja" }] }) });
 
 function Sobre() {
-  const { sobre: s, geral } = useConteudo();
+  const { sobre: s } = useConteudo();
   return (
     <>
-      <CapaPagina rotulo={geral.nomeCurto} titulo={s.titulo} texto={s.introducao} />
+      <CapaPagina titulo={s.titulo} texto={s.introducao} />
 
-      <section className="container-site grid gap-12 py-20 lg:grid-cols-[1.2fr_1fr] lg:items-start">
-        <div>
-          <p className="rotulo-secao">Desde o início</p>
-          <h2 className="titulo-secao mt-3">{s.historiaTitulo}</h2>
-          <div className="texto-corrido mt-6 text-[17.5px] text-tinta-suave">
+      <section className={`container-site grid gap-12 py-20 ${s.imagem ? "lg:grid-cols-[1.2fr_1fr] lg:items-start" : ""}`}>
+        <div className="max-w-3xl">
+          <h2 className="titulo-secao">{s.historiaTitulo}</h2>
+          <div className="texto-corrido mt-6 text-[17.5px] leading-relaxed text-tinta-suave">
             {paragrafos(s.historia).map((p, i) => <p key={i}>{p}</p>)}
           </div>
         </div>
-        {s.imagem ? (
-          <img src={s.imagem} alt="" className="aspect-[4/5] w-full rounded-[2rem] object-cover shadow-xl" />
-        ) : (
-          <div className="grid aspect-[4/5] place-items-center rounded-[2rem] bg-marca shadow-xl"><img src="/simbolo-negativo.svg" alt="" className="w-3/5" /></div>
-        )}
+        {s.imagem && <img src={s.imagem} alt="" className="aspect-[4/5] w-full rounded-lg object-cover" />}
       </section>
 
       {(s.missao || s.visao || s.valores.length > 0) && (
-        <section className="bg-papel">
-          <div className="container-site grid gap-6 py-20 md:grid-cols-3">
-            {s.missao && <Pilar Icone={Target} titulo="Missão" texto={s.missao} />}
-            {s.visao && <Pilar Icone={Compass} titulo="Visão" texto={s.visao} />}
+        <section className="border-y border-linha/60 bg-papel">
+          <div className="container-site grid gap-10 py-16 md:grid-cols-3">
+            {s.missao && <Pilar titulo="Missão" texto={s.missao} />}
+            {s.visao && <Pilar titulo="Visão" texto={s.visao} />}
             {s.valores.length > 0 && (
-              <div className="rounded-3xl bg-marca p-8 text-white">
-                <BookOpen className="text-white/70" />
-                <h3 className="mt-4 text-xl font-bold">Valores</h3>
-                <ul className="mt-3 grid gap-2 text-white/85">
-                  {s.valores.filter(Boolean).map((v) => <li key={v} className="flex gap-2"><span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-destaque" />{v}</li>)}
+              <div className="border-t-2 border-marca pt-5">
+                <h3 className="text-lg font-semibold text-marca-funda">Valores</h3>
+                <ul className="mt-3 grid gap-1.5 text-tinta-suave">
+                  {s.valores.filter(Boolean).map((v) => <li key={v}>{v}</li>)}
                 </ul>
               </div>
             )}
@@ -47,32 +40,27 @@ function Sobre() {
 
       {s.fe.length > 0 && (
         <section id="fe" className="container-site scroll-mt-24 py-20">
-          <p className="rotulo-secao">Confissão</p>
-          <h2 className="titulo-secao mt-3">{s.feTitulo}</h2>
-          {s.feIntroducao && <p className="mt-4 max-w-2xl text-tinta-suave">{s.feIntroducao}</p>}
-          <div className="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2">
-            {s.fe.map((f, i) => (
-              <div key={f.id} className="flex gap-5 border-t border-linha/70 pt-6">
-                <span className="text-3xl font-extrabold text-marca-suave font-[family-name:var(--font-titulo)]">{String(i + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3 className="text-lg font-bold text-marca-funda">{f.titulo}</h3>
-                  <p className="mt-2 text-tinta-suave">{f.texto}</p>
-                </div>
+          <h2 className="titulo-secao">{s.feTitulo}</h2>
+          {s.feIntroducao && <p className="mt-3 max-w-2xl text-tinta-suave">{s.feIntroducao}</p>}
+          <dl className="mt-10 grid gap-x-12 gap-y-8 md:grid-cols-2">
+            {s.fe.map((f) => (
+              <div key={f.id} className="border-t border-linha pt-5">
+                <dt className="text-lg font-semibold text-marca-funda">{f.titulo}</dt>
+                <dd className="mt-2 leading-relaxed text-tinta-suave">{f.texto}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         </section>
       )}
     </>
   );
 }
 
-function Pilar({ Icone, titulo, texto }: { Icone: typeof Target; titulo: string; texto: string }) {
+function Pilar({ titulo, texto }: { titulo: string; texto: string }) {
   return (
-    <div className="rounded-3xl bg-white p-8 ring-1 ring-linha/60">
-      <Icone className="text-destaque" />
-      <h3 className="mt-4 text-xl font-bold text-marca-funda">{titulo}</h3>
-      <p className="mt-3 text-tinta-suave">{texto}</p>
+    <div className="border-t-2 border-marca pt-5">
+      <h3 className="text-lg font-semibold text-marca-funda">{titulo}</h3>
+      <p className="mt-3 leading-relaxed text-tinta-suave">{texto}</p>
     </div>
   );
 }
