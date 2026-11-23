@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/*
+ * As três cores da marca vêm do conteúdo (painel › Aparência) e entram como
+ * variáveis no <html>. Os tons derivados são calculados aqui, então trocar a
+ * cor no painel repinta o site inteiro.
+ */
+:root {
+  --cor-primaria: #00416b;
+  --cor-destaque: #c1242c;
+  --cor-fundo: #f7f5f0;
+}
+
+@theme inline {
+  --color-marca: var(--cor-primaria);
+  --color-marca-escura: color-mix(in oklab, var(--cor-primaria) 72%, black);
+  --color-marca-funda: color-mix(in oklab, var(--cor-primaria) 45%, black);
+  --color-marca-clara: color-mix(in oklab, var(--cor-primaria) 10%, white);
+  --color-marca-suave: color-mix(in oklab, var(--cor-primaria) 22%, white);
+  --color-destaque: var(--cor-destaque);
+  --color-destaque-escuro: color-mix(in oklab, var(--cor-destaque) 80%, black);
+  --color-destaque-claro: color-mix(in oklab, var(--cor-destaque) 10%, white);
+  --color-fundo: var(--cor-fundo);
+  --color-papel: color-mix(in oklab, var(--cor-fundo) 55%, white);
+  --color-tinta: #16202b;
+  --color-tinta-suave: #4b5866;
+  --color-linha: color-mix(in oklab, var(--cor-fundo) 70%, #8a8f96);
+
+  --font-titulo: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-texto: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-escritura: "Cormorant Garamond", ui-serif, Georgia, serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-fundo text-tinta antialiased;
+    font-family: var(--font-texto);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-titulo);
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--cor-primaria) 25%, white);
+  }
+  :focus-visible {
+    outline: 2px solid var(--cor-destaque);
+    outline-offset: 2px;
+  }
+}
+
+@utility container-site {
+  @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+}
+@utility rotulo-secao {
+  @apply inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.18em] text-destaque;
+  font-family: var(--font-titulo);
+  &::before {
+    content: "";
+    @apply inline-block h-[2px] w-6 bg-destaque;
+  }
+}
+@utility titulo-secao {
+  @apply text-3xl font-bold text-marca-funda sm:text-[2.6rem];
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold tracking-wide transition-all duration-200 disabled:opacity-50;
+  font-family: var(--font-titulo);
+}
+@utility btn-primario {
+  @apply btn bg-marca text-white shadow-sm hover:bg-marca-escura hover:shadow-md;
+}
+@utility btn-destaque {
+  @apply btn bg-destaque text-white shadow-sm hover:bg-destaque-escuro hover:shadow-md;
+}
+@utility btn-contorno {
+  @apply btn border border-marca/25 bg-white text-marca hover:border-marca hover:bg-marca-clara;
+}
+@utility btn-claro {
+  @apply btn border border-white/40 bg-white/10 text-white backdrop-blur hover:bg-white hover:text-marca-funda;
+}
+@utility texto-corrido {
+  & p + p {
+    margin-top: 1rem;
+  }
+}
+@utility escritura {
+  font-family: var(--font-escritura);
+  font-style: italic;
+}
+
+/* Arco da marca usado como textura de fundo */
+.arco-fundo {
+  background-image: url("/simbolo-branco.svg");
+  background-repeat: no-repeat;
+  background-size: 120% auto;
+  background-position: 50% 130%;
+}
+
+@keyframes pulso-vivo {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+.ponto-vivo {
+  animation: pulso-vivo 1.4s ease-in-out infinite;
+}
+
+@keyframes surgir {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.surgir {
+  animation: surgir 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
