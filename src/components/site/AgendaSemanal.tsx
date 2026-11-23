@@ -38,13 +38,13 @@ function Papel({ variante = 0, children, className }: { variante?: number; child
 
 function CartaoDia({ d, i, hoje }: { d: DiaAgenda; i: number; hoje: boolean }) {
   return (
-    <Papel variante={i} className="flex h-full flex-col p-6 sm:p-7">
+    <Papel variante={i} className="flex h-full flex-col p-6 pt-[34%] sm:p-7 sm:pt-[34%]">
       {hoje && (
         <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-destaque px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow">
           <span className="size-1.5 rounded-full bg-white" /> Hoje
         </span>
       )}
-      <div className="mt-auto">
+      <div>
         <h3 className="text-[2.6rem] font-extrabold uppercase leading-none tracking-[-0.01em] text-marca-escura">{d.dia}</h3>
         <ul className="mt-4 grid gap-2.5">
           {d.itens.map((it) => (
@@ -69,17 +69,18 @@ function CartaoCapa() {
   const fina = palavras.slice(0, meio).join(" ");
   const forte = palavras.slice(meio).join(" ");
   return (
-    <Papel variante={2} className="flex h-full flex-col p-5">
+    <Papel variante={2} className={cn("flex h-full flex-col p-6 sm:p-7", p.capaImagem ? "" : "pt-[34%] sm:pt-[34%]")}>
       {p.capaImagem && (
-        <div className="overflow-hidden rounded-[1.25rem] shadow-lg">
+        <div className="-mx-1 -mt-1 overflow-hidden rounded-[1.25rem] shadow-lg">
           <img src={p.capaImagem} alt="" className="aspect-[5/4] w-full object-cover object-top" loading="lazy" />
         </div>
       )}
-      <div className="mt-auto px-1 pt-5">
+      <div className={p.capaImagem ? "mt-auto pt-5" : ""}>
         <p className="text-[1.45rem] font-medium uppercase leading-none tracking-wide text-marca-escura font-[family-name:var(--font-titulo)]">{fina}</p>
-        <p className="mt-1 text-[1.9rem] font-extrabold uppercase leading-none text-marca-escura font-[family-name:var(--font-titulo)]">{forte}</p>
-        {p.capaSubtitulo && <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.14em] text-marca-escura/75">{p.capaSubtitulo}</p>}
+        <p className="mt-1.5 text-[2.1rem] font-extrabold uppercase leading-[0.95] text-marca-escura font-[family-name:var(--font-titulo)]">{forte}</p>
+        {p.capaSubtitulo && <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.14em] text-marca-escura/75">{p.capaSubtitulo}</p>}
       </div>
+      {!p.capaImagem && <img src="/simbolo.svg" alt="" aria-hidden className="mt-auto w-16 self-end opacity-80" />}
     </Papel>
   );
 }

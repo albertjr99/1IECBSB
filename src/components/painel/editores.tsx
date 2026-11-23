@@ -156,8 +156,8 @@ export function EditorProgramacao({ c, mudar }: P) {
         <Campo rotulo="Subtítulo" valor={p.subtitulo} onChange={(v) => mudar((d) => { d.programacao.subtitulo = v; })} />
         <Campo rotulo="Aviso abaixo do carrossel" valor={p.aviso} onChange={(v) => mudar((d) => { d.programacao.aviso = v; })} placeholder="Ex.: Programação sujeita a alterações." />
       </Secao>
-      <Secao titulo="Cartão de abertura" descricao="O primeiro cartão do carrossel, com foto.">
-        <CampoImagem rotulo="Foto" valor={p.capaImagem} onChange={(v) => mudar((d) => { d.programacao.capaImagem = v; })} proporcao="aspect-[5/4] max-w-xs" />
+      <Secao titulo="Cartão de abertura" descricao="O primeiro cartão do carrossel. A foto é opcional.">
+        <CampoImagem rotulo="Foto (opcional)" valor={p.capaImagem} onChange={(v) => mudar((d) => { d.programacao.capaImagem = v; })} proporcao="aspect-[5/4] max-w-xs" />
         <Grade>
           <Campo rotulo="Título" valor={p.capaTitulo} onChange={(v) => mudar((d) => { d.programacao.capaTitulo = v; })} dica="A primeira metade sai fina; a segunda, em destaque." />
           <Campo rotulo="Linha de baixo" valor={p.capaSubtitulo} onChange={(v) => mudar((d) => { d.programacao.capaSubtitulo = v; })} />

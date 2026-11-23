@@ -238,7 +238,7 @@ export const CONTEUDO_PADRAO: Conteudo = {
     aviso: "Programação sujeita a alterações. Confira o boletim da semana.",
     capaTitulo: "Conheça os nossos horários",
     capaSubtitulo: "Cultos · EBD · Estudos · Oração · Eventos",
-    capaImagem: "/fotos/pr-aluizio-lourenco.jpg",
+    capaImagem: "",
     dias: [
       { id: "domingo", dia: "Domingo", diaSemana: 0, observacao: "", itens: [
         { id: "ag-1", titulo: "Consagração", detalhe: "", horario: "8h" },
