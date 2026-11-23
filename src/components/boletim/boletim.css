@@ -1,0 +1,149 @@
+/*
+ * Boletim dominical — reprodução do modelo em Word da igreja.
+ * Medidas tiradas do PDF original (A4, em pontos). Carlito e Caladea têm as
+ * mesmas métricas de Calibri e Cambria: as linhas quebram nos mesmos lugares.
+ */
+@font-face { font-family: "BolCalibri"; src: url("/fontes/Carlito-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: block; }
+@font-face { font-family: "BolCalibri"; src: url("/fontes/Carlito-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: block; }
+@font-face { font-family: "BolCalibri"; src: url("/fontes/Carlito-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: block; }
+@font-face { font-family: "BolCalibri"; src: url("/fontes/Carlito-BoldItalic.woff2") format("woff2"); font-weight: 700; font-style: italic; font-display: block; }
+@font-face { font-family: "BolCambria"; src: url("/fontes/Caladea-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: block; }
+
+.bol-folhas { --cinza-escuro: #262626; --cinza-agenda: #404040; --cinza-medio: #a6a6a6; --cinza-titulo: #bfbfbf; --cinza-claro: #d9d9d9; --cinza-fundo: #f2f2f2; }
+
+.bol-tela .bol-folhas { display: grid; gap: var(--bol-espaco, 24px); }
+.bol-tela .bol-pagina { box-shadow: 0 2px 14px rgba(15, 23, 42, 0.18); }
+
+.bol-pagina {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  padding: 20pt 24pt 18pt 28.9pt;
+  background: #fff;
+  color: #000;
+  font-family: "BolCalibri", Calibri, Carlito, sans-serif;
+  font-size: 16pt;
+  line-height: 1.227;
+  overflow: hidden;
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  font-kerning: normal;
+  hyphens: manual;
+}
+.bol-pagina *, .bol-pagina *::before, .bol-pagina *::after { box-sizing: border-box; }
+.bol-pagina p { margin: 0; }
+.bol-pagina h1, .bol-pagina h2, .bol-pagina h3, .bol-pagina h4 { font-family: inherit; letter-spacing: normal; color: inherit; }
+.bol-pagina strong, .bol-pagina b { font-weight: 700; }
+.bol-pagina em, .bol-pagina i { font-style: italic; }
+
+.bol-corpo { height: 100%; display: flex; flex-direction: column; }
+.bol-blocos { display: flex; flex-wrap: wrap; align-content: flex-start; column-gap: 12pt; row-gap: 8pt; }
+
+/* Larguras: blocos lado a lado formam uma linha */
+.bol-l-inteira { width: 100%; }
+.bol-l-dois-tercos { width: calc(66.8% - 12pt); }
+.bol-l-um-terco { width: 33.2%; }
+.bol-l-larga { width: calc(64% - 6pt); }
+.bol-l-estreita { width: calc(36% - 6pt); }
+.bol-pagina.bol-pg-tabelas { padding: 22pt 29pt 12pt 21.7pt; }
+.bol-pg-tabelas .bol-blocos { column-gap: 4.3pt; row-gap: 0; }
+/* Na página de tabelas, as tabelas encostam umas nas outras como no Word;
+   só a escala, os ofícios e a agenda abrem um respiro antes. */
+.bol-pg-tabelas .bol-blocos > [data-tipo="agenda"],
+.bol-pg-tabelas .bol-blocos > [data-tipo="expediente"],
+.bol-pg-tabelas .bol-blocos > [data-tipo="texto"],
+.bol-pg-tabelas .bol-blocos > [data-tipo="tabela"] { margin-top: 6pt; }
+.bol-pg-tabelas .bol-blocos > [data-tipo="oficios"],
+.bol-pg-tabelas .bol-blocos > [data-tipo="trabalhos"],
+.bol-pg-tabelas .bol-blocos > [data-tipo="parcerias"] { margin-top: -0.5pt; }
+.bol-pg-tabelas .bol-blocos > :first-child, .bol-pg-tabelas .bol-blocos > :nth-child(2) { margin-top: 0; }
+.bol-pg-tabelas .bol-l-larga { width: calc(64% - 2.2pt); }
+.bol-pg-tabelas .bol-l-estreita { width: calc(36% - 2.1pt); }
+
+/* Cabeçalho da primeira página */
+.bol-banner { display: block; width: 100%; height: auto; margin-top: 1pt; }
+.bol-data-capa { text-align: center; font-weight: 700; font-size: 13.9pt; line-height: 1.2; margin-top: 4pt; padding-bottom: 3pt; border-bottom: 0.75pt solid #000; margin-bottom: 4pt; }
+
+/* Cabeçalho das demais páginas (alterna esquerda/direita, como no Word) */
+.bol-cabecalho { font-weight: 700; font-size: 12pt; line-height: 1.2; padding-bottom: 2pt; border-bottom: 0.75pt solid #000; margin-bottom: 8pt; }
+.bol-cabecalho.bol-dir { text-align: right; }
+
+/* Artigo / pastoral */
+.bol-artigo { text-align: justify; }
+.bol-artigo .bol-rotulo { font-weight: 700; font-style: italic; font-size: 13.9pt; line-height: 1.2; }
+.bol-artigo .bol-rotulo.bol-dir { text-align: right; padding-right: 8pt; }
+.bol-artigo h2 { font-size: 18pt; font-weight: 700; line-height: 1.2; margin: 2pt 0 4pt; text-align: center; }
+.bol-artigo p { text-indent: 28pt; }
+.bol-artigo .bol-assinatura { text-align: right; text-indent: 0; margin-top: 12pt; padding-right: 10pt; }
+.bol-artigo.bol-2col .bol-rotulo { font-size: 12pt; margin-bottom: 8pt; }
+.bol-artigo.bol-2col h2 { text-align: left; padding-left: 28pt; margin: 0 0 14pt; }
+.bol-artigo.bol-2col p { text-indent: 20pt; }
+.bol-artigo.bol-2col .bol-assinatura { margin-top: 10pt; }
+
+/* Avisos */
+.bol-avisos { text-align: justify; }
+
+/* Tabelas */
+.bol-tab { width: 100%; border-collapse: collapse; font-size: 10pt; line-height: 1.22; }
+.bol-tab td, .bol-tab th { border: 0.5pt solid #000; padding: 0 3pt; vertical-align: middle; }
+.bol-tab .bol-tit-escuro { background: var(--cinza-escuro); color: #fff; font-weight: 700; font-size: 11pt; text-align: center; text-transform: uppercase; padding: 0.7pt 3pt; }
+.bol-tab .bol-sub-escuro { background: var(--cinza-escuro); color: #fff; font-weight: 700; text-align: center; }
+.bol-tab .bol-sub-medio { background: var(--cinza-medio); color: #fff; font-weight: 700; text-align: center; }
+.bol-tab .bol-tit-cinza { background: var(--cinza-titulo); font-weight: 700; font-size: 13.9pt; line-height: 1.2; text-align: center; padding: 0 3pt; }
+.bol-tab .bol-sub-claro { background: var(--cinza-claro); font-weight: 700; text-align: center; }
+.bol-tab .bol-rot { font-weight: 700; text-align: left; }
+.bol-escala .bol-rot { background: var(--cinza-fundo); }
+.bol-escala .bol-tit-escuro { font-size: 12pt; }
+.bol-tab .bol-c { text-align: center; }
+
+.bol-aniv { font-size: 9pt; }
+.bol-aniv td { background: var(--cinza-claro); border: 0.5pt solid #fff; padding: 0 4pt; line-height: 1.1; font-size: 9.1pt; }
+.bol-aniv td.bol-dia { width: 22pt; text-align: center; }
+.bol-aniv .bol-tit-escuro { border: 0.5pt solid #000; }
+.bol-versiculo { text-align: center; font-style: italic; font-size: 12pt; line-height: 1.22; margin-top: 5pt; }
+.bol-versiculo small { display: block; font-size: 9.1pt; }
+
+.bol-oficios td { width: 25%; text-align: center; vertical-align: top; font-size: 9.1pt; line-height: 1.22; padding: 0.5pt 3pt 1.5pt; }
+.bol-oficios td strong { font-size: 10.1pt; }
+.bol-trabalhos td { width: 50%; text-align: center; font-size: 9.1pt; line-height: 1.22; vertical-align: top; }
+.bol-trabalhos td.bol-sub-claro { font-size: 10pt; vertical-align: middle; }
+.bol-parcerias td { width: 50%; font-size: 7.4pt; line-height: 1.22; vertical-align: top; text-align: left; padding: 0 2pt; }
+
+.bol-agenda td { font-size: 9.1pt; line-height: 1.22; }
+.bol-agenda .bol-tit-agenda { background: var(--cinza-agenda); color: #fff; font-weight: 700; font-size: 13.9pt; text-align: center; padding: 0.5pt; }
+.bol-agenda .bol-mes { background: var(--cinza-claro); font-weight: 700; font-size: 12pt; text-align: center; }
+.bol-agenda td.bol-data { width: 68pt; text-align: center; }
+.bol-agenda td.bol-hora { width: 38pt; text-align: center; }
+
+.bol-expediente { text-align: center; color: #262626; font-family: Arial, Helvetica, sans-serif; font-size: 7.4pt; line-height: 1.25; }
+.bol-expediente img { width: 54pt; height: auto; display: block; margin: 0 auto 2pt; }
+.bol-expediente .bol-exp-nome { font-weight: 700; font-size: 10pt; line-height: 1.15; }
+.bol-expediente .bol-exp-tit { font-weight: 700; margin-top: 8pt; }
+
+.bol-texto-livre h3 { font-size: 18pt; font-weight: 700; line-height: 1.2; margin: 0 0 2pt; }
+.bol-texto-livre { text-align: justify; }
+.bol-texto-livre.bol-caixa { border: 0.75pt solid #000; padding: 6pt 8pt; }
+.bol-texto-livre p + p { margin-top: 6pt; }
+
+/* Aviso de transbordo (só na tela) */
+.bol-transbordo { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(220, 38, 38, 0.92); color: #fff; font: 600 11px/1.3 system-ui, sans-serif; padding: 6px 10px; text-align: center; }
+
+@media print {
+  @page { size: A4; margin: 0; }
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  .bol-pagina { break-after: page; box-shadow: none !important; margin: 0 !important; }
+  .bol-pagina:last-child { break-after: auto; }
+  .bol-transbordo, .nao-imprimir { display: none !important; }
+}
+
+/* Texto corrido em duas colunas de larguras diferentes (como as seções do Word):
+   o texto enche a coluna da esquerda e continua na da direita. */
+.bol-corpo { position: relative; }
+.bol-fluxo { display: flex; align-items: flex-start; }
+.bol-fluxo > .bol-col { min-width: 0; }
+.bol-fluxo > .bol-col > :first-child { margin-top: 0 !important; }
+.bol-fluxo .bol-corte { text-align-last: justify; }
+.bol-fluxo .bol-cont { text-indent: 0 !important; }
+.bol-avisos h3 { font-size: 18pt; font-weight: 700; line-height: 1.2; margin: 12pt 0 0; text-align: left; }
+.bol-avisos > .bol-col > h3:first-child, .bol-avisos > h3:first-child { margin-top: 0; }

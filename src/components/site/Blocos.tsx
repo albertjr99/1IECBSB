@@ -1,46 +1,9 @@
 import { useEffect, useState } from "react";
-import { CalendarDays, Clock, ExternalLink, MapPin, Navigation, Play, X } from "lucide-react";
-import type { Atividade, Evento } from "@/lib/conteudo";
+import { CalendarDays, ExternalLink, MapPin, Navigation, Play, X } from "lucide-react";
+import type { Evento } from "@/lib/conteudo";
 import type { Video } from "@/server/youtube";
 import { cn, dataCurta, diaMes, duracaoTexto, periodo } from "@/lib/utils";
 import { LinkSite } from "./Link";
-
-// ─── Programação ────────────────────────────────────────────────────────────
-
-const estilos = {
-  azul: { caixa: "bg-marca text-white", dia: "text-white/70", hora: "bg-white/15 text-white", texto: "text-white/80", link: "text-white hover:text-white/80" },
-  vermelho: { caixa: "bg-destaque text-white", dia: "text-white/75", hora: "bg-white/15 text-white", texto: "text-white/85", link: "text-white hover:text-white/80" },
-  claro: { caixa: "bg-white text-tinta ring-1 ring-linha/60", dia: "text-destaque", hora: "bg-marca-clara text-marca", texto: "text-tinta-suave", link: "text-marca hover:text-marca-escura" },
-} as const;
-
-export function CartaoAtividade({ a }: { a: Atividade }) {
-  const e = estilos[a.cor] ?? estilos.claro;
-  return (
-    <article className={cn("group relative flex flex-col overflow-hidden rounded-3xl p-7 transition-transform duration-300 hover:-translate-y-1", e.caixa)}>
-      {a.cor !== "claro" && <div aria-hidden className="arco-fundo pointer-events-none absolute inset-0 opacity-[0.07]" />}
-      <p className={cn("relative text-[12px] font-bold uppercase tracking-[0.16em]", e.dia)}>{a.dia}</p>
-      <h3 className="relative mt-2 text-[1.45rem] font-bold">{a.titulo}</h3>
-      {a.horarios.length > 0 && (
-        <div className="relative mt-4 flex flex-wrap gap-2">
-          {a.horarios.filter(Boolean).map((h) => (
-            <span key={h} className={cn("inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[15px] font-bold font-[family-name:var(--font-titulo)]", e.hora)}>
-              <Clock size={14} />{h}
-            </span>
-          ))}
-        </div>
-      )}
-      {a.descricao && <p className={cn("relative mt-4 text-[15.5px]", e.texto)}>{a.descricao}</p>}
-      <div className="relative mt-auto pt-5">
-        {a.local && <p className={cn("flex items-center gap-2 text-[14.5px]", e.texto)}><MapPin size={15} />{a.local}</p>}
-        {a.link && a.rotuloLink && (
-          <LinkSite para={a.link} className={cn("mt-3 inline-flex items-center gap-1.5 text-[14px] font-bold font-[family-name:var(--font-titulo)]", e.link)}>
-            {a.rotuloLink} →
-          </LinkSite>
-        )}
-      </div>
-    </article>
-  );
-}
 
 // ─── Eventos ────────────────────────────────────────────────────────────────
 

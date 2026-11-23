@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SiteRouteImport } from './routes/_site'
 import { Route as SiteIndexRouteImport } from './routes/_site/index'
 import { Route as SiteAoVivoRouteImport } from './routes/_site/ao-vivo'
+import { Route as SiteBoletinsRouteImport } from './routes/_site/boletins'
 import { Route as SiteContatoRouteImport } from './routes/_site/contato'
 import { Route as SiteContribuaRouteImport } from './routes/_site/contribua'
 import { Route as SiteLiderancaRouteImport } from './routes/_site/lideranca'
@@ -21,6 +22,10 @@ import { Route as SiteProgramacaoRouteImport } from './routes/_site/programacao'
 import { Route as SiteSobreRouteImport } from './routes/_site/sobre'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminEntrarRouteImport } from './routes/admin/entrar'
+import { Route as VotarTokenRouteImport } from './routes/votar.$token'
+import { Route as SiteBoletimDataRouteImport } from './routes/_site/boletim.$data'
+import { Route as ImpressaoBoletimIdRouteImport } from './routes/impressao.boletim.$id'
+import { Route as ApiBoletimIdPdfRouteImport } from './routes/api/boletim.$id.pdf'
 
 const SiteRoute = SiteRouteImport.update({
   id: '/_site',
@@ -34,6 +39,11 @@ const SiteIndexRoute = SiteIndexRouteImport.update({
 const SiteAoVivoRoute = SiteAoVivoRouteImport.update({
   id: '/ao-vivo',
   path: '/ao-vivo',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteBoletinsRoute = SiteBoletinsRouteImport.update({
+  id: '/boletins',
+  path: '/boletins',
   getParentRoute: () => SiteRoute,
 } as any)
 const SiteContatoRoute = SiteContatoRouteImport.update({
@@ -81,10 +91,31 @@ const AdminEntrarRoute = AdminEntrarRouteImport.update({
   path: '/admin/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VotarTokenRoute = VotarTokenRouteImport.update({
+  id: '/votar/$token',
+  path: '/votar/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SiteBoletimDataRoute = SiteBoletimDataRouteImport.update({
+  id: '/boletim/$data',
+  path: '/boletim/$data',
+  getParentRoute: () => SiteRoute,
+} as any)
+const ImpressaoBoletimIdRoute = ImpressaoBoletimIdRouteImport.update({
+  id: '/impressao/boletim/$id',
+  path: '/impressao/boletim/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBoletimIdPdfRoute = ApiBoletimIdPdfRouteImport.update({
+  id: '/api/boletim/$id/pdf',
+  path: '/api/boletim/$id/pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof SiteIndexRoute
   '/ao-vivo': typeof SiteAoVivoRoute
+  '/boletins': typeof SiteBoletinsRoute
   '/contato': typeof SiteContatoRoute
   '/contribua': typeof SiteContribuaRoute
   '/lideranca': typeof SiteLiderancaRoute
@@ -93,10 +124,15 @@ export interface FileRoutesByFullPath {
   '/programacao': typeof SiteProgramacaoRoute
   '/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
+  '/votar/$token': typeof VotarTokenRoute
   '/admin/': typeof AdminIndexRoute
+  '/boletim/$data': typeof SiteBoletimDataRoute
+  '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
+  '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
 export interface FileRoutesByTo {
   '/ao-vivo': typeof SiteAoVivoRoute
+  '/boletins': typeof SiteBoletinsRoute
   '/contato': typeof SiteContatoRoute
   '/contribua': typeof SiteContribuaRoute
   '/lideranca': typeof SiteLiderancaRoute
@@ -105,13 +141,18 @@ export interface FileRoutesByTo {
   '/programacao': typeof SiteProgramacaoRoute
   '/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
+  '/votar/$token': typeof VotarTokenRoute
   '/': typeof SiteIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/boletim/$data': typeof SiteBoletimDataRoute
+  '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
+  '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_site': typeof SiteRouteWithChildren
   '/_site/ao-vivo': typeof SiteAoVivoRoute
+  '/_site/boletins': typeof SiteBoletinsRoute
   '/_site/contato': typeof SiteContatoRoute
   '/_site/contribua': typeof SiteContribuaRoute
   '/_site/lideranca': typeof SiteLiderancaRoute
@@ -120,14 +161,19 @@ export interface FileRoutesById {
   '/_site/programacao': typeof SiteProgramacaoRoute
   '/_site/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
+  '/votar/$token': typeof VotarTokenRoute
   '/_site/': typeof SiteIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_site/boletim/$data': typeof SiteBoletimDataRoute
+  '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
+  '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/ao-vivo'
+    | '/boletins'
     | '/contato'
     | '/contribua'
     | '/lideranca'
@@ -136,10 +182,15 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/sobre'
     | '/admin/entrar'
+    | '/votar/$token'
     | '/admin/'
+    | '/boletim/$data'
+    | '/impressao/boletim/$id'
+    | '/api/boletim/$id/pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/ao-vivo'
+    | '/boletins'
     | '/contato'
     | '/contribua'
     | '/lideranca'
@@ -148,12 +199,17 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/sobre'
     | '/admin/entrar'
+    | '/votar/$token'
     | '/'
     | '/admin'
+    | '/boletim/$data'
+    | '/impressao/boletim/$id'
+    | '/api/boletim/$id/pdf'
   id:
     | '__root__'
     | '/_site'
     | '/_site/ao-vivo'
+    | '/_site/boletins'
     | '/_site/contato'
     | '/_site/contribua'
     | '/_site/lideranca'
@@ -162,14 +218,21 @@ export interface FileRouteTypes {
     | '/_site/programacao'
     | '/_site/sobre'
     | '/admin/entrar'
+    | '/votar/$token'
     | '/_site/'
     | '/admin/'
+    | '/_site/boletim/$data'
+    | '/impressao/boletim/$id'
+    | '/api/boletim/$id/pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   SiteRoute: typeof SiteRouteWithChildren
   AdminEntrarRoute: typeof AdminEntrarRoute
+  VotarTokenRoute: typeof VotarTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  ImpressaoBoletimIdRoute: typeof ImpressaoBoletimIdRoute
+  ApiBoletimIdPdfRoute: typeof ApiBoletimIdPdfRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -193,6 +256,13 @@ declare module '@tanstack/react-router' {
       path: '/ao-vivo'
       fullPath: '/ao-vivo'
       preLoaderRoute: typeof SiteAoVivoRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/boletins': {
+      id: '/_site/boletins'
+      path: '/boletins'
+      fullPath: '/boletins'
+      preLoaderRoute: typeof SiteBoletinsRouteImport
       parentRoute: typeof SiteRoute
     }
     '/_site/contato': {
@@ -258,11 +328,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/votar/$token': {
+      id: '/votar/$token'
+      path: '/votar/$token'
+      fullPath: '/votar/$token'
+      preLoaderRoute: typeof VotarTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_site/boletim/$data': {
+      id: '/_site/boletim/$data'
+      path: '/boletim/$data'
+      fullPath: '/boletim/$data'
+      preLoaderRoute: typeof SiteBoletimDataRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/impressao/boletim/$id': {
+      id: '/impressao/boletim/$id'
+      path: '/impressao/boletim/$id'
+      fullPath: '/impressao/boletim/$id'
+      preLoaderRoute: typeof ImpressaoBoletimIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/boletim/$id/pdf': {
+      id: '/api/boletim/$id/pdf'
+      path: '/api/boletim/$id/pdf'
+      fullPath: '/api/boletim/$id/pdf'
+      preLoaderRoute: typeof ApiBoletimIdPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface SiteRouteChildren {
   SiteAoVivoRoute: typeof SiteAoVivoRoute
+  SiteBoletinsRoute: typeof SiteBoletinsRoute
   SiteContatoRoute: typeof SiteContatoRoute
   SiteContribuaRoute: typeof SiteContribuaRoute
   SiteLiderancaRoute: typeof SiteLiderancaRoute
@@ -271,10 +370,12 @@ interface SiteRouteChildren {
   SiteProgramacaoRoute: typeof SiteProgramacaoRoute
   SiteSobreRoute: typeof SiteSobreRoute
   SiteIndexRoute: typeof SiteIndexRoute
+  SiteBoletimDataRoute: typeof SiteBoletimDataRoute
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
   SiteAoVivoRoute: SiteAoVivoRoute,
+  SiteBoletinsRoute: SiteBoletinsRoute,
   SiteContatoRoute: SiteContatoRoute,
   SiteContribuaRoute: SiteContribuaRoute,
   SiteLiderancaRoute: SiteLiderancaRoute,
@@ -283,6 +384,7 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteProgramacaoRoute: SiteProgramacaoRoute,
   SiteSobreRoute: SiteSobreRoute,
   SiteIndexRoute: SiteIndexRoute,
+  SiteBoletimDataRoute: SiteBoletimDataRoute,
 }
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
@@ -290,7 +392,10 @@ const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   SiteRoute: SiteRouteWithChildren,
   AdminEntrarRoute: AdminEntrarRoute,
+  VotarTokenRoute: VotarTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
+  ImpressaoBoletimIdRoute: ImpressaoBoletimIdRoute,
+  ApiBoletimIdPdfRoute: ApiBoletimIdPdfRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

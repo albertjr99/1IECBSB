@@ -6,7 +6,7 @@ import { useAoVivo } from "@/lib/ao-vivo";
 import { listarVideos } from "@/lib/api";
 import type { Video } from "@/server/youtube";
 import { CapaPagina } from "@/components/site/Layout";
-import { CartaoAtividade } from "@/components/site/Blocos";
+import { AgendaCompacta } from "@/components/site/AgendaSemanal";
 import { IconeYoutube } from "@/components/site/Icones";
 
 export const Route = createFileRoute("/_site/ao-vivo")({ component: AoVivo, head: () => ({ meta: [{ title: "Ao vivo" }] }) });
@@ -80,7 +80,7 @@ function AoVivo() {
             </div>
             <div className="grid content-start gap-4">
               <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-tinta-suave">Horários da semana</p>
-              {c.programacao.atividades.slice(0, 3).map((a) => <CartaoAtividade key={a.id} a={a} />)}
+              <AgendaCompacta />
             </div>
           </div>
         )}

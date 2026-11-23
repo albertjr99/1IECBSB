@@ -11,7 +11,10 @@ export default defineConfig({
     tailwindcss(),
     tanstackStart(),
     // Na Vercel o preset é detectado sozinho; localmente gera um servidor Node.
-    nitro(),
+    nitro({
+      // O gerador de PDF do boletim usa um Chromium empacotado: vai inteiro para a função.
+      traceDeps: ["@sparticuz/chromium", "puppeteer-core"],
+    }),
     viteReact(),
   ],
 });

@@ -62,9 +62,9 @@ export function PainelVersoes({ aoRestaurar }: { aoRestaurar: (c: Conteudo) => v
 
 type U = Awaited<ReturnType<typeof listarUsuarios>>[number];
 
-export function PainelUsuarios({ souAdmin, meuEmail }: { souAdmin: boolean; meuEmail: string }) {
+export function PainelUsuarios({ souAdmin, meuUsuario }: { souAdmin: boolean; meuUsuario: string }) {
   const [lista, setLista] = useState<U[] | null>(null);
-  const [form, setForm] = useState({ nome: "", email: "", papel: "editor" as "admin" | "editor", senha: "" });
+  const [form, setForm] = useState({ nome: "", usuario: "", papel: "editor" as "admin" | "editor", senha: "" });
   const [salvando, setSalvando] = useState(false);
   const carregar = () => listarUsuarios().then(setLista).catch((e) => toast.error(e.message));
   useEffect(() => { carregar(); }, []);
@@ -75,7 +75,7 @@ export function PainelUsuarios({ souAdmin, meuEmail }: { souAdmin: boolean; meuE
     try {
       await salvarUsuario({ data: { ...form, senha: form.senha || undefined } as never });
       toast.success("Usuário salvo.");
-      setForm({ nome: "", email: "", papel: "editor", senha: "" });
+      setForm({ nome: "", usuario: "", papel: "editor", senha: "" });
       carregar();
     } catch (err) { toast.error(err instanceof Error ? err.message : "Erro"); } finally { setSalvando(false); }
   };
@@ -86,15 +86,15 @@ export function PainelUsuarios({ souAdmin, meuEmail }: { souAdmin: boolean; meuE
         {!lista ? <Loader2 className="animate-spin text-slate-400" /> : (
           <ul className="divide-y divide-slate-100">
             {lista.map((u) => (
-              <li key={u.email} className="flex items-center justify-between gap-3 py-3">
-                <button type="button" disabled={!souAdmin} onClick={() => setForm({ nome: u.nome, email: u.email, papel: u.papel, senha: "" })} className="min-w-0 text-left">
-                  <p className="truncate text-[14px] font-semibold text-slate-800">{u.nome} {u.email === meuEmail && <span className="text-[12px] font-normal text-slate-400">(você)</span>}</p>
-                  <p className="truncate text-[12px] text-slate-500">{u.email} · {u.papel === "admin" ? "Administrador" : "Editor"}</p>
+              <li key={u.usuario} className="flex items-center justify-between gap-3 py-3">
+                <button type="button" disabled={!souAdmin} onClick={() => setForm({ nome: u.nome, usuario: u.usuario, papel: u.papel, senha: "" })} className="min-w-0 text-left">
+                  <p className="truncate text-[14px] font-semibold text-slate-800">{u.nome} {u.usuario === meuUsuario && <span className="text-[12px] font-normal text-slate-400">(você)</span>}</p>
+                  <p className="truncate text-[12px] text-slate-500">acesso: {u.usuario} · {u.papel === "admin" ? "Administrador" : "Editor"}</p>
                 </button>
-                {souAdmin && u.email !== meuEmail && (
+                {souAdmin && u.usuario !== meuUsuario && (
                   <button type="button" title="Remover" onClick={async () => {
                     if (!confirm(`Remover o acesso de ${u.nome}?`)) return;
-                    try { await removerUsuario({ data: { email: u.email } }); carregar(); } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+                    try { await removerUsuario({ data: { usuario: u.usuario } }); carregar(); } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
                   }} className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={16} /></button>
                 )}
               </li>
@@ -106,8 +106,8 @@ export function PainelUsuarios({ souAdmin, meuEmail }: { souAdmin: boolean; meuE
         <Secao titulo="Adicionar ou alterar usuário" descricao="Para alterar alguém, clique no nome dele acima. Senha em branco mantém a atual.">
           <form onSubmit={enviar} className="grid gap-4">
             <Grade>
-              <Campo rotulo="Nome" valor={form.nome} onChange={(v) => setForm({ ...form, nome: v })} />
-              <Campo rotulo="E-mail" tipo="email" valor={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+              <Campo rotulo="Nome completo" valor={form.nome} onChange={(v) => setForm({ ...form, nome: v, usuario: form.usuario || "" })} placeholder="Ex.: Pr. Hilário José" />
+              <Campo rotulo="Nome de acesso" valor={form.usuario} onChange={(v) => setForm({ ...form, usuario: v })} placeholder="Ex.: Hilario" dica="O primeiro nome, usado para entrar. Se houver dois iguais, acrescente algo (ex.: MariaIsabel)." />
               <Selecao rotulo="Permissão" valor={form.papel} onChange={(v) => setForm({ ...form, papel: v })} opcoes={[{ valor: "editor", rotulo: "Editor" }, { valor: "admin", rotulo: "Administrador" }]} />
               <Campo rotulo="Senha" tipo="password" valor={form.senha} onChange={(v) => setForm({ ...form, senha: v })} dica="Mínimo de 8 caracteres." />
             </Grade>

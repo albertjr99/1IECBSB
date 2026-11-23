@@ -230,6 +230,18 @@ function Rodape() {
           <p>© {new Date().getFullYear()} {g.nome}</p>
           <Link to="/admin" className="hover:text-white/80">Área administrativa</Link>
         </div>
+        {/* Crédito de quem produziu o site. */}
+        <div className="container-site flex items-center justify-center gap-2 pb-6 text-[12px] text-white/50">
+          <span>Produzido por</span>
+          <span aria-hidden className="text-white/25">|</span>
+          <a
+            href={`mailto:contato.gratiast@gmail.com?subject=${encodeURIComponent(`Contato pelo site da ${g.nomeCurto}`)}`}
+            title="GRATIA Software e Tecnologia — enviar e-mail"
+            className="rounded opacity-80 transition-opacity hover:opacity-100"
+          >
+            <img src="/logo-gratia-branco.svg" alt="GRATIA Software e Tecnologia" width={130} height={28} className="h-7 w-auto" />
+          </a>
+        </div>
       </div>
     </footer>
   );

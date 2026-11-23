@@ -18,8 +18,20 @@ antes de publicar.
 | `/ao-vivo` | Transmissão ao vivo automática; fora do horário, a próxima agendada |
 | `/contribua` | PIX (com botão copiar) e contas bancárias |
 | `/contato` | Contatos, formulário que abre o WhatsApp, mapa e rotas |
+| `/boletins`, `/boletim/AAAA-MM-DD` | Boletim dominical no modelo da igreja, com PDF e compartilhamento |
+| `/votar/<link>` | Cédula da votação online (link pessoal de cada votante) |
 
-**Painel (`/admin`)**: rascunho salvo automaticamente · prévia ao vivo
+**Boletim**: montado no painel sobre o modelo em Word da igreja (mesmas fontes,
+tamanhos, cores e tabelas — Carlito e Caladea têm as métricas de Calibri e
+Cambria). Seções podem ser incluídas, editadas, reordenadas e excluídas; o texto
+corre entre colunas de larguras diferentes como no Word; a prévia avisa se algo
+passar do fim da página. Publica no site e gera PDF (Chromium no servidor).
+
+**Deliberação**: Votação Online (link individual por votante, voto secreto /
+reservado / aberto, prazo, quórum, encerramento automático, apuração e ata) e
+Assembleia Online (em breve). **Finanças**: em breve.
+
+**Painel (`/admin`)**: login pelo primeiro nome · rascunho salvo automaticamente · prévia ao vivo
 (computador e celular) · publicar com um clique · histórico de versões com
 restauração · registro de quem alterou o quê · usuários administradores e
 editores · envio de fotos com compressão automática.
@@ -39,7 +51,7 @@ janela ao entrar no site, até a data passar.
    - **Neon** (Postgres) → cria `DATABASE_URL`. As tabelas são criadas sozinhas.
    - **Blob** → cria `BLOB_READ_WRITE_TOKEN` para as fotos.
 3. Em **Settings → Environment Variables**, cadastre:
-   - `ADMIN_EMAIL` e `ADMIN_SENHA` — o primeiro acesso ao painel. Depois de
+   - `ADMIN_USUARIO` (primeiro nome) e `ADMIN_SENHA` — o primeiro acesso ao painel. Depois de
      entrar, crie os demais usuários em *Usuários e senha*.
    - `SESSION_SECRET` — um texto aleatório longo.
    - `YOUTUBE_API_KEY` (recomendado) e `VITE_GOOGLE_MAPS_KEY` (opcional).
@@ -57,7 +69,7 @@ npm run dev        # http://localhost:3000
 ```
 
 Sem `DATABASE_URL`, os dados ficam em `.dados-locais/` e o primeiro acesso ao
-painel é `admin@local` / `admin123`.
+painel é `admin` / `admin123`.
 
 ## Como o código está organizado
 

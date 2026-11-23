@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useConteudo } from "@/lib/contexto";
 import { hojeISO } from "@/lib/utils";
 import { CapaPagina } from "@/components/site/Layout";
-import { CartaoAtividade, CartaoEvento } from "@/components/site/Blocos";
+import { CartaoEvento } from "@/components/site/Blocos";
+import { AgendaSemanal } from "@/components/site/AgendaSemanal";
 
 export const Route = createFileRoute("/_site/programacao")({ component: Programacao, head: () => ({ meta: [{ title: "Programação" }] }) });
 
@@ -15,11 +16,9 @@ function Programacao() {
   return (
     <>
       <CapaPagina rotulo="Agenda" titulo={p.titulo} texto={p.subtitulo} />
-      <section className="container-site py-20">
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {p.atividades.map((a) => <CartaoAtividade key={a.id} a={a} />)}
-        </div>
-        {p.aviso && <p className="mt-6 text-sm text-tinta-suave">{p.aviso}</p>}
+      <section className="container-site overflow-hidden py-16">
+        <AgendaSemanal />
+        {p.aviso && <p className="mt-4 text-center text-sm text-tinta-suave">{p.aviso}</p>}
       </section>
       <section id="eventos" className="scroll-mt-24 bg-papel">
         <div className="container-site py-20">

@@ -21,7 +21,7 @@ function Lideranca() {
               {g.membros.map((m) => (
                 <article key={m.id} className="overflow-hidden rounded-3xl bg-white ring-1 ring-linha/60">
                   {m.foto ? (
-                    <img src={m.foto} alt={m.nome} className="aspect-[4/4.2] w-full object-cover" loading="lazy" />
+                    <img src={m.foto} alt={m.nome} className="aspect-[4/4.2] w-full object-cover object-top" loading="lazy" />
                   ) : (
                     <div className="grid aspect-[4/4.2] place-items-center bg-marca-clara text-5xl font-extrabold text-marca/40 font-[family-name:var(--font-titulo)]">{iniciais(m.nome)}</div>
                   )}

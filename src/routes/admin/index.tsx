@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import {
-  AlertTriangle, Check, CircleDot, ExternalLink, History, Loader2, LogOut, Menu, Monitor, PanelRightClose, PanelRightOpen, Smartphone, Undo2, Upload, Users, X,
+  AlertTriangle, Check, CircleDot, ExternalLink, Gavel, History, Landmark, Loader2, LogOut, Menu, Monitor, Newspaper, PanelRightClose, PanelRightOpen, Smartphone, Undo2, Upload, Users, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Conteudo } from "@/lib/conteudo";
@@ -10,6 +10,8 @@ import { descartarRascunho, obterPainel, obterSessao, publicar, sair, salvarRasc
 import { cn } from "@/lib/utils";
 import { SECOES } from "@/components/painel/editores";
 import { PainelUsuarios, PainelVersoes } from "@/components/painel/Extras";
+import { ModuloBoletim } from "@/components/painel/boletim/ModuloBoletim";
+import { Contorno, ModuloDeliberacao, ModuloFinancas } from "@/components/painel/Modulos";
 
 export const Route = createFileRoute("/admin/")({
   ssr: false,
@@ -120,15 +122,33 @@ function Painel() {
     { nome: "Site", itens: SECOES.filter((s) => s.grupo === "Site") },
     { nome: "Páginas", itens: SECOES.filter((s) => s.grupo === "Páginas") },
   ];
+  const modulos = [
+    { id: "boletim", rotulo: "Boletim", Icone: Newspaper, breve: false },
+    { id: "deliberacao", rotulo: "Deliberação", Icone: Gavel, breve: false },
+    { id: "financas", rotulo: "Finanças", Icone: Landmark, breve: true },
+  ];
   const extras = [
     { id: "versoes", rotulo: "Versões e histórico", Icone: History },
     { id: "usuarios", rotulo: "Usuários e senha", Icone: Users },
   ];
   const tituloAtual = def?.rotulo ?? extras.find((x) => x.id === secao)?.rotulo ?? "";
+  const moduloAtivo = modulos.some((m) => m.id === secao);
   const editorAtivo = !!def;
 
   const Navegacao = (
     <nav className="grid gap-6 p-4">
+      <div>
+        <p className="px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Igreja</p>
+        <div className="mt-2 grid gap-0.5">
+          {modulos.map(({ id, rotulo, Icone, breve }) => (
+            <button key={id} type="button" onClick={() => { setSecao(id); setMenuAberto(false); }}
+              className={cn("flex items-center gap-2 rounded-lg px-3 py-2 text-left text-[14px] font-medium", secao === id ? "bg-marca text-white" : "text-slate-700 hover:bg-slate-100")}>
+              <Icone size={15} /> {rotulo}
+              {breve && <span className={cn("ml-auto rounded-full px-1.5 py-0.5 text-[9.5px] font-bold uppercase", secao === id ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800")}>Em breve</span>}
+            </button>
+          ))}
+        </div>
+      </div>
       {grupos.map((g) => (
         <div key={g.nome}>
           <p className="px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{g.nome}</p>
@@ -154,9 +174,9 @@ function Painel() {
   );
 
   return (
-    <div className="flex h-screen flex-col bg-slate-100 text-slate-900" style={{ fontFamily: "var(--font-texto)" }}>
+    <div className="flex h-screen flex-col bg-slate-100 text-slate-900 print:block print:h-auto print:bg-white" style={{ fontFamily: "var(--font-texto)" }}>
       {/* Barra superior */}
-      <header className="flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-3 sm:px-5">
+      <header className="flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-3 sm:px-5 print:hidden">
         <button className="rounded-lg p-2 hover:bg-slate-100 lg:hidden" onClick={() => setMenuAberto(true)} aria-label="Abrir menu"><Menu size={20} /></button>
         <img src="/simbolo.svg" alt="" className="hidden w-10 sm:block" />
         <div className="min-w-0">
@@ -171,7 +191,7 @@ function Painel() {
         <div className="ml-auto flex items-center gap-2">
           <a href="/" target="_blank" rel="noopener" className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-600 hover:bg-slate-100 sm:inline-flex"><ExternalLink size={15} /> Ver site</a>
           {pendentes && <button onClick={descartar} className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-600 hover:bg-slate-100 md:inline-flex"><Undo2 size={15} /> Descartar</button>}
-          <button disabled={!pendentes} onClick={() => setDialogo(true)} className="btn-destaque !px-4 !py-2.5 disabled:!bg-slate-300 disabled:!shadow-none"><Upload size={16} /> Publicar</button>
+          <button disabled={!pendentes} onClick={() => setDialogo(true)} title="Publicar as alterações do conteúdo do site" className="btn-destaque !px-4 !py-2.5 disabled:!bg-slate-300 disabled:!shadow-none"><Upload size={16} /> Publicar site</button>
           <button
             title={`Sair (${dados.sessao.nome})`}
             onClick={async () => { await sair(); router.navigate({ to: "/admin/entrar" }); }}
@@ -189,7 +209,7 @@ function Painel() {
 
       <div className="flex min-h-0 flex-1">
         {/* Menu lateral */}
-        <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white lg:block">{Navegacao}</aside>
+        <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white lg:block print:!hidden">{Navegacao}</aside>
         {menuAberto && (
           <div className="fixed inset-0 z-50 bg-slate-900/40 lg:hidden" onClick={() => setMenuAberto(false)}>
             <aside className="h-full w-72 overflow-y-auto bg-white" onClick={(e) => e.stopPropagation()}>
@@ -199,8 +219,17 @@ function Painel() {
           </div>
         )}
 
+        {/* Módulos da igreja */}
+        {moduloAtivo && (
+          <main className="relative min-w-0 flex-1 overflow-y-auto">
+            {secao === "boletim" && <ModuloBoletim />}
+            {secao === "deliberacao" && <Contorno><ModuloDeliberacao /></Contorno>}
+            {secao === "financas" && <Contorno><ModuloFinancas /></Contorno>}
+          </main>
+        )}
+
         {/* Editor */}
-        <main className="min-w-0 flex-1 overflow-y-auto">
+        <main className={cn("min-w-0 flex-1 overflow-y-auto", moduloAtivo && "hidden")}>
           <div className="mx-auto grid max-w-3xl gap-5 p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-bold">{tituloAtual}</h1>
@@ -212,7 +241,7 @@ function Painel() {
             </div>
             {def && <def.Editor c={c} mudar={mudar} />}
             {secao === "versoes" && <PainelVersoes aoRestaurar={(v) => { setC(v); setSecao("inicio"); }} />}
-            {secao === "usuarios" && <PainelUsuarios souAdmin={dados.sessao.papel === "admin"} meuEmail={dados.sessao.email} />}
+            {secao === "usuarios" && <PainelUsuarios souAdmin={dados.sessao.papel === "admin"} meuUsuario={dados.sessao.usuario} />}
             {!dados.uploadsPermanentes && editorAtivo && (
               <p className="text-[12px] text-slate-500">Dica: conecte o Vercel Blob (Storage → Blob) para guardar as fotos fora do banco e deixar o site mais leve.</p>
             )}
@@ -220,7 +249,7 @@ function Painel() {
         </main>
 
         {/* Prévia ao vivo */}
-        {editorAtivo && previaAberta && (
+        {editorAtivo && previaAberta && !moduloAtivo && (
           <section className="hidden w-[46%] shrink-0 flex-col border-l border-slate-200 bg-slate-200/60 xl:flex">
             <div className="flex h-12 items-center justify-between border-b border-slate-200 bg-white px-4">
               <span className="flex items-center gap-2 text-[13px] font-semibold text-slate-600">

@@ -148,35 +148,51 @@ export function EditorInicio({ c, mudar }: P) {
 
 export function EditorProgramacao({ c, mudar }: P) {
   const p = c.programacao;
+  const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
   return (
     <>
       <Secao titulo="Textos">
         <Campo rotulo="Título" valor={p.titulo} onChange={(v) => mudar((d) => { d.programacao.titulo = v; })} />
         <Campo rotulo="Subtítulo" valor={p.subtitulo} onChange={(v) => mudar((d) => { d.programacao.subtitulo = v; })} />
-        <Campo rotulo="Aviso abaixo dos cartões" valor={p.aviso} onChange={(v) => mudar((d) => { d.programacao.aviso = v; })} placeholder="Ex.: Programação sujeita a alterações." />
+        <Campo rotulo="Aviso abaixo do carrossel" valor={p.aviso} onChange={(v) => mudar((d) => { d.programacao.aviso = v; })} placeholder="Ex.: Programação sujeita a alterações." />
       </Secao>
-      <Secao titulo="Atividades da semana" descricao="Cultos, EBD, estudos, reuniões de oração… A ordem aqui é a ordem no site.">
+      <Secao titulo="Cartão de abertura" descricao="O primeiro cartão do carrossel, com foto.">
+        <CampoImagem rotulo="Foto" valor={p.capaImagem} onChange={(v) => mudar((d) => { d.programacao.capaImagem = v; })} proporcao="aspect-[5/4] max-w-xs" />
+        <Grade>
+          <Campo rotulo="Título" valor={p.capaTitulo} onChange={(v) => mudar((d) => { d.programacao.capaTitulo = v; })} dica="A primeira metade sai fina; a segunda, em destaque." />
+          <Campo rotulo="Linha de baixo" valor={p.capaSubtitulo} onChange={(v) => mudar((d) => { d.programacao.capaSubtitulo = v; })} />
+        </Grade>
+      </Secao>
+      <Secao titulo="Dias da semana" descricao="Cada dia vira um cartão do carrossel. O cartão do dia atual ganha o selo “Hoje”.">
         <ListaEditavel
-          itens={p.atividades}
-          onChange={(v) => mudar((d) => { d.programacao.atividades = v; })}
-          novo={() => ({ id: novoId("atv"), dia: "Domingo", titulo: "Nova atividade", horarios: ["19h00"], local: "", descricao: "", cor: "claro" as const, rotuloLink: "", link: "" })}
-          titulo={(a) => a.titulo}
-          subtitulo={(a) => `${a.dia} · ${a.horarios.join(", ")}`}
-          rotuloNovo="Adicionar atividade"
-          render={(a, m) => (
+          itens={p.dias}
+          onChange={(v) => mudar((d) => { d.programacao.dias = v; })}
+          novo={() => ({ id: novoId("dia"), dia: "Novo dia", diaSemana: -1, observacao: "", itens: [{ id: novoId("ag"), titulo: "Atividade", detalhe: "", horario: "19h" }] })}
+          titulo={(d) => d.dia}
+          subtitulo={(d) => d.itens.map((i) => `${i.titulo} ${i.horario}`).join(" · ")}
+          rotuloNovo="Adicionar dia"
+          render={(d, m) => (
             <>
               <Grade>
-                <Campo rotulo="Dia" valor={a.dia} onChange={(v) => m((x) => { x.dia = v; })} placeholder="Domingo, Toda terça…" />
-                <Campo rotulo="Nome" valor={a.titulo} onChange={(v) => m((x) => { x.titulo = v; })} />
+                <Campo rotulo="Nome no cartão" valor={d.dia} onChange={(v) => m((x) => { x.dia = v; })} placeholder="Domingo" />
+                <Selecao rotulo="Dia da semana (para o selo “Hoje”)" valor={String(d.diaSemana)} onChange={(v) => m((x) => { x.diaSemana = Number(v); })} opcoes={[{ valor: "-1", rotulo: "Nenhum" }, ...DIAS.map((n, i) => ({ valor: String(i), rotulo: n }))]} />
               </Grade>
-              <ListaTextos rotulo="Horários" valores={a.horarios} onChange={(v) => m((x) => { x.horarios = v; })} placeholder="19h00" />
-              <Campo rotulo="Descrição" valor={a.descricao} multilinha linhas={2} onChange={(v) => m((x) => { x.descricao = v; })} />
-              <Grade>
-                <Campo rotulo="Local" valor={a.local} onChange={(v) => m((x) => { x.local = v; })} />
-                <Selecao rotulo="Cor do cartão" valor={a.cor} onChange={(v) => m((x) => { x.cor = v; })} opcoes={[{ valor: "azul", rotulo: "Azul" }, { valor: "vermelho", rotulo: "Vermelho" }, { valor: "claro", rotulo: "Branco" }]} />
-                <Campo rotulo="Texto do link (opcional)" valor={a.rotuloLink} onChange={(v) => m((x) => { x.rotuloLink = v; })} />
-                <Campo rotulo="Link" valor={a.link} onChange={(v) => m((x) => { x.link = v; })} placeholder="/mensagens ou https://…" />
-              </Grade>
+              <ListaEditavel
+                itens={d.itens}
+                onChange={(v) => m((x) => { x.itens = v; })}
+                novo={() => ({ id: novoId("ag"), titulo: "Atividade", detalhe: "", horario: "" })}
+                titulo={(i) => `${i.titulo}${i.horario ? ` — ${i.horario}` : ""}`}
+                subtitulo={(i) => i.detalhe}
+                rotuloNovo="Adicionar atividade"
+                render={(i, mm) => (
+                  <Grade cols={3}>
+                    <Campo rotulo="Atividade" valor={i.titulo} onChange={(v) => mm((x) => { x.titulo = v; })} />
+                    <Campo rotulo="Detalhe (opcional)" valor={i.detalhe} onChange={(v) => mm((x) => { x.detalhe = v; })} />
+                    <Campo rotulo="Horário" valor={i.horario} onChange={(v) => mm((x) => { x.horario = v; })} placeholder="19h30" />
+                  </Grade>
+                )}
+              />
+              <Campo rotulo="Observação (rodapé do cartão)" valor={d.observacao} onChange={(v) => m((x) => { x.observacao = v; })} placeholder="*Confirme o local pelo direct do Instagram." />
             </>
           )}
         />

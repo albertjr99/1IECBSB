@@ -7,7 +7,8 @@ import { listarVideos } from "@/lib/api";
 import type { Video } from "@/server/youtube";
 import { hojeISO, paragrafos } from "@/lib/utils";
 import { LinkSite } from "@/components/site/Link";
-import { BotoesRota, CartaoAtividade, CartaoEvento, CartaoVideo, EsqueletoVideos, Mapa, PlayerVideo } from "@/components/site/Blocos";
+import { BotoesRota, CartaoEvento, CartaoVideo, EsqueletoVideos, Mapa, PlayerVideo } from "@/components/site/Blocos";
+import { AgendaSemanal } from "@/components/site/AgendaSemanal";
 
 export const Route = createFileRoute("/_site/")({ component: Inicio });
 
@@ -15,7 +16,7 @@ function Hero() {
   const c = useConteudo();
   const h = c.inicio.hero;
   const vivo = useAoVivo(c.mensagens.canal);
-  const proxima = c.programacao.atividades[0];
+  const proxima = c.programacao.dias[0];
 
   return (
     <section className="relative isolate overflow-hidden bg-marca-funda text-white">
@@ -62,13 +63,12 @@ function Hero() {
           ) : proxima ? (
             <div className="w-[340px] rounded-3xl border border-white/15 bg-white/[0.07] p-7 backdrop-blur-md">
               <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-white/60">Venha nos visitar</p>
-              <p className="mt-3 text-sm text-white/70">{proxima.dia}</p>
-              <p className="text-2xl font-bold font-[family-name:var(--font-titulo)]">{proxima.titulo}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {proxima.horarios.filter(Boolean).map((x) => (
-                  <span key={x} className="rounded-full bg-white px-4 py-1.5 text-lg font-extrabold text-marca font-[family-name:var(--font-titulo)]">{x}</span>
+              <p className="mt-3 text-3xl font-extrabold uppercase font-[family-name:var(--font-titulo)]">{proxima.dia}</p>
+              <ul className="mt-3 grid gap-1.5">
+                {proxima.itens.map((x) => (
+                  <li key={x.id} className="flex justify-between gap-4 text-[15px]"><span className="text-white/85">{x.titulo}</span><span className="font-bold font-[family-name:var(--font-titulo)]">{x.horario}</span></li>
                 ))}
-              </div>
+              </ul>
               <div className="mt-6 flex items-start gap-2 border-t border-white/15 pt-5 text-[15px] text-white/75">
                 <MapPin size={17} className="mt-0.5 shrink-0" />
                 <span>{c.geral.endereco.linha1}<br />{c.geral.endereco.linha2}</span>
@@ -89,21 +89,19 @@ function Hero() {
 
 function Programacao() {
   const { programacao: p } = useConteudo();
-  if (!p.atividades.length) return null;
+  if (!p.dias.length) return null;
   return (
-    <section className="container-site py-20 sm:py-24">
+    <section className="container-site overflow-hidden py-20 sm:py-24">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="rotulo-secao">Semana em curso</p>
           <h2 className="titulo-secao mt-3">{p.titulo}</h2>
           {p.subtitulo && <p className="mt-3 max-w-xl text-tinta-suave">{p.subtitulo}</p>}
         </div>
-        <Link to="/programacao" className="btn-contorno">Programação completa</Link>
+        <Link to="/programacao" className="btn-contorno">Agenda e eventos</Link>
       </div>
-      <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {p.atividades.slice(0, 6).map((a) => <CartaoAtividade key={a.id} a={a} />)}
-      </div>
-      {p.aviso && <p className="mt-6 text-sm text-tinta-suave">{p.aviso}</p>}
+      <div className="mt-8"><AgendaSemanal /></div>
+      {p.aviso && <p className="mt-4 text-center text-sm text-tinta-suave">{p.aviso}</p>}
     </section>
   );
 }

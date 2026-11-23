@@ -17,7 +17,7 @@ export const Route = createFileRoute("/admin/entrar")({
 function Entrar() {
   const { primeiroAcesso } = Route.useRouteContext();
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -27,7 +27,7 @@ function Entrar() {
     setErro("");
     setEnviando(true);
     try {
-      await entrar({ data: { email, senha } });
+      await entrar({ data: { usuario, senha } });
       await router.navigate({ to: "/admin" });
     } catch (err) {
       setErro(err instanceof Error ? err.message : "Não foi possível entrar.");
@@ -54,12 +54,12 @@ function Entrar() {
           <img src="/simbolo.svg" alt="" className="w-20 lg:hidden" />
           <h2 className="mt-6 text-2xl font-bold text-slate-900">Entrar</h2>
           <p className="mt-1 text-[14px] text-slate-500">
-            {primeiroAcesso ? "Primeiro acesso: use o e-mail e a senha de administrador configurados na hospedagem." : "Acesso restrito à equipe da igreja."}
+            {primeiroAcesso ? "Primeiro acesso: use o nome e a senha de administrador configurados na hospedagem." : "Entre com o seu primeiro nome e a sua senha."}
           </p>
           <div className="mt-8 grid gap-4">
             <label className="grid gap-1.5 text-[13px] font-semibold text-slate-700">
-              E-mail
-              <input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-xl border border-slate-300 px-3.5 py-3 text-[15px] font-normal outline-none focus:border-marca focus:ring-3 focus:ring-marca/15" />
+              Primeiro nome
+              <input type="text" required autoComplete="username" autoCapitalize="words" placeholder="Ex.: Hilário" value={usuario} onChange={(e) => setUsuario(e.target.value)} className="rounded-xl border border-slate-300 px-3.5 py-3 text-[15px] font-normal outline-none focus:border-marca focus:ring-3 focus:ring-marca/15" />
             </label>
             <label className="grid gap-1.5 text-[13px] font-semibold text-slate-700">
               Senha

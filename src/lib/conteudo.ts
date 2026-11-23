@@ -11,16 +11,16 @@ export type Botao = { rotulo: string; link: string };
 
 export type ItemMenu = { id: string; rotulo: string; para: string; visivel: boolean };
 
-export type Atividade = {
+export type ItemAgenda = { id: string; titulo: string; detalhe: string; horario: string };
+
+/** Um dia da agenda semanal (um cartão do carrossel). */
+export type DiaAgenda = {
   id: string;
   dia: string;
-  titulo: string;
-  horarios: string[];
-  local: string;
-  descricao: string;
-  cor: "azul" | "vermelho" | "claro";
-  rotuloLink: string;
-  link: string;
+  /** 0 = domingo … 6 = sábado; marca o cartão "Hoje". -1 = nenhum. */
+  diaSemana: number;
+  itens: ItemAgenda[];
+  observacao: string;
 };
 
 export type Evento = {
@@ -111,7 +111,16 @@ export type Conteudo = {
       localizacao: boolean;
     };
   };
-  programacao: { titulo: string; subtitulo: string; aviso: string; atividades: Atividade[] };
+  programacao: {
+    titulo: string;
+    subtitulo: string;
+    aviso: string;
+    /** Cartão de abertura do carrossel */
+    capaTitulo: string;
+    capaSubtitulo: string;
+    capaImagem: string;
+    dias: DiaAgenda[];
+  };
   eventos: { titulo: string; subtitulo: string; itens: Evento[] };
   sobre: {
     titulo: string;
@@ -153,18 +162,18 @@ export const CONTEUDO_PADRAO: Conteudo = {
   geral: {
     nome: "Primeira Igreja Evangélica Congregacional de Brasília",
     nomeCurto: "1ª IEC Brasília",
-    slogan: "Uma igreja centrada em Cristo, na Palavra e no próximo.",
+    slogan: "Filiada à União das Igrejas Evangélicas Congregacionais do Brasil – UIECB",
     descricaoSite:
       "Primeira Igreja Evangélica Congregacional de Brasília — cultos, estudos bíblicos, mensagens e programação.",
-    telefone: "",
+    telefone: "(61) 3346-7866",
     whatsapp: "",
     email: "",
     horarioAtendimento: "",
     endereco: {
-      linha1: "EQS 415 Sul",
+      linha1: "SHCS SQ 415 – Templo",
       linha2: "Asa Sul, Brasília — DF",
-      cep: "",
-      consultaMapa: "Primeira Igreja Evangélica Congregacional de Brasília, EQS 415 Sul, Brasília - DF",
+      cep: "70298-400",
+      consultaMapa: "Primeira Igreja Evangélica Congregacional de Brasília, SHCS SQ 415, Asa Sul, Brasília - DF, 70298-400",
     },
     redes: {
       instagram: "https://www.instagram.com/1iecbsb/",
@@ -185,6 +194,7 @@ export const CONTEUDO_PADRAO: Conteudo = {
     { id: "ministerios", rotulo: "Ministérios", para: "/ministerios", visivel: true },
     { id: "programacao", rotulo: "Programação", para: "/programacao", visivel: true },
     { id: "mensagens", rotulo: "Mensagens", para: "/mensagens", visivel: true },
+    { id: "boletim", rotulo: "Boletim", para: "/boletins", visivel: true },
     { id: "contato", rotulo: "Contato", para: "/contato", visivel: true },
     { id: "contribua", rotulo: "Contribua", para: "/contribua", visivel: true },
   ],
@@ -223,49 +233,45 @@ export const CONTEUDO_PADRAO: Conteudo = {
     },
   },
   programacao: {
-    titulo: "Programação semanal",
-    subtitulo: "Encontros da semana para adorar, aprender e caminhar juntos.",
-    aviso: "Horários de exemplo — atualize pelo painel.",
-    atividades: [
-      {
-        id: "culto-dominical",
-        dia: "Domingo",
-        titulo: "Culto Dominical",
-        horarios: ["10h00", "19h00"],
-        local: "Templo — EQS 415 Sul",
-        descricao: "Culto de adoração e pregação da Palavra.",
-        cor: "azul",
-        rotuloLink: "Como chegar",
-        link: "/#localizacao",
-      },
-      {
-        id: "ebd",
-        dia: "Domingo",
-        titulo: "Escola Bíblica Dominical",
-        horarios: ["09h00"],
-        local: "Salas de estudo",
-        descricao: "Classes para todas as idades.",
-        cor: "claro",
-        rotuloLink: "",
-        link: "",
-      },
-      {
-        id: "estudo-biblico",
-        dia: "Quarta-feira",
-        titulo: "Estudo Bíblico e Oração",
-        horarios: ["20h00"],
-        local: "Templo",
-        descricao: "Estudo das Escrituras e momento de intercessão.",
-        cor: "vermelho",
-        rotuloLink: "Ver estudos",
-        link: "/mensagens",
-      },
+    titulo: "Agenda da semana",
+    subtitulo: "Cultos, Escola Bíblica, estudos, oração e encontros. Venha adorar a Deus conosco!",
+    aviso: "Programação sujeita a alterações. Confira o boletim da semana.",
+    capaTitulo: "Conheça os nossos horários",
+    capaSubtitulo: "Cultos · EBD · Estudos · Oração · Eventos",
+    capaImagem: "/fotos/pr-aluizio-lourenco.jpg",
+    dias: [
+      { id: "domingo", dia: "Domingo", diaSemana: 0, observacao: "", itens: [
+        { id: "ag-1", titulo: "Consagração", detalhe: "", horario: "8h" },
+        { id: "ag-2", titulo: "Culto Matutino", detalhe: "Com Culto Infantil", horario: "9h" },
+        { id: "ag-3", titulo: "Escola Bíblica Dominical", detalhe: "Classes para todas as idades", horario: "10h20" },
+        { id: "ag-4", titulo: "Culto Noturno", detalhe: "", horario: "19h" },
+      ] },
+      { id: "terca", dia: "Terça", diaSemana: 2, observacao: "*Confirme o local pelo direct do Instagram.", itens: [
+        { id: "ag-5", titulo: "Reunião Sarah Kalley*", detalhe: "União Auxiliadora Feminina", horario: "14h30" },
+      ] },
+      { id: "quarta", dia: "Quarta", diaSemana: 3, observacao: "", itens: [
+        { id: "ag-6", titulo: "Estudo Bíblico e Oração", detalhe: "Estudo sistemático e doutrinário", horario: "19h30" },
+      ] },
+      { id: "sexta", dia: "Sexta", diaSemana: 5, observacao: "Eventualmente: reunião nos lares, 20h.", itens: [
+        { id: "ag-7", titulo: "1ª Sexta | Vigília", detalhe: "Oração no Templo", horario: "20h" },
+        { id: "ag-8", titulo: "2ª e 4ª Sextas", detalhe: "Treinamento por departamento e aconselhamento", horario: "20h" },
+        { id: "ag-9", titulo: "3ª Sexta | Reunião de Casais", detalhe: "Oração e ação", horario: "20h" },
+      ] },
+      { id: "sabado", dia: "Sábado", diaSemana: 6, observacao: "*Confirme o local pelo direct do Instagram.", itens: [
+        { id: "ag-10", titulo: "2º e 4º Sábados | Na Casa*", detalhe: "União de Jovens", horario: "18h30" },
+        { id: "ag-11", titulo: "3º Sábado | Culto Jovem", detalhe: "", horario: "19h" },
+      ] },
     ],
   },
   eventos: {
     titulo: "Próximos eventos",
     subtitulo: "Congressos, conferências e encontros especiais.",
-    itens: [],
+    itens: [
+      { id: "juniores-2026", titulo: "1º Congresso dos Juniores IECB", data: "2026-11-28", dataFim: "2026-11-29", horario: "Sábado, 19h", local: "Templo — SHCS SQ 415", descricao: "Vamos agradecer a Deus pela vida dos nossos pequeninos. Participe e traga convidados!", imagem: "", rotuloLink: "", link: "", destaque: false, publicado: true },
+      { id: "jantar-2026", titulo: "Jantar de Confraternização IECB", data: "2026-12-04", dataFim: "", horario: "19h", local: "", descricao: "", imagem: "", rotuloLink: "", link: "", destaque: false, publicado: true },
+      { id: "iecb-54-anos", titulo: "IEC de Brasília — 54 anos", data: "2026-12-05", dataFim: "2026-12-06", horario: "19h", local: "Templo — SHCS SQ 415", descricao: "Cultos de gratidão a Deus pelos 54 anos da igreja, com o Pr. Eleazar Duarte (Projeto Zero). No sábado, participação do Coral Adorai (IP de Águas Claras); no domingo, Ceia do Senhor. Bazar Missionário nos dois dias.", imagem: "", rotuloLink: "", link: "", destaque: true, publicado: true },
+      { id: "cafe-aniversariantes", titulo: "Café da manhã dos aniversariantes do trimestre", data: "2026-12-13", dataFim: "", horario: "9h", local: "", descricao: "", imagem: "", rotuloLink: "", link: "", destaque: false, publicado: true },
+    ],
   },
   sobre: {
     titulo: "A Igreja",
@@ -291,16 +297,30 @@ export const CONTEUDO_PADRAO: Conteudo = {
   },
   lideranca: {
     titulo: "Liderança",
-    introducao: "Pessoas chamadas para servir e cuidar da igreja.",
+    introducao: "Pastores e oficiais chamados para servir e cuidar da igreja.",
     grupos: [
       {
         id: "pastores",
         nome: "Pastores",
         membros: [
-          { id: "pastor-1", nome: "Nome do pastor", cargo: "Pastor titular", foto: "", bio: "" },
+          { id: "pr-hilario", nome: "Pr. Hilário José Bispo da Graça", cargo: "Pastor-Presidente", foto: "", bio: "" },
+          { id: "pr-aluizio", nome: "Pr. Aluízio Lourenço da Silva Filho", cargo: "Pastor Auxiliar", foto: "/fotos/pr-aluizio-lourenco.jpg", bio: "" },
+          { id: "pr-jefferson", nome: "Pr. Jefferson Pontes Guimarães", cargo: "Pastor", foto: "", bio: "" },
         ],
       },
-      { id: "diaconia", nome: "Diaconia", membros: [] },
+      {
+        id: "diretoria",
+        nome: "Diretoria da Igreja",
+        membros: [
+          { id: "dir-presidente", nome: "Pr. Hilário José Bispo da Graça", cargo: "Pastor-Presidente", foto: "", bio: "" },
+          { id: "dir-vice", nome: "Pb. Ricardo Rogério D. Santos", cargo: "Vice-Presidente", foto: "", bio: "" },
+          { id: "dir-secretaria", nome: "Maria Isabel A. Silva dos Santos", cargo: "Secretária-Geral", foto: "", bio: "" },
+          { id: "dir-patrimonio", nome: "Pb. Jorge E. S. Bonacorso", cargo: "Secretário do Patrimônio", foto: "", bio: "" },
+          { id: "dir-tesoureiro-1", nome: "Cristian Caixeta Fernandes", cargo: "1º Tesoureiro", foto: "", bio: "" },
+          { id: "dir-tesoureira-2", nome: "Dca. Vera Nascimento", cargo: "2ª Tesoureira", foto: "", bio: "" },
+        ],
+      },
+      { id: "oficiais", nome: "Oficiais (presbíteros e diáconos)", membros: [] },
     ],
   },
   ministerios: {
@@ -337,7 +357,7 @@ export const CONTEUDO_PADRAO: Conteudo = {
     referencia: "2 Coríntios 9.7",
     pixChave: "",
     pixTipo: "CNPJ",
-    pixFavorecido: "",
+    pixFavorecido: "Primeira Igreja Evangélica Congregacional de Brasília — CNPJ 00.371.427/0001-04",
     contas: [],
   },
   contato: {

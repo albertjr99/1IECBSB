@@ -31,15 +31,15 @@ export const obterSessao = createServerFn({ method: "GET" }).handler(async () =>
 });
 
 export const entrar = createServerFn({ method: "POST" })
-  .validator((d: { email: string; senha: string }) => {
-    if (!d?.email || !d?.senha) throw new Error("Informe e-mail e senha.");
+  .validator((d: { usuario: string; senha: string }) => {
+    if (!d?.usuario || !d?.senha) throw new Error("Informe seu nome e a senha.");
     return d;
   })
   .handler(async ({ data }) => {
     const { autenticar, abrirSessao } = await import("../server/auth");
     const { registrar } = await import("../server/armazem");
-    const u = await autenticar(data.email, data.senha);
-    if (!u) throw new Error("E-mail ou senha incorretos.");
+    const u = await autenticar(data.usuario, data.senha);
+    if (!u) throw new Error("Nome ou senha incorretos.");
     abrirSessao(u);
     await registrar(u.nome, "Entrou no painel");
     return { nome: u.nome };
@@ -165,40 +165,41 @@ export const listarUsuarios = createServerFn({ method: "GET" }).handler(async ()
 });
 
 export const salvarUsuario = createServerFn({ method: "POST" })
-  .validator((d: { email: string; nome: string; papel: "admin" | "editor"; senha?: string }) => {
-    if (!d?.email?.includes("@") || !d.nome?.trim()) throw new Error("Informe nome e e-mail válidos.");
+  .validator((d: { usuario: string; nome: string; papel: "admin" | "editor"; senha?: string }) => {
+    if (!d?.usuario?.trim() || !d.nome?.trim()) throw new Error("Informe o nome completo e o nome de acesso.");
     if (d.senha && d.senha.length < 8) throw new Error("A senha precisa ter ao menos 8 caracteres.");
     return d;
   })
   .handler(async ({ data }) => {
-    const { exigirSessao, listarUsuarios: lu, salvarUsuarios, gerarHash } = await import("../server/auth");
+    const { exigirSessao, listarUsuarios: lu, salvarUsuarios, gerarHash, normalizarUsuario } = await import("../server/auth");
     const { registrar } = await import("../server/armazem");
     const s = exigirSessao("admin");
     const lista = await lu();
-    const email = data.email.trim().toLowerCase();
-    const atual = lista.find((u) => u.email === email);
+    const usuario = normalizarUsuario(data.usuario);
+    if (!usuario) throw new Error("Nome de acesso inválido.");
+    const atual = lista.find((u) => u.usuario === usuario);
     if (atual) {
       atual.nome = data.nome.trim();
-      if (!(atual.email === s.email && data.papel !== "admin")) atual.papel = data.papel;
+      if (!(atual.usuario === s.usuario && data.papel !== "admin")) atual.papel = data.papel;
       if (data.senha) atual.hash = gerarHash(data.senha);
     } else {
       if (!data.senha) throw new Error("Defina uma senha para o novo usuário.");
-      lista.push({ email, nome: data.nome.trim(), papel: data.papel, hash: gerarHash(data.senha), criadoEm: new Date().toISOString() });
+      lista.push({ usuario, nome: data.nome.trim(), papel: data.papel, hash: gerarHash(data.senha), criadoEm: new Date().toISOString() });
     }
     await salvarUsuarios(lista);
-    await registrar(s.nome, atual ? "Alterou usuário" : "Criou usuário", email);
+    await registrar(s.nome, atual ? "Alterou usuário" : "Criou usuário", usuario);
     return { ok: true };
   });
 
 export const removerUsuario = createServerFn({ method: "POST" })
-  .validator((d: { email: string }) => d)
+  .validator((d: { usuario: string }) => d)
   .handler(async ({ data }) => {
     const { exigirSessao, listarUsuarios: lu, salvarUsuarios } = await import("../server/auth");
     const { registrar } = await import("../server/armazem");
     const s = exigirSessao("admin");
-    if (data.email === s.email) throw new Error("Você não pode remover a si mesmo.");
-    await salvarUsuarios((await lu()).filter((u) => u.email !== data.email));
-    await registrar(s.nome, "Removeu usuário", data.email);
+    if (data.usuario === s.usuario) throw new Error("Você não pode remover a si mesmo.");
+    await salvarUsuarios((await lu()).filter((u) => u.usuario !== data.usuario));
+    await registrar(s.nome, "Removeu usuário", data.usuario);
     return { ok: true };
   });
 
@@ -211,7 +212,7 @@ export const trocarMinhaSenha = createServerFn({ method: "POST" })
     const { exigirSessao, listarUsuarios: lu, salvarUsuarios, conferirSenha, gerarHash } = await import("../server/auth");
     const s = exigirSessao();
     const lista = await lu();
-    const u = lista.find((x) => x.email === s.email);
+    const u = lista.find((x) => x.usuario === s.usuario);
     if (!u || !conferirSenha(data.atual, u.hash)) throw new Error("Senha atual incorreta.");
     u.hash = gerarHash(data.nova);
     await salvarUsuarios(lista);
