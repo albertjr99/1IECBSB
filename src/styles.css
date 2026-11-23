@@ -105,3 +105,60 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* ─── Painel administrativo: superfícies com tema claro e escuro ─────────── */
+@custom-variant dark (&:where(.tema-escuro, .tema-escuro *));
+
+.painel {
+  --p-fundo: #f3f4f6;
+  --p-superficie: #ffffff;
+  --p-sutil: #f8f9fa;
+  --p-hover: #eef0f3;
+  --p-borda: #e4e7eb;
+  --p-borda-forte: #d0d5db;
+  --p-texto: #111827;
+  --p-texto-2: #374151;
+  --p-suave: #6b7280;
+  --p-acento: var(--cor-primaria);
+  --p-realce: color-mix(in oklab, var(--cor-primaria) 8%, white);
+  --p-lateral: #071a2c;
+  color-scheme: light;
+}
+.painel.tema-escuro {
+  --p-fundo: #0b0f14;
+  --p-superficie: #12171e;
+  --p-sutil: #171d25;
+  --p-hover: #1d2530;
+  --p-borda: #232c37;
+  --p-borda-forte: #313c49;
+  --p-texto: #e6eaef;
+  --p-texto-2: #c2c9d2;
+  --p-suave: #8a94a1;
+  --p-acento: #6aa8e8;
+  --p-realce: rgba(106, 168, 232, 0.12);
+  --p-lateral: #080c11;
+  color-scheme: dark;
+}
+.painel.tema-escuro .btn-primario { background: #1f66b0; }
+.painel.tema-escuro .btn-primario:hover { background: #2a77c6; }
+.painel.tema-escuro .btn-contorno { color: var(--p-acento); border-color: var(--p-borda-forte); }
+.painel.tema-escuro .btn-contorno:hover { background: var(--p-hover); border-color: var(--p-acento); }
+
+@theme inline {
+  --color-p-fundo: var(--p-fundo);
+  --color-p-superficie: var(--p-superficie);
+  --color-p-sutil: var(--p-sutil);
+  --color-p-hover: var(--p-hover);
+  --color-p-borda: var(--p-borda);
+  --color-p-borda-forte: var(--p-borda-forte);
+  --color-p-texto: var(--p-texto);
+  --color-p-texto-2: var(--p-texto-2);
+  --color-p-suave: var(--p-suave);
+  --color-p-acento: var(--p-acento);
+  --color-p-realce: var(--p-realce);
+  --color-p-lateral: var(--p-lateral);
+}
+
+.painel ::-webkit-scrollbar { width: 10px; height: 10px; }
+.painel ::-webkit-scrollbar-thumb { background: var(--p-borda-forte); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+.painel ::-webkit-scrollbar-track { background: transparent; }

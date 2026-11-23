@@ -36,40 +36,38 @@ function Entrar() {
     }
   };
 
+  const escuro = typeof window !== "undefined" && (localStorage.getItem("iecb_painel_tema") === "escuro" || (!localStorage.getItem("iecb_painel_tema") && window.matchMedia?.("(prefers-color-scheme: dark)").matches));
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-marca-funda lg:block">
-        <img src="/simbolo-branco.svg" alt="" className="absolute -bottom-[10%] left-1/2 w-[130%] max-w-none -translate-x-1/2 opacity-[0.07]" />
-        <div className="relative flex h-full flex-col justify-between p-14 text-white">
-          <img src="/simbolo-negativo.svg" alt="" className="w-24" />
-          <div>
-            <p className="text-[12px] font-bold uppercase tracking-[0.2em] text-white/60">Painel do site</p>
-            <h1 className="mt-3 max-w-md text-4xl font-bold">Tudo o que aparece no site, editado por aqui.</h1>
-            <p className="mt-4 max-w-md text-white/70">Textos, horários, eventos, fotos, liderança e mensagens — com prévia ao vivo antes de publicar.</p>
-          </div>
+    <div className={`painel grid min-h-screen bg-p-superficie text-p-texto lg:grid-cols-[1fr_1.1fr] ${escuro ? "tema-escuro" : ""}`} style={{ fontFamily: "var(--font-texto)" }}>
+      <div className="hidden flex-col justify-between bg-p-lateral p-12 text-white lg:flex">
+        <img src="/simbolo-negativo.svg" alt="" className="w-20" />
+        <div>
+          <p className="text-[13px] font-medium uppercase tracking-[0.12em] text-white/50">Painel administrativo</p>
+          <p className="mt-3 max-w-sm text-[1.7rem] font-semibold leading-tight">Primeira Igreja Evangélica Congregacional de Brasília</p>
         </div>
+        <p className="text-[12.5px] text-white/40">Acesso restrito à equipe da igreja.</p>
       </div>
-      <div className="grid place-items-center bg-white p-6">
+      <div className="grid place-items-center bg-p-superficie p-6">
         <form onSubmit={enviar} className="w-full max-w-sm">
           <img src="/simbolo.svg" alt="" className="w-20 lg:hidden" />
-          <h2 className="mt-6 text-2xl font-bold text-slate-900">Entrar</h2>
-          <p className="mt-1 text-[14px] text-slate-500">
+          <h2 className="mt-6 text-2xl font-semibold text-p-texto lg:mt-0">Entrar</h2>
+          <p className="mt-1 text-[14px] text-p-suave">
             {primeiroAcesso ? "Primeiro acesso: use o nome e a senha de administrador configurados na hospedagem." : "Entre com o seu primeiro nome e a sua senha."}
           </p>
           <div className="mt-8 grid gap-4">
-            <label className="grid gap-1.5 text-[13px] font-semibold text-slate-700">
+            <label className="grid gap-1.5 text-[12.5px] font-medium text-p-texto-2">
               Primeiro nome
-              <input type="text" required autoComplete="username" autoCapitalize="words" placeholder="Ex.: Hilário" value={usuario} onChange={(e) => setUsuario(e.target.value)} className="rounded-xl border border-slate-300 px-3.5 py-3 text-[15px] font-normal outline-none focus:border-marca focus:ring-3 focus:ring-marca/15" />
+              <input type="text" required autoComplete="username" autoCapitalize="words" placeholder="Ex.: Hilário" value={usuario} onChange={(e) => setUsuario(e.target.value)} className="h-10 rounded-md border border-p-borda-forte bg-p-superficie px-3 text-[14.5px] font-normal text-p-texto outline-none focus:border-p-acento focus:ring-3 focus:ring-p-acento/20" />
             </label>
-            <label className="grid gap-1.5 text-[13px] font-semibold text-slate-700">
+            <label className="grid gap-1.5 text-[12.5px] font-medium text-p-texto-2">
               Senha
-              <input type="password" required autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} className="rounded-xl border border-slate-300 px-3.5 py-3 text-[15px] font-normal outline-none focus:border-marca focus:ring-3 focus:ring-marca/15" />
+              <input type="password" required autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} className="h-10 rounded-md border border-p-borda-forte bg-p-superficie px-3 text-[14.5px] font-normal text-p-texto outline-none focus:border-p-acento focus:ring-3 focus:ring-p-acento/20" />
             </label>
-            {erro && <p className="rounded-xl bg-red-50 px-4 py-3 text-[13.5px] text-red-700" role="alert">{erro}</p>}
-            <button disabled={enviando} className="btn-primario mt-2 w-full !py-3.5">
-              {enviando ? <Loader2 size={18} className="animate-spin" /> : <LogIn size={18} />} Entrar
+            {erro && <p className="rounded-md bg-red-500/10 px-3 py-2.5 text-[13.5px] text-red-700 dark:text-red-400" role="alert">{erro}</p>}
+            <button disabled={enviando} className="btn-primario mt-2 w-full !h-10">
+              {enviando ? <Loader2 size={17} className="animate-spin" /> : <LogIn size={17} />} Entrar
             </button>
-            <a href="/" className="text-center text-[13px] text-slate-500 hover:text-marca">← Voltar ao site</a>
+            <a href="/" className="text-center text-[13px] text-p-suave hover:text-p-acento">← Voltar ao site</a>
           </div>
         </form>
       </div>

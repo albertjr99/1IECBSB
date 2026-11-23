@@ -12,19 +12,19 @@ export function PainelVersoes({ aoRestaurar }: { aoRestaurar: (c: Conteudo) => v
   const [abrindo, setAbrindo] = useState<number | null>(null);
   useEffect(() => { listarVersoes().then(setDados).catch((e) => toast.error(e.message)); }, []);
 
-  if (!dados) return <div className="grid place-items-center py-20"><Loader2 className="animate-spin text-slate-400" /></div>;
+  if (!dados) return <div className="grid place-items-center py-20"><Loader2 className="animate-spin text-p-suave" /></div>;
   return (
     <>
-      <Secao titulo="Versões publicadas" descricao="Cada publicação guarda uma cópia do site inteiro. Restaurar coloca a versão no rascunho — confira na prévia e publique.">
-        {dados.versoes.length === 0 && <p className="text-[13px] text-slate-500">Nenhuma publicação ainda.</p>}
-        <ul className="divide-y divide-slate-100">
+      <Secao titulo="Publicações" descricao="Cada publicação guarda uma cópia completa do site. Restaurar leva aquela versão para o rascunho: confira na prévia e publique.">
+        {dados.versoes.length === 0 && <p className="text-[13px] text-p-suave">Nenhuma publicação ainda.</p>}
+        <ul className="divide-y divide-p-borda">
           {dados.versoes.map((v, i) => (
             <li key={v.id} className="flex items-center justify-between gap-4 py-3">
               <div className="min-w-0">
-                <p className="truncate text-[14px] font-semibold text-slate-800">
-                  {v.resumo} {i === 0 && <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">no ar</span>}
+                <p className="truncate text-[14px] font-semibold text-p-texto">
+                  {v.resumo} {i === 0 && <span className="ml-1 rounded bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">no ar</span>}
                 </p>
-                <p className="text-[12px] text-slate-500">nº {v.id} · {v.autor} · {quando(v.criadoEm)}</p>
+                <p className="text-[12px] text-p-suave">nº {v.id} · {v.autor} · {quando(v.criadoEm)}</p>
               </div>
               <button
                 type="button"
@@ -33,12 +33,12 @@ export function PainelVersoes({ aoRestaurar }: { aoRestaurar: (c: Conteudo) => v
                   setAbrindo(v.id);
                   try {
                     aoRestaurar(await carregarVersao({ data: { id: v.id } }));
-                    toast.success("Versão carregada no rascunho. Publique para colocá-la no ar.");
+                    toast.success("Versão levada para o rascunho. Publique para colocá-la no ar.");
                   } catch (e) {
                     toast.error(e instanceof Error ? e.message : "Erro ao restaurar.");
                   } finally { setAbrindo(null); }
                 }}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-[13px] font-semibold text-slate-700 hover:border-marca hover:text-marca disabled:opacity-50"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-p-borda-forte px-3 py-1.5 text-[13px] font-semibold text-p-texto-2 hover:border-p-acento hover:text-p-acento disabled:opacity-50"
               >
                 {abrindo === v.id ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />} Restaurar
               </button>
@@ -46,12 +46,12 @@ export function PainelVersoes({ aoRestaurar }: { aoRestaurar: (c: Conteudo) => v
           ))}
         </ul>
       </Secao>
-      <Secao titulo="Histórico de atividades" descricao="Quem fez o quê no painel.">
+      <Secao titulo="Registro de atividades" descricao="Quem fez o quê no painel, do mais recente ao mais antigo.">
         <ul className="grid gap-2">
           {dados.auditoria.slice(0, 60).map((a) => (
             <li key={a.id} className="flex gap-3 text-[13px]">
-              <History size={14} className="mt-0.5 shrink-0 text-slate-400" />
-              <span><strong className="text-slate-800">{a.autor}</strong> <span className="text-slate-600">{a.acao.toLowerCase()}</span>{a.detalhe && <span className="text-slate-500"> — {a.detalhe}</span>}<span className="block text-[12px] text-slate-400">{quando(a.criadoEm)}</span></span>
+              <History size={14} className="mt-0.5 shrink-0 text-p-suave" />
+              <span><strong className="text-p-texto">{a.autor}</strong> <span className="text-p-texto-2">{a.acao.toLowerCase()}</span>{a.detalhe && <span className="text-p-suave"> — {a.detalhe}</span>}<span className="block text-[12px] text-p-suave">{quando(a.criadoEm)}</span></span>
             </li>
           ))}
         </ul>
@@ -83,19 +83,19 @@ export function PainelUsuarios({ souAdmin, meuUsuario }: { souAdmin: boolean; me
   return (
     <>
       <Secao titulo="Pessoas com acesso ao painel" descricao="Administradores gerenciam usuários; editores alteram e publicam o conteúdo.">
-        {!lista ? <Loader2 className="animate-spin text-slate-400" /> : (
-          <ul className="divide-y divide-slate-100">
+        {!lista ? <Loader2 className="animate-spin text-p-suave" /> : (
+          <ul className="divide-y divide-p-borda">
             {lista.map((u) => (
               <li key={u.usuario} className="flex items-center justify-between gap-3 py-3">
                 <button type="button" disabled={!souAdmin} onClick={() => setForm({ nome: u.nome, usuario: u.usuario, papel: u.papel, senha: "" })} className="min-w-0 text-left">
-                  <p className="truncate text-[14px] font-semibold text-slate-800">{u.nome} {u.usuario === meuUsuario && <span className="text-[12px] font-normal text-slate-400">(você)</span>}</p>
-                  <p className="truncate text-[12px] text-slate-500">acesso: {u.usuario} · {u.papel === "admin" ? "Administrador" : "Editor"}</p>
+                  <p className="truncate text-[14px] font-semibold text-p-texto">{u.nome} {u.usuario === meuUsuario && <span className="text-[12px] font-normal text-p-suave">(você)</span>}</p>
+                  <p className="truncate text-[12px] text-p-suave">acesso: {u.usuario} · {u.papel === "admin" ? "Administrador" : "Editor"}</p>
                 </button>
                 {souAdmin && u.usuario !== meuUsuario && (
                   <button type="button" title="Remover" onClick={async () => {
                     if (!confirm(`Remover o acesso de ${u.nome}?`)) return;
                     try { await removerUsuario({ data: { usuario: u.usuario } }); carregar(); } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
-                  }} className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={16} /></button>
+                  }} className="rounded-lg p-2 text-p-suave hover:bg-red-500/10 hover:text-red-600 dark:text-red-400"><Trash2 size={16} /></button>
                 )}
               </li>
             ))}
@@ -111,7 +111,7 @@ export function PainelUsuarios({ souAdmin, meuUsuario }: { souAdmin: boolean; me
               <Selecao rotulo="Permissão" valor={form.papel} onChange={(v) => setForm({ ...form, papel: v })} opcoes={[{ valor: "editor", rotulo: "Editor" }, { valor: "admin", rotulo: "Administrador" }]} />
               <Campo rotulo="Senha" tipo="password" valor={form.senha} onChange={(v) => setForm({ ...form, senha: v })} dica="Mínimo de 8 caracteres." />
             </Grade>
-            <button disabled={salvando} className="btn-primario justify-self-start !py-2.5"><UserPlus size={16} /> Salvar usuário</button>
+            <button disabled={salvando} className="btn-primario !h-9 !px-3.5 !text-[13.5px] justify-self-start !py-2.5"><UserPlus size={16} /> Salvar usuário</button>
           </form>
         </Secao>
       )}
@@ -137,7 +137,7 @@ function MinhaSenha() {
           <Campo rotulo="Senha atual" tipo="password" valor={atual} onChange={setAtual} />
           <Campo rotulo="Nova senha" tipo="password" valor={nova} onChange={setNova} />
         </Grade>
-        <button className="btn-contorno justify-self-start !py-2.5">Alterar senha</button>
+        <button className="btn-contorno !h-9 !px-3.5 !text-[13.5px] justify-self-start !py-2.5">Alterar senha</button>
       </form>
     </Secao>
   );

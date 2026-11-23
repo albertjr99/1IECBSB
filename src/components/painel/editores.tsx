@@ -3,7 +3,7 @@
  * `mudar` que altera uma cópia — o painel cuida de salvar e da prévia.
  */
 import type { ReactNode } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Building2, CalendarClock, CalendarHeart, Church, Eye, EyeOff, HandCoins, HeartHandshake, House, ListTree, Mail, MonitorPlay, Palette, Users, type LucideIcon } from "lucide-react";
 import { novoId, type Conteudo } from "@/lib/conteudo";
 import { Campo, CampoCor, CampoImagem, Grade, Interruptor, ListaEditavel, ListaTextos, Secao, Selecao } from "./kit";
 
@@ -67,7 +67,7 @@ export function EditorAparencia({ c, mudar }: P) {
       <button
         type="button"
         onClick={() => mudar((d) => { d.aparencia = { corPrimaria: "#00416B", corDestaque: "#C1242C", corFundo: "#F7F5F0" }; })}
-        className="justify-self-start text-[13px] font-semibold text-marca hover:underline"
+        className="justify-self-start text-[13px] font-semibold text-p-acento hover:underline"
       >
         Restaurar cores da marca
       </button>
@@ -80,12 +80,12 @@ export function EditorMenu({ c, mudar }: P) {
     <Secao titulo="Menu do site" descricao="Renomeie, reordene ou esconda itens do menu. As páginas continuam existindo mesmo escondidas.">
       <div className="grid gap-2">
         {c.menu.map((m, i) => (
-          <div key={m.id} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 pl-3">
-            <input value={m.rotulo} onChange={(e) => mudar((d) => { d.menu[i]!.rotulo = e.target.value; })} className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-[14px] font-semibold outline-none focus:bg-slate-50" />
-            <span className="hidden text-[12px] text-slate-400 sm:block">{m.para}</span>
-            <button type="button" title="Subir" disabled={i === 0} onClick={() => mudar((d) => { [d.menu[i - 1], d.menu[i]] = [d.menu[i]!, d.menu[i - 1]!]; })} className="rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30">↑</button>
-            <button type="button" title="Descer" disabled={i === c.menu.length - 1} onClick={() => mudar((d) => { [d.menu[i + 1], d.menu[i]] = [d.menu[i]!, d.menu[i + 1]!]; })} className="rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30">↓</button>
-            <button type="button" title={m.visivel ? "Esconder" : "Mostrar"} onClick={() => mudar((d) => { d.menu[i]!.visivel = !m.visivel; })} className={`rounded-lg p-2 ${m.visivel ? "text-marca" : "text-slate-300"} hover:bg-slate-100`}>
+          <div key={m.id} className="flex items-center gap-2 rounded-md border border-p-borda bg-p-superficie p-2 pl-3">
+            <input value={m.rotulo} onChange={(e) => mudar((d) => { d.menu[i]!.rotulo = e.target.value; })} className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-[14px] font-semibold outline-none focus:bg-p-sutil" />
+            <span className="hidden text-[12px] text-p-suave sm:block">{m.para}</span>
+            <button type="button" title="Subir" disabled={i === 0} onClick={() => mudar((d) => { [d.menu[i - 1], d.menu[i]] = [d.menu[i]!, d.menu[i - 1]!]; })} className="rounded-lg px-2 py-1 text-p-suave hover:bg-p-hover disabled:opacity-30">↑</button>
+            <button type="button" title="Descer" disabled={i === c.menu.length - 1} onClick={() => mudar((d) => { [d.menu[i + 1], d.menu[i]] = [d.menu[i]!, d.menu[i + 1]!]; })} className="rounded-lg px-2 py-1 text-p-suave hover:bg-p-hover disabled:opacity-30">↓</button>
+            <button type="button" title={m.visivel ? "Esconder" : "Mostrar"} onClick={() => mudar((d) => { d.menu[i]!.visivel = !m.visivel; })} className={`rounded-lg p-2 ${m.visivel ? "text-p-acento" : "text-p-borda-forte"} hover:bg-p-hover`}>
               {m.visivel ? <Eye size={16} /> : <EyeOff size={16} />}
             </button>
           </div>
@@ -110,16 +110,16 @@ export function EditorInicio({ c, mudar }: P) {
         <Campo rotulo="Título" valor={h.titulo} onChange={(v) => mudar((d) => { d.inicio.hero.titulo = v; })} />
         <Campo rotulo="Subtítulo" valor={h.subtitulo} multilinha linhas={2} onChange={(v) => mudar((d) => { d.inicio.hero.subtitulo = v; })} />
         <CampoImagem rotulo="Foto de fundo (opcional)" valor={h.imagem} onChange={(v) => mudar((d) => { d.inicio.hero.imagem = v; })} dica="Horizontal, de preferência 1920 × 1080. Sem foto, usa o fundo azul com o arco." proporcao="aspect-[16/7]" />
-        <span className="text-[13px] font-semibold text-slate-700">Botões</span>
+        <span className="text-[13px] font-semibold text-p-texto-2">Botões</span>
         {h.botoes.map((bt, i) => (
-          <div key={i} className="grid gap-2 rounded-xl bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_auto]">
-            <input value={bt.rotulo} placeholder="Texto do botão" onChange={(e) => mudar((d) => { d.inicio.hero.botoes[i]!.rotulo = e.target.value; })} className="rounded-lg border border-slate-300 px-3 py-2 text-[14px]" />
-            <input value={bt.link} placeholder="/programacao ou https://…" onChange={(e) => mudar((d) => { d.inicio.hero.botoes[i]!.link = e.target.value; })} className="rounded-lg border border-slate-300 px-3 py-2 text-[14px]" />
-            <button type="button" onClick={() => mudar((d) => { d.inicio.hero.botoes.splice(i, 1); })} className="rounded-lg px-3 text-[13px] font-semibold text-red-600 hover:bg-red-50">Remover</button>
+          <div key={i} className="grid gap-2 rounded-md bg-p-sutil p-3 sm:grid-cols-[1fr_1fr_auto]">
+            <input value={bt.rotulo} placeholder="Texto do botão" onChange={(e) => mudar((d) => { d.inicio.hero.botoes[i]!.rotulo = e.target.value; })} className="rounded-lg border border-p-borda-forte px-3 py-2 text-[14px]" />
+            <input value={bt.link} placeholder="/programacao ou https://…" onChange={(e) => mudar((d) => { d.inicio.hero.botoes[i]!.link = e.target.value; })} className="rounded-lg border border-p-borda-forte px-3 py-2 text-[14px]" />
+            <button type="button" onClick={() => mudar((d) => { d.inicio.hero.botoes.splice(i, 1); })} className="rounded-lg px-3 text-[13px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10">Remover</button>
           </div>
         ))}
         {h.botoes.length < 3 && (
-          <button type="button" onClick={() => mudar((d) => { d.inicio.hero.botoes.push({ rotulo: "Novo botão", link: "/" }); })} className="justify-self-start text-[13px] font-semibold text-marca hover:underline">+ Adicionar botão</button>
+          <button type="button" onClick={() => mudar((d) => { d.inicio.hero.botoes.push({ rotulo: "Novo botão", link: "/" }); })} className="justify-self-start text-[13px] font-semibold text-p-acento hover:underline">+ Adicionar botão</button>
         )}
       </Secao>
       <Secao titulo="Seções da página inicial" descricao="Ligue ou desligue cada bloco.">
@@ -453,22 +453,26 @@ export function EditorContato({ c, mudar }: P) {
 export type DefSecao = {
   id: string;
   rotulo: string;
+  descricao: string;
   grupo: "Site" | "Páginas";
   previa: string;
+  Icone: LucideIcon;
+  /** Partes do conteúdo que a seção altera (para marcar o que ainda não foi publicado). */
+  chaves: (keyof Conteudo)[];
   Editor: (p: P) => ReactNode;
 };
 
 export const SECOES: DefSecao[] = [
-  { id: "geral", rotulo: "Dados da igreja", grupo: "Site", previa: "/contato", Editor: EditorGeral },
-  { id: "aparencia", rotulo: "Cores", grupo: "Site", previa: "/", Editor: EditorAparencia },
-  { id: "menu", rotulo: "Menu", grupo: "Site", previa: "/", Editor: EditorMenu },
-  { id: "inicio", rotulo: "Página inicial", grupo: "Páginas", previa: "/", Editor: EditorInicio },
-  { id: "programacao", rotulo: "Programação", grupo: "Páginas", previa: "/programacao", Editor: EditorProgramacao },
-  { id: "eventos", rotulo: "Eventos", grupo: "Páginas", previa: "/programacao#eventos", Editor: EditorEventos },
-  { id: "sobre", rotulo: "A Igreja", grupo: "Páginas", previa: "/sobre", Editor: EditorSobre },
-  { id: "lideranca", rotulo: "Liderança", grupo: "Páginas", previa: "/lideranca", Editor: EditorLideranca },
-  { id: "ministerios", rotulo: "Ministérios", grupo: "Páginas", previa: "/ministerios", Editor: EditorMinisterios },
-  { id: "mensagens", rotulo: "Mensagens (YouTube)", grupo: "Páginas", previa: "/mensagens", Editor: EditorMensagens },
-  { id: "contribua", rotulo: "Contribua", grupo: "Páginas", previa: "/contribua", Editor: EditorContribua },
-  { id: "contato", rotulo: "Contato e rodapé", grupo: "Páginas", previa: "/contato", Editor: EditorContato },
+  { id: "geral", rotulo: "Dados da igreja", descricao: "Nome, contatos, endereço, mapa e redes sociais.", grupo: "Site", previa: "/contato", Icone: Building2, chaves: ["geral"], Editor: EditorGeral },
+  { id: "aparencia", rotulo: "Cores", descricao: "As três cores da marca usadas em todo o site.", grupo: "Site", previa: "/", Icone: Palette, chaves: ["aparencia"], Editor: EditorAparencia },
+  { id: "menu", rotulo: "Menu", descricao: "Itens, ordem e visibilidade do menu do site.", grupo: "Site", previa: "/", Icone: ListTree, chaves: ["menu"], Editor: EditorMenu },
+  { id: "inicio", rotulo: "Página inicial", descricao: "Destaque do topo, seções e textos da página inicial.", grupo: "Páginas", previa: "/", Icone: House, chaves: ["inicio"], Editor: EditorInicio },
+  { id: "programacao", rotulo: "Agenda semanal", descricao: "Os dias e horários do carrossel da agenda.", grupo: "Páginas", previa: "/programacao", Icone: CalendarClock, chaves: ["programacao"], Editor: EditorProgramacao },
+  { id: "eventos", rotulo: "Eventos", descricao: "Congressos, conferências e datas especiais.", grupo: "Páginas", previa: "/programacao#eventos", Icone: CalendarHeart, chaves: ["eventos"], Editor: EditorEventos },
+  { id: "sobre", rotulo: "A Igreja", descricao: "História, missão, visão, valores e o que cremos.", grupo: "Páginas", previa: "/sobre", Icone: Church, chaves: ["sobre"], Editor: EditorSobre },
+  { id: "lideranca", rotulo: "Liderança", descricao: "Pastores, diretoria e oficiais, com fotos.", grupo: "Páginas", previa: "/lideranca", Icone: Users, chaves: ["lideranca"], Editor: EditorLideranca },
+  { id: "ministerios", rotulo: "Ministérios", descricao: "Departamentos e ministérios da igreja.", grupo: "Páginas", previa: "/ministerios", Icone: HeartHandshake, chaves: ["ministerios"], Editor: EditorMinisterios },
+  { id: "mensagens", rotulo: "Mensagens", descricao: "Canal do YouTube e filtros da página de mensagens.", grupo: "Páginas", previa: "/mensagens", Icone: MonitorPlay, chaves: ["mensagens"], Editor: EditorMensagens },
+  { id: "contribua", rotulo: "Contribua", descricao: "PIX, contas bancárias e textos de dízimos e ofertas.", grupo: "Páginas", previa: "/contribua", Icone: HandCoins, chaves: ["contribua"], Editor: EditorContribua },
+  { id: "contato", rotulo: "Contato e rodapé", descricao: "Textos da página de contato e do rodapé.", grupo: "Páginas", previa: "/contato", Icone: Mail, chaves: ["contato", "rodape"], Editor: EditorContato },
 ];

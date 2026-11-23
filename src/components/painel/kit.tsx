@@ -10,15 +10,15 @@ import { cn } from "@/lib/utils";
 
 export function Secao({ titulo, descricao, children, acao }: { titulo: string; descricao?: string; children: ReactNode; acao?: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-5 flex items-start justify-between gap-4">
+    <section className="rounded-lg border border-p-borda bg-p-superficie">
+      <div className="flex items-start justify-between gap-4 border-b border-p-borda px-5 py-3.5">
         <div>
-          <h3 className="text-[15px] font-bold text-slate-900">{titulo}</h3>
-          {descricao && <p className="mt-1 text-[13px] text-slate-500">{descricao}</p>}
+          <h3 className="text-[14px] font-semibold text-p-texto">{titulo}</h3>
+          {descricao && <p className="mt-0.5 text-[12.5px] leading-snug text-p-suave">{descricao}</p>}
         </div>
         {acao}
       </div>
-      <div className="grid gap-4">{children}</div>
+      <div className="grid gap-4 p-5">{children}</div>
     </section>
   );
 }
@@ -28,7 +28,7 @@ export function Grade({ children, cols = 2 }: { children: ReactNode; cols?: 2 | 
 }
 
 const estiloCampo =
-  "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-[14.5px] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-marca focus:ring-3 focus:ring-marca/15";
+  "h-9 w-full rounded-md border border-p-borda-forte bg-p-superficie px-3 text-[13.5px] text-p-texto outline-none transition placeholder:text-p-suave focus:border-p-acento focus:ring-3 focus:ring-p-acento/20";
 
 export function Campo({
   rotulo, valor, onChange, dica, multilinha, linhas = 4, placeholder, tipo = "text",
@@ -38,13 +38,13 @@ export function Campo({
   const id = useId();
   return (
     <div className="grid gap-1.5">
-      <label htmlFor={id} className="text-[13px] font-semibold text-slate-700">{rotulo}</label>
+      <label htmlFor={id} className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</label>
       {multilinha ? (
-        <textarea id={id} rows={linhas} value={valor} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={cn(estiloCampo, "resize-y leading-relaxed")} />
+        <textarea id={id} rows={linhas} value={valor} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={cn(estiloCampo, "h-auto resize-y py-2 leading-relaxed")} />
       ) : (
         <input id={id} type={tipo} value={valor} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={estiloCampo} />
       )}
-      {dica && <p className="text-[12px] text-slate-500">{dica}</p>}
+      {dica && <p className="text-[12px] text-p-suave">{dica}</p>}
     </div>
   );
 }
@@ -53,7 +53,7 @@ export function Selecao<T extends string>({ rotulo, valor, opcoes, onChange }: {
   const id = useId();
   return (
     <div className="grid gap-1.5">
-      <label htmlFor={id} className="text-[13px] font-semibold text-slate-700">{rotulo}</label>
+      <label htmlFor={id} className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</label>
       <select id={id} value={valor} onChange={(e) => onChange(e.target.value as T)} className={estiloCampo}>
         {opcoes.map((o) => <option key={o.valor} value={o.valor}>{o.rotulo}</option>)}
       </select>
@@ -63,19 +63,19 @@ export function Selecao<T extends string>({ rotulo, valor, opcoes, onChange }: {
 
 export function Interruptor({ rotulo, valor, onChange, dica }: { rotulo: string; valor: boolean; onChange: (v: boolean) => void; dica?: string }) {
   return (
-    <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-slate-200 px-4 py-3 hover:bg-slate-50">
+    <label className="flex cursor-pointer items-start justify-between gap-4 rounded-md border border-p-borda px-3.5 py-2.5 hover:bg-p-sutil">
       <span>
-        <span className="block text-[14px] font-semibold text-slate-800">{rotulo}</span>
-        {dica && <span className="block text-[12px] text-slate-500">{dica}</span>}
+        <span className="block text-[13.5px] font-medium text-p-texto">{rotulo}</span>
+        {dica && <span className="block text-[12px] text-p-suave">{dica}</span>}
       </span>
       <button
         type="button"
         role="switch"
         aria-checked={valor}
         onClick={() => onChange(!valor)}
-        className={cn("relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors", valor ? "bg-marca" : "bg-slate-300")}
+        className={cn("relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors", valor ? "bg-p-acento" : "bg-p-borda-forte")}
       >
-        <span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow transition-all", valor ? "left-[22px]" : "left-0.5")} />
+        <span className={cn("absolute top-0.5 size-4 rounded-full bg-white shadow transition-all", valor ? "left-[18px]" : "left-0.5")} />
       </button>
     </label>
   );
@@ -84,12 +84,12 @@ export function Interruptor({ rotulo, valor, onChange, dica }: { rotulo: string;
 export function CampoCor({ rotulo, valor, onChange, dica }: { rotulo: string; valor: string; onChange: (v: string) => void; dica?: string }) {
   return (
     <div className="grid gap-1.5">
-      <span className="text-[13px] font-semibold text-slate-700">{rotulo}</span>
+      <span className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</span>
       <div className="flex items-center gap-2">
-        <input type="color" value={valor} onChange={(e) => onChange(e.target.value)} className="h-11 w-14 cursor-pointer rounded-xl border border-slate-300 bg-white p-1" />
+        <input type="color" value={valor} onChange={(e) => onChange(e.target.value)} className="h-9 w-11 cursor-pointer rounded-md border border-p-borda-forte bg-p-superficie p-0.5" />
         <input value={valor} onChange={(e) => onChange(e.target.value)} className={cn(estiloCampo, "font-mono uppercase")} />
       </div>
-      {dica && <p className="text-[12px] text-slate-500">{dica}</p>}
+      {dica && <p className="text-[12px] text-p-suave">{dica}</p>}
     </div>
   );
 }
@@ -137,9 +137,9 @@ export function CampoImagem({ rotulo, valor, onChange, dica, proporcao = "aspect
 
   return (
     <div className="grid gap-1.5">
-      <span className="text-[13px] font-semibold text-slate-700">{rotulo}</span>
+      <span className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</span>
       <div
-        className={cn("group relative overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-slate-50", proporcao, valor && "border-solid border-slate-200")}
+        className={cn("group relative overflow-hidden rounded-md border border-dashed border-p-borda-forte bg-p-sutil", proporcao, valor && "border-solid border-p-borda")}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); escolher(e.dataTransfer.files[0]); }}
       >
@@ -147,22 +147,22 @@ export function CampoImagem({ rotulo, valor, onChange, dica, proporcao = "aspect
           <>
             <img src={valor} alt="" className="size-full object-cover" />
             <div className="absolute inset-0 flex items-center justify-center gap-2 bg-slate-900/50 opacity-0 transition-opacity group-hover:opacity-100">
-              <button type="button" onClick={() => entrada.current?.click()} className="rounded-lg bg-white px-3 py-2 text-[13px] font-semibold text-slate-800">Trocar</button>
-              <button type="button" onClick={() => onChange("")} className="rounded-lg bg-white px-3 py-2 text-[13px] font-semibold text-red-600">Remover</button>
+              <button type="button" onClick={() => entrada.current?.click()} className="rounded-md bg-white px-3 py-1.5 text-[12.5px] font-medium text-slate-900">Trocar</button>
+              <button type="button" onClick={() => onChange("")} className="rounded-md bg-white px-3 py-1.5 text-[12.5px] font-medium text-red-600 dark:text-red-400">Remover</button>
             </div>
           </>
         ) : (
-          <button type="button" onClick={() => entrada.current?.click()} className="flex size-full flex-col items-center justify-center gap-2 p-4 text-slate-500 hover:text-marca">
+          <button type="button" onClick={() => entrada.current?.click()} className="flex size-full flex-col items-center justify-center gap-2 p-4 text-p-suave hover:text-p-acento">
             {enviando ? <Loader2 className="animate-spin" /> : <ImagePlus />}
-            <span className="text-[13px] font-semibold">{enviando ? "Enviando…" : "Clique ou arraste uma imagem"}</span>
+            <span className="text-[12.5px] font-medium">{enviando ? "Enviando…" : "Clique ou arraste uma imagem"}</span>
           </button>
         )}
-        {enviando && valor && <div className="absolute inset-0 grid place-items-center bg-white/70"><Loader2 className="animate-spin text-marca" /></div>}
+        {enviando && valor && <div className="absolute inset-0 grid place-items-center bg-p-superficie/70"><Loader2 className="animate-spin text-p-acento" /></div>}
       </div>
       <input ref={entrada} type="file" accept="image/*" hidden onChange={(e) => escolher(e.target.files?.[0])} />
       <div className="flex items-center justify-between gap-2">
-        {dica ? <p className="text-[12px] text-slate-500">{dica}</p> : <span />}
-        <button type="button" onClick={() => setLink((v) => !v)} className="shrink-0 text-[12px] font-semibold text-marca hover:underline">
+        {dica ? <p className="text-[12px] text-p-suave">{dica}</p> : <span />}
+        <button type="button" onClick={() => setLink((v) => !v)} className="shrink-0 text-[12px] font-semibold text-p-acento hover:underline">
           {link ? "Fechar" : "Usar endereço (URL)"}
         </button>
       </div>
@@ -175,25 +175,25 @@ export function CampoImagem({ rotulo, valor, onChange, dica, proporcao = "aspect
 export function ListaTextos({ rotulo, valores, onChange, placeholder, dica }: { rotulo: string; valores: string[]; onChange: (v: string[]) => void; placeholder?: string; dica?: string }) {
   return (
     <div className="grid gap-1.5">
-      <span className="text-[13px] font-semibold text-slate-700">{rotulo}</span>
+      <span className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</span>
       <div className="flex flex-wrap gap-2">
         {valores.map((v, i) => (
-          <span key={i} className="flex items-center rounded-xl border border-slate-300 bg-white pl-3">
+          <span key={i} className="flex h-9 items-center rounded-md border border-p-borda-forte bg-p-superficie pl-3">
             <input
               value={v}
               placeholder={placeholder}
               onChange={(e) => onChange(valores.map((x, j) => (j === i ? e.target.value : x)))}
-              className="w-28 bg-transparent py-2 text-[14px] outline-none"
+              className="w-28 bg-transparent text-[13.5px] text-p-texto outline-none"
               style={{ width: `${Math.max(6, v.length + 2)}ch` }}
             />
-            <button type="button" onClick={() => onChange(valores.filter((_, j) => j !== i))} className="px-2 text-slate-400 hover:text-red-600" aria-label="Remover"><X size={14} /></button>
+            <button type="button" onClick={() => onChange(valores.filter((_, j) => j !== i))} className="px-2 text-p-suave hover:text-red-600 dark:text-red-400" aria-label="Remover"><X size={14} /></button>
           </span>
         ))}
-        <button type="button" onClick={() => onChange([...valores, ""])} className="inline-flex items-center gap-1 rounded-xl border border-dashed border-slate-300 px-3 py-2 text-[13px] font-semibold text-marca hover:border-marca">
+        <button type="button" onClick={() => onChange([...valores, ""])} className="inline-flex h-9 items-center gap-1 rounded-md border border-dashed border-p-borda-forte px-3 text-[13px] font-medium text-p-acento hover:border-p-acento">
           <Plus size={14} /> Adicionar
         </button>
       </div>
-      {dica && <p className="text-[12px] text-slate-500">{dica}</p>}
+      {dica && <p className="text-[12px] text-p-suave">{dica}</p>}
     </div>
   );
 }
@@ -228,17 +228,17 @@ export function ListaEditavel<T extends { id: string }>({
 
   return (
     <div className="grid gap-2">
-      {itens.length === 0 && <p className="rounded-xl bg-slate-50 px-4 py-6 text-center text-[13px] text-slate-500">{vazio}</p>}
+      {itens.length === 0 && <p className="rounded-md bg-p-sutil px-4 py-6 text-center text-[13px] text-p-suave">{vazio}</p>}
       {itens.map((item, i) => {
         const ab = aberto === item.id;
         return (
-          <div key={item.id} className={cn("rounded-xl border bg-white transition-shadow", ab ? "border-marca/40 shadow-md" : "border-slate-200")}>
-            <div className="flex items-center gap-1 pl-4 pr-2">
-              <button type="button" onClick={() => setAberto(ab ? null : item.id)} className="flex min-w-0 flex-1 items-center gap-3 py-3 text-left">
-                <ChevronDown size={16} className={cn("shrink-0 text-slate-400 transition-transform", ab && "rotate-180")} />
+          <div key={item.id} className={cn("rounded-md border bg-p-superficie", ab ? "border-p-acento/50 ring-3 ring-p-acento/10" : "border-p-borda")}>
+            <div className="flex items-center gap-0.5 pl-3 pr-1.5">
+              <button type="button" onClick={() => setAberto(ab ? null : item.id)} className="flex min-w-0 flex-1 items-center gap-2.5 py-2.5 text-left">
+                <ChevronDown size={16} className={cn("shrink-0 text-p-suave transition-transform", ab && "rotate-180")} />
                 <span className="min-w-0">
-                  <span className="block truncate text-[14px] font-semibold text-slate-800">{titulo(item) || "(sem título)"}</span>
-                  {subtitulo && subtitulo(item) && <span className="block truncate text-[12px] text-slate-500">{subtitulo(item)}</span>}
+                  <span className="block truncate text-[13.5px] font-medium text-p-texto">{titulo(item) || "(sem título)"}</span>
+                  {subtitulo && subtitulo(item) && <span className="block truncate text-[12px] text-p-suave">{subtitulo(item)}</span>}
                 </span>
               </button>
               <BotaoIcone titulo="Subir" onClick={() => mover(i, -1)} desativado={i === 0}><ArrowUp size={15} /></BotaoIcone>
@@ -254,14 +254,14 @@ export function ListaEditavel<T extends { id: string }>({
                 if (confirm(`Excluir “${titulo(item) || "item"}”?`)) onChange(itens.filter((_, j) => j !== i));
               }}><Trash2 size={15} /></BotaoIcone>
             </div>
-            {ab && <div className="grid gap-4 border-t border-slate-100 p-4">{render(item, mudarItem(i))}</div>}
+            {ab && <div className="grid gap-4 border-t border-p-borda p-4">{render(item, mudarItem(i))}</div>}
           </div>
         );
       })}
       <button
         type="button"
         onClick={() => { const n = novo(); onChange([...itens, n]); setAberto(n.id); }}
-        className="inline-flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 py-3 text-[13.5px] font-semibold text-marca hover:border-marca hover:bg-marca-clara"
+        className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-dashed border-p-borda-forte text-[13px] font-medium text-p-acento hover:border-p-acento hover:bg-p-realce"
       >
         <Plus size={16} /> {rotuloNovo}
       </button>
@@ -277,7 +277,7 @@ function BotaoIcone({ children, titulo, onClick, desativado, perigo }: { childre
       aria-label={titulo}
       disabled={desativado}
       onClick={onClick}
-      className={cn("grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 disabled:opacity-30", perigo ? "hover:text-red-600" : "hover:text-slate-700")}
+      className={cn("grid size-7 place-items-center rounded-md text-p-suave hover:bg-p-hover disabled:opacity-30", perigo ? "hover:text-red-600 dark:text-red-400" : "hover:text-p-texto")}
     >
       {children}
     </button>
