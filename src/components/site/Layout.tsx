@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ArrowRight, Clock, Mail, MapPin, Menu, Phone, X } from "lucide-react";
+import { ArrowRight, Clock, LockKeyhole, Mail, MapPin, Menu, Phone, X } from "lucide-react";
 import { useConteudo } from "@/lib/contexto";
 import { useAoVivo } from "@/lib/ao-vivo";
 import { cn, linkTelefone, linkWhatsapp } from "@/lib/utils";
@@ -112,15 +112,26 @@ function Cabecalho() {
 
   return (
     <header className="sticky top-0 z-40">
-      {(g.horarioAtendimento || g.telefone || g.email) && (
+      {(
+
         <div className="hidden bg-marca-funda text-[13px] text-white/85 md:block">
           <div className="mx-auto flex h-10 w-full max-w-[1440px] items-center justify-between px-5 sm:px-8 xl:px-10 2xl:px-14">
             <div className="flex items-center gap-6">
               {g.horarioAtendimento && <span className="inline-flex items-center gap-2"><Clock size={14} />{g.horarioAtendimento}</span>}
-              {g.telefone && <a href={linkTelefone(g.telefone)} className="inline-flex items-center gap-2 hover:text-white"><Phone size={14} />{g.telefone}</a>}
               {g.email && <a href={`mailto:${g.email}`} className="inline-flex items-center gap-2 hover:text-white"><Mail size={14} />{g.email}</a>}
             </div>
-            <Redes claro tamanho={15} />
+            <div className="flex items-center">
+              <Redes claro tamanho={15} />
+              <span className="mx-2 h-4 w-px bg-white/20" aria-hidden />
+              <Link
+                to="/admin"
+                title="Área administrativa"
+                aria-label="Área administrativa"
+                className="grid size-8 place-items-center rounded-full text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <LockKeyhole size={14} />
+              </Link>
+            </div>
           </div>
         </div>
       )}
