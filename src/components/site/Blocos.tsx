@@ -21,7 +21,7 @@ export function CartaoEvento({ ev }: { ev: Evento }) {
           <h3 className="text-[1.15rem] font-semibold leading-snug text-marca-funda">{ev.titulo}</h3>
           <p className="mt-1.5 text-[14.5px] text-tinta-suave">{periodo(ev.data, ev.dataFim)}{ev.horario && ` · ${ev.horario}`}</p>
           {ev.local && <p className="text-[14.5px] text-tinta-suave">{ev.local}</p>}
-          {ev.descricao && <p className="mt-3 line-clamp-3 text-[15px] leading-relaxed text-tinta-suave">{ev.descricao}</p>}
+          {ev.descricao && <p className="texto-justificado mt-3 line-clamp-3 text-[15px] leading-relaxed text-tinta-suave">{ev.descricao}</p>}
           {ev.link && (
             <LinkSite para={ev.link} className="mt-auto inline-flex items-center gap-1 pt-4 text-[14.5px] font-semibold text-marca hover:text-marca-escura">
               {ev.rotuloLink || "Saiba mais"} →

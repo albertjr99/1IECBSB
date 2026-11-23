@@ -54,7 +54,7 @@ function Contato() {
         ) : (
           <div className="self-start border-l-4 border-marca pl-6">
             <h2 className="text-2xl font-semibold text-marca-funda">Fale com a secretaria</h2>
-            <p className="mt-2 max-w-md leading-relaxed text-tinta-suave">Ligue para a igreja ou envie uma mensagem pelo Instagram.</p>
+            <p className="texto-justificado mt-2 max-w-md leading-relaxed text-tinta-suave">Ligue para a igreja ou envie uma mensagem pelo Instagram.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               {g.telefone && <a href={linkTelefone(g.telefone)} className="btn-primario">Ligar {g.telefone}</a>}
               {g.redes.instagram && <a href={g.redes.instagram} target="_blank" rel="noopener noreferrer" className="btn-contorno">Mensagem no Instagram</a>}

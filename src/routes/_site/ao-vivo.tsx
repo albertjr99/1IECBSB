@@ -61,7 +61,7 @@ function AoVivo() {
                       Próxima transmissão: <strong className="text-tinta">{new Date(s.agendado.inicio).toLocaleString("pt-BR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</strong>
                     </p>
                   ) : (
-                    <p className="mt-1 text-tinta-suave">Esta página mostra a transmissão automaticamente quando começar. Enquanto isso, assista à última mensagem.</p>
+                    <p className="texto-justificado mt-1 text-tinta-suave">Esta página mostra a transmissão automaticamente quando começar. Enquanto isso, assista à última mensagem.</p>
                   )}
                 </div>
               </div>

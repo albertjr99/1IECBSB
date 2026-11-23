@@ -375,22 +375,6 @@ export function EditorMensagens({ c, mudar }: P) {
         <Campo rotulo="Canal do YouTube" valor={m.canal} onChange={(v) => mudar((d) => { d.mensagens.canal = v.replace(/^.*@/, ""); })} dica="O identificador depois do @ (ex.: iecbsb). Os vídeos e as transmissões ao vivo vêm dele." />
         <Interruptor rotulo="Esconder vídeos curtos (Shorts)" valor={m.esconderCurtos} onChange={(v) => mudar((d) => { d.mensagens.esconderCurtos = v; })} dica="Esconde vídeos com até 3 minutos." />
       </Secao>
-      <Secao titulo="Filtros" descricao="Cada filtro mostra os vídeos de uma playlist do canal. O ID da playlist fica no endereço dela no YouTube, depois de “list=”.">
-        <ListaEditavel
-          itens={m.filtros}
-          onChange={(v) => mudar((d) => { d.mensagens.filtros = v; })}
-          novo={() => ({ id: novoId("flt"), rotulo: "Novo filtro", playlistId: "" })}
-          titulo={(x) => x.rotulo}
-          subtitulo={(x) => x.playlistId}
-          rotuloNovo="Adicionar filtro"
-          render={(x, mm) => (
-            <Grade>
-              <Campo rotulo="Nome do filtro" valor={x.rotulo} onChange={(v) => mm((d) => { d.rotulo = v; })} />
-              <Campo rotulo="Playlist (ID ou link)" valor={x.playlistId} onChange={(v) => mm((d) => { d.playlistId = v.match(/list=([\w-]+)/)?.[1] ?? v.trim(); })} />
-            </Grade>
-          )}
-        />
-      </Secao>
     </>
   );
 }
@@ -472,7 +456,7 @@ export const SECOES: DefSecao[] = [
   { id: "sobre", rotulo: "A Igreja", descricao: "História, missão, visão, valores e o que cremos.", grupo: "Páginas", previa: "/sobre", Icone: Church, chaves: ["sobre"], Editor: EditorSobre },
   { id: "lideranca", rotulo: "Liderança", descricao: "Pastores, diretoria e oficiais, com fotos.", grupo: "Páginas", previa: "/lideranca", Icone: Users, chaves: ["lideranca"], Editor: EditorLideranca },
   { id: "ministerios", rotulo: "Ministérios", descricao: "Departamentos e ministérios da igreja.", grupo: "Páginas", previa: "/ministerios", Icone: HeartHandshake, chaves: ["ministerios"], Editor: EditorMinisterios },
-  { id: "mensagens", rotulo: "Mensagens", descricao: "Canal do YouTube e filtros da página de mensagens.", grupo: "Páginas", previa: "/mensagens", Icone: MonitorPlay, chaves: ["mensagens"], Editor: EditorMensagens },
+  { id: "mensagens", rotulo: "Mensagens", descricao: "Canal do YouTube da página de mensagens.", grupo: "Páginas", previa: "/mensagens", Icone: MonitorPlay, chaves: ["mensagens"], Editor: EditorMensagens },
   { id: "contribua", rotulo: "Contribua", descricao: "PIX, contas bancárias e textos de dízimos e ofertas.", grupo: "Páginas", previa: "/contribua", Icone: HandCoins, chaves: ["contribua"], Editor: EditorContribua },
   { id: "contato", rotulo: "Contato e rodapé", descricao: "Textos da página de contato e do rodapé.", grupo: "Páginas", previa: "/contato", Icone: Mail, chaves: ["contato", "rodape"], Editor: EditorContato },
 ];

@@ -16,7 +16,7 @@ function Ministerios() {
             {x.imagem && <img src={x.imagem} alt="" className="mb-5 aspect-[16/10] w-full rounded-lg object-cover" loading="lazy" />}
             <div className="border-t-2 border-marca pt-5">
               <h3 className="text-xl font-semibold text-marca-funda">{x.nome}</h3>
-              <p className="mt-2 leading-relaxed text-tinta-suave">{x.descricao}</p>
+              <p className="texto-justificado mt-2 leading-relaxed text-tinta-suave">{x.descricao}</p>
               {(x.quando || x.lider) && (
                 <dl className="mt-4 grid gap-1 text-[15px]">
                   {x.quando && <div className="flex gap-2"><dt className="text-tinta-suave">Quando:</dt><dd className="text-tinta">{x.quando}</dd></div>}

@@ -28,7 +28,7 @@ function Lideranca() {
                   <div className="p-5">
                     <h3 className="text-lg font-semibold leading-snug text-marca-funda">{m.nome}</h3>
                     <p className="mt-1 text-[15px] text-tinta-suave">{m.cargo}</p>
-                    {m.bio && <p className="mt-3 text-[15px] text-tinta-suave">{m.bio}</p>}
+                    {m.bio && <p className="texto-justificado mt-3 text-[15px] leading-relaxed text-tinta-suave">{m.bio}</p>}
                   </div>
                 </article>
               ))}

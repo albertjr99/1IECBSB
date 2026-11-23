@@ -242,7 +242,11 @@ function Painel() {
         {dados.armazenamento === "memoria" && (
           <div className="flex items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-5 py-2 text-[12.5px] text-amber-900 dark:text-amber-200 print:hidden">
             <AlertTriangle size={14} className="shrink-0" />
-            <span><strong>Banco de dados não conectado:</strong> as alterações ficam só na memória do servidor e podem se perder. Na Vercel, conecte o Neon em Storage e faça um novo deploy.</span>
+            <span>
+              <strong>Banco de dados não encontrado neste deploy.</strong>{" "}
+              Se o Neon já está conectado em Storage, falta um <strong>Redeploy</strong> (as variáveis só valem para deploys feitos depois) e conferir se o ambiente <strong>Production</strong> está marcado na conexão.
+              {dados.variaveisBanco?.length ? <> Variáveis vistas: {dados.variaveisBanco.join(", ")}.</> : null}
+            </span>
           </div>
         )}
 

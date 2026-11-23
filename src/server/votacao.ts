@@ -8,7 +8,7 @@
  */
 import { createHash, randomBytes } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
-import { gravar, ler } from "./armazem";
+import { gravar, ler, urlDoBanco } from "./armazem";
 import type { Votacao } from "@/lib/votacao";
 
 type Sql = ReturnType<typeof neon>;
@@ -16,7 +16,7 @@ let db: Sql | null = null;
 let pronto: Promise<void> | null = null;
 
 function sql(): Sql | null {
-  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  const url = urlDoBanco();
   if (!url) return null;
   if (!db) db = neon(url);
   return db;

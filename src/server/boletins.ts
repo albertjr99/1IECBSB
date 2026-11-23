@@ -1,6 +1,6 @@
 /** Boletins: um registro por boletim e um índice leve para as listas. */
 import { createHmac } from "node:crypto";
-import { apagar, gravar, ler } from "./armazem";
+import { apagar, gravar, ler, urlDoBanco } from "./armazem";
 import type { Boletim, ResumoBoletim } from "@/lib/boletim";
 
 const INDICE = "boletins:indice";
@@ -42,7 +42,7 @@ export async function excluir(id: string) {
 
 // Link assinado para o gerador de PDF abrir um boletim ainda não publicado.
 function segredo() {
-  return process.env.SESSION_SECRET || process.env.DATABASE_URL || "desenvolvimento-local-iecb";
+  return process.env.SESSION_SECRET || urlDoBanco() || "desenvolvimento-local-iecb";
 }
 export function tokenImpressao(id: string, validadeMs = 5 * 60_000) {
   const exp = Date.now() + validadeMs;

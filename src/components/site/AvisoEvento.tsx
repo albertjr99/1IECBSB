@@ -39,7 +39,7 @@ export function AvisoEvento() {
             <span className="inline-flex items-center gap-2"><CalendarDays size={16} className="text-destaque" />{periodo(ev.data, ev.dataFim)}{ev.horario && ` · ${ev.horario}`}</span>
             {ev.local && <span className="inline-flex items-center gap-2"><MapPin size={16} className="text-destaque" />{ev.local}</span>}
           </div>
-          {ev.descricao && <p className="mt-4 text-[15.5px] text-tinta-suave">{ev.descricao}</p>}
+          {ev.descricao && <p className="texto-justificado mt-4 text-[15.5px] text-tinta-suave">{ev.descricao}</p>}
           <div className="mt-6 flex flex-wrap gap-3">
             {ev.link && <LinkSite para={ev.link} className="btn-destaque" onClick={fechar}>{ev.rotuloLink || "Saiba mais"}</LinkSite>}
             <button onClick={fechar} className="btn-contorno">Agora não</button>

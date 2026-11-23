@@ -85,9 +85,20 @@
   @apply btn border border-white/45 bg-transparent text-white hover:border-white hover:bg-white/10;
 }
 @utility texto-corrido {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
   & p + p {
     margin-top: 1rem;
   }
+}
+/* Descrições e parágrafos: justificados, com hifenização em português. */
+@utility texto-justificado {
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  text-wrap: pretty;
 }
 @utility escritura {
   font-family: var(--font-escritura);

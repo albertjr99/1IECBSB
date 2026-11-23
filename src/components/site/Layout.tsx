@@ -20,20 +20,20 @@ function duasLinhas(nome: string): [string, string] {
   return [p.slice(0, melhor).join(" "), p.slice(melhor).join(" ")];
 }
 
-export function Marca({ negativo = false, compacta = false }: { negativo?: boolean; compacta?: boolean }) {
+export function Marca({ negativo = false, compacta = false, destaque = false }: { negativo?: boolean; compacta?: boolean; destaque?: boolean }) {
   const { geral } = useConteudo();
   const [l1, l2] = duasLinhas(geral.nome);
   return (
-    <span className="flex items-center gap-3">
+    <span className={cn("flex items-center", destaque ? "gap-3.5 xl:gap-4" : "gap-3")}>
       <img
         src={negativo ? "/simbolo-negativo.svg" : "/simbolo.svg"}
         alt=""
-        className={cn("h-auto shrink-0", compacta ? "w-12" : "w-14 sm:w-16")}
+        className={cn("h-auto shrink-0", compacta ? "w-12" : destaque ? "w-14 sm:w-[68px] 2xl:w-[76px]" : "w-14 sm:w-16")}
       />
       <span
         className={cn(
-          "font-[family-name:var(--font-titulo)] font-semibold uppercase leading-[1.15] tracking-[0.04em]",
-          compacta ? "text-[10.5px]" : "text-[11px] sm:text-[12.5px]",
+          "font-[family-name:var(--font-titulo)] font-semibold uppercase leading-[1.2] tracking-[0.045em]",
+          compacta ? "text-[10.5px]" : destaque ? "text-[11px] sm:text-[12.5px] 2xl:text-[13.5px]" : "text-[11px] sm:text-[12.5px]",
           negativo ? "text-white" : "text-marca",
         )}
       >
@@ -114,7 +114,7 @@ function Cabecalho() {
     <header className="sticky top-0 z-40">
       {(g.horarioAtendimento || g.telefone || g.email) && (
         <div className="hidden bg-marca-funda text-[13px] text-white/85 md:block">
-          <div className="container-site flex h-10 items-center justify-between">
+          <div className="mx-auto flex h-10 w-full max-w-[1440px] items-center justify-between px-5 sm:px-8 xl:px-10 2xl:px-14">
             <div className="flex items-center gap-6">
               {g.horarioAtendimento && <span className="inline-flex items-center gap-2"><Clock size={14} />{g.horarioAtendimento}</span>}
               {g.telefone && <a href={linkTelefone(g.telefone)} className="inline-flex items-center gap-2 hover:text-white"><Phone size={14} />{g.telefone}</a>}
@@ -125,28 +125,32 @@ function Cabecalho() {
         </div>
       )}
       <div className={cn("border-b bg-white/95 backdrop-blur transition-shadow", rolou ? "border-linha/60 shadow-[0_6px_24px_-18px_rgba(0,0,0,0.4)]" : "border-transparent")}>
-        <div className="container-site flex h-[76px] items-center justify-between gap-4">
-          <Link to="/" aria-label="Página inicial" className="shrink-0"><Marca /></Link>
+        <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center gap-6 px-5 sm:px-8 xl:h-[88px] xl:px-10 2xl:px-14">
+          <Link to="/" aria-label="Página inicial" className="shrink-0"><Marca destaque /></Link>
 
-          <nav className="hidden items-center xl:flex">
-            {principal.map((m) => (
-              <LinkSite
-                key={m.id}
-                para={m.para}
-                className={cn(
-                  "relative whitespace-nowrap px-3 py-2 text-[14.5px] font-medium text-tinta-suave transition-colors hover:text-marca",
-                  ativo(m.para) && "text-marca after:absolute after:inset-x-3 after:-bottom-[20px] after:h-[2px] after:bg-marca",
-                )}
-              >
-                {m.rotulo}
-              </LinkSite>
-            ))}
-          </nav>
+          <div className="ml-auto flex items-center gap-2 xl:gap-0">
+            <nav className="hidden items-center xl:flex" aria-label="Principal">
+              {principal.map((m) => (
+                <LinkSite
+                  key={m.id}
+                  para={m.para}
+                  className={cn(
+                    "relative whitespace-nowrap px-3 py-2 text-[14.5px] font-medium text-tinta-suave transition-colors hover:text-marca 2xl:px-[18px] 2xl:text-[15px]",
+                    "after:absolute after:inset-x-3 after:-bottom-[24px] after:h-[2px] after:origin-center after:scale-x-0 after:bg-marca after:transition-transform 2xl:after:inset-x-[18px]",
+                    ativo(m.para) && "text-marca after:scale-x-100",
+                  )}
+                >
+                  {m.rotulo}
+                </LinkSite>
+              ))}
+            </nav>
 
-          <div className="flex items-center gap-2">
             <SeloAoVivo />
             {contribua && (
-              <LinkSite para={contribua.para} className="btn-primario hidden !h-10 sm:inline-flex">{contribua.rotulo}</LinkSite>
+              <>
+                <span className="mx-4 hidden h-7 w-px bg-linha xl:block 2xl:mx-6" aria-hidden />
+                <LinkSite para={contribua.para} className="btn-primario hidden !h-11 !px-6 sm:inline-flex">{contribua.rotulo}</LinkSite>
+              </>
             )}
             <button
               type="button"
@@ -193,7 +197,7 @@ function Rodape() {
       <div className="container-site relative grid gap-10 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <Marca negativo />
-          {c.rodape.texto && <p className="mt-5 max-w-sm text-[15px] text-white/70">{c.rodape.texto}</p>}
+          {c.rodape.texto && <p className="texto-justificado mt-5 max-w-sm text-[15px] text-white/70">{c.rodape.texto}</p>}
           <div className="mt-5 -ml-2"><Redes claro /></div>
         </div>
         <div>
@@ -263,7 +267,7 @@ export function CabecalhoSecao({ titulo, texto, link, rotuloLink, claro = false 
     <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
       <div className="max-w-2xl">
         <h2 className={claro ? "text-[1.85rem] font-semibold tracking-[-0.015em] text-white sm:text-[2.25rem]" : "titulo-secao"}>{titulo}</h2>
-        {texto && <p className={claro ? "mt-2 text-white/70" : "mt-2 text-tinta-suave"}>{texto}</p>}
+        {texto && <p className={claro ? "texto-justificado mt-2 text-white/70" : "texto-justificado mt-2 text-tinta-suave"}>{texto}</p>}
       </div>
       {link && rotuloLink && (
         <LinkSite para={link} className={`inline-flex items-center gap-1.5 text-[15px] font-semibold ${claro ? "text-white/85 hover:text-white" : "text-marca hover:text-marca-escura"}`}>
@@ -280,7 +284,7 @@ export function CapaPagina({ titulo, texto }: { rotulo?: string; titulo: string;
     <section className="border-b border-white/10 bg-marca-funda text-white">
       <div className="container-site py-14 sm:py-16">
         <h1 className="max-w-3xl text-[2.2rem] font-semibold leading-tight tracking-[-0.02em] sm:text-[2.75rem]">{titulo}</h1>
-        {texto && <p className="mt-3 max-w-2xl text-[17px] leading-relaxed text-white/70">{texto}</p>}
+        {texto && <p className="texto-justificado mt-3 max-w-2xl text-[17px] leading-relaxed text-white/70">{texto}</p>}
       </div>
     </section>
   );

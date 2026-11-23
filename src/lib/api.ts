@@ -55,7 +55,7 @@ export const sair = createServerFn({ method: "POST" }).handler(async () => {
 
 export const obterPainel = createServerFn({ method: "GET" }).handler(async () => {
   const { exigirSessao } = await import("../server/auth");
-  const { ler, modoArmazenamento } = await import("../server/armazem");
+  const { ler, modoArmazenamento, tokenBlob, variaveisDeBanco } = await import("../server/armazem");
   const sessao = exigirSessao();
   const publicado = completarConteudo(await ler("conteudo:publicado"));
   const rascunhoSalvo = await ler<{ conteudo: unknown; em: string; autor: string }>("conteudo:rascunho");
@@ -66,7 +66,8 @@ export const obterPainel = createServerFn({ method: "GET" }).handler(async () =>
     rascunhoEm: rascunhoSalvo?.em ?? null,
     rascunhoAutor: rascunhoSalvo?.autor ?? null,
     armazenamento: modoArmazenamento(),
-    uploadsPermanentes: !!process.env.BLOB_READ_WRITE_TOKEN,
+    variaveisBanco: modoArmazenamento() === "memoria" ? variaveisDeBanco() : [],
+    uploadsPermanentes: !!tokenBlob(),
     mapsChave: !!process.env.VITE_GOOGLE_MAPS_KEY,
   };
 });
@@ -143,12 +144,14 @@ export const enviarImagem = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirSessao } = await import("../server/auth");
     exigirSessao();
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { tokenBlob } = await import("../server/armazem");
+    const token = tokenBlob();
+    if (token) {
       const { put } = await import("@vercel/blob");
       const ext = data.tipo.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
       const base = data.nome.replace(/\.[^.]+$/, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) || "imagem";
       const r = await put(`site/${base}.${ext}`, Buffer.from(data.base64, "base64"), {
-        access: "public", contentType: data.tipo, addRandomSuffix: true,
+        access: "public", contentType: data.tipo, addRandomSuffix: true, token,
       });
       return { url: r.url };
     }
@@ -230,7 +233,7 @@ export type ListaVideos = {
 };
 
 export const listarVideos = createServerFn({ method: "GET" })
-  .validator((d: { canal: string; playlist?: string; busca?: string; pagina?: number; porPagina?: number; esconderCurtos?: boolean }) => d)
+  .validator((d: { canal: string; playlist?: string; busca?: string; de?: string; ate?: string; pagina?: number; porPagina?: number; esconderCurtos?: boolean }) => d)
   .handler(async ({ data }): Promise<ListaVideos> => {
     const yt = await import("../server/youtube");
     const porPagina = Math.min(Math.max(data.porPagina ?? 12, 1), 48);
@@ -244,6 +247,10 @@ export const listarVideos = createServerFn({ method: "GET" })
         const alvo = sem(termo);
         lista = lista.filter((v) => sem(v.titulo).includes(alvo));
       }
+      // Período (datas AAAA-MM-DD, no fuso de Brasília)
+      const dia = (iso: string) => new Date(new Date(iso).getTime() - 3 * 3600_000).toISOString().slice(0, 10);
+      if (data.de && /^\d{4}-\d{2}-\d{2}$/.test(data.de)) lista = lista.filter((v) => dia(v.publicado) >= data.de!);
+      if (data.ate && /^\d{4}-\d{2}-\d{2}$/.test(data.ate)) lista = lista.filter((v) => dia(v.publicado) <= data.ate!);
       return { videos: lista.slice((pagina - 1) * porPagina, pagina * porPagina), total: lista.length, pagina, porPagina };
     } catch (e) {
       console.error("[youtube]", e);

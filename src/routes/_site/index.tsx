@@ -36,7 +36,7 @@ function Hero() {
           )}
           {h.sobretitulo && <p className="text-lg text-white/70">{h.sobretitulo}</p>}
           <h1 className="mt-2 max-w-3xl text-[2.25rem] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[3.1rem]">{h.titulo}</h1>
-          {h.subtitulo && <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">{h.subtitulo}</p>}
+          {h.subtitulo && <p className="texto-justificado mt-6 max-w-xl text-lg leading-relaxed text-white/75">{h.subtitulo}</p>}
           {h.botoes.length > 0 && (
             <div className="mt-10 flex flex-wrap gap-3">
               {h.botoes.map((b, i) => (
@@ -144,7 +144,7 @@ function Eventos() {
   if (!proximos.length) return null;
   return (
     <section className="container-site py-20 sm:py-24">
-      <CabecalhoSecao titulo={e.titulo} texto={e.subtitulo} link="/programacao#eventos" rotuloLink="Todos os eventos" />
+      <CabecalhoSecao titulo={e.titulo} texto={e.subtitulo} link="/programacao#eventos" rotuloLink="Ver no calendário" />
       <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {proximos.map((ev) => <CartaoEvento key={ev.id} ev={ev} />)}
       </div>
@@ -173,7 +173,7 @@ function Contribua() {
       <div className="flex flex-col gap-6 border-l-4 border-destaque pl-6 sm:flex-row sm:items-center sm:justify-between sm:pl-8">
         <div className="max-w-2xl">
           <h2 className="text-2xl font-semibold text-marca-funda">{c.titulo}</h2>
-          <p className="mt-2 text-tinta-suave">{c.texto}</p>
+          <p className="texto-justificado mt-2 text-tinta-suave">{c.texto}</p>
         </div>
         <Link to="/contribua" className="btn-primario shrink-0">Como contribuir</Link>
       </div>
@@ -184,7 +184,7 @@ function Contribua() {
 function Localizacao() {
   const { geral: g } = useConteudo();
   return (
-    <section id="localizacao" className="scroll-mt-24 border-t border-linha/60 bg-papel">
+    <section id="localizacao" className="scroll-mt-36 border-t border-linha/60 bg-papel">
       <div className="container-site grid gap-10 py-20 sm:py-24 lg:grid-cols-[1fr_1.4fr] lg:items-center">
         <div>
           <h2 className="titulo-secao">Como chegar</h2>

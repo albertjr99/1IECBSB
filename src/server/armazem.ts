@@ -18,8 +18,57 @@ type Sql = ReturnType<typeof neon>;
 let sqlCache: Sql | null = null;
 let tabelasProntas: Promise<void> | null = null;
 
+/**
+ * Encontra a conexão do Postgres. A integração do Neon na Vercel pode criar a
+ * variável com outro nome (POSTGRES_URL, NEON_DATABASE_URL ou com um prefixo
+ * escolhido na hora de conectar, como STORAGE_DATABASE_URL). Por isso procura
+ * pelos nomes conhecidos e, se não achar, por qualquer variável cujo valor seja
+ * um endereço postgres://.
+ */
+export function urlDoBanco(): string | null {
+  const env = process.env;
+  const conhecidos = [
+    "DATABASE_URL",
+    "POSTGRES_URL",
+    "NEON_DATABASE_URL",
+    "DATABASE_URL_UNPOOLED",
+    "POSTGRES_URL_NON_POOLING",
+    "POSTGRES_PRISMA_URL",
+  ];
+  for (const nome of conhecidos) {
+    const v = env[nome];
+    if (v && /^postgres(ql)?:\/\//.test(v)) return v;
+  }
+  const nomes = Object.keys(env).sort((a, b) => {
+    // Prefere as conexões com pool (sem UNPOOLED / NON_POOLING no nome).
+    const pa = /UNPOOLED|NON_POOLING/.test(a) ? 1 : 0;
+    const pb = /UNPOOLED|NON_POOLING/.test(b) ? 1 : 0;
+    return pa - pb;
+  });
+  for (const nome of nomes) {
+    const v = env[nome];
+    if (v && /^postgres(ql)?:\/\//.test(v) && /(DATABASE|POSTGRES|NEON)/i.test(nome)) return v;
+  }
+  return null;
+}
+
+/** Token do Vercel Blob, aceitando nomes com prefixo (ex.: STORAGE_BLOB_READ_WRITE_TOKEN). */
+export function tokenBlob(): string | null {
+  const env = process.env;
+  if (env.BLOB_READ_WRITE_TOKEN) return env.BLOB_READ_WRITE_TOKEN;
+  for (const nome of Object.keys(env)) {
+    if (/BLOB_READ_WRITE_TOKEN$/.test(nome) && env[nome]) return env[nome]!;
+  }
+  return null;
+}
+
+/** Nomes (nunca valores) de variáveis que parecem de banco — para diagnóstico no painel. */
+export function variaveisDeBanco(): string[] {
+  return Object.keys(process.env).filter((n) => /(DATABASE|POSTGRES|NEON|PG)/i.test(n)).sort();
+}
+
 function sql(): Sql | null {
-  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  const url = urlDoBanco();
   if (!url) return null;
   if (!sqlCache) sqlCache = neon(url);
   return sqlCache;

@@ -13,7 +13,7 @@
  */
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { deleteCookie, getCookie, setCookie } from "@tanstack/react-start/server";
-import { gravar, ler } from "./armazem";
+import { gravar, ler, urlDoBanco } from "./armazem";
 
 export type Papel = "admin" | "editor";
 export type Usuario = { usuario: string; nome: string; papel: Papel; hash: string; criadoEm: string };
@@ -32,7 +32,7 @@ function segredo(): string {
   if (s && s.length >= 16) return s;
   // Sem segredo configurado, deriva um do banco (estável entre reinícios)
   // ou usa um fixo em desenvolvimento.
-  const base = process.env.DATABASE_URL || process.env.POSTGRES_URL || "desenvolvimento-local-iecb";
+  const base = urlDoBanco() || "desenvolvimento-local-iecb";
   return createHmac("sha256", "iecb-sessao").update(base).digest("hex");
 }
 
