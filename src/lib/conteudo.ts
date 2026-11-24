@@ -332,7 +332,6 @@ export const CONTEUDO_PADRAO: Conteudo = {
         membros: [
           { id: "pr-hilario", nome: "Pr. Hilário José Bispo da Graça", cargo: "Pastor-Presidente", foto: "/fotos/pr-hilario-jose.jpg", bio: "" },
           { id: "pr-aluizio", nome: "Pr. Aluízio Lourenço da Silva Filho", cargo: "Pastor Auxiliar", foto: "/fotos/pr-aluizio-lourenco.jpg", bio: "" },
-          { id: "pr-jefferson", nome: "Pr. Jefferson Pontes Guimarães", cargo: "Pastor", foto: "", bio: "" },
         ],
       },
       {
@@ -408,6 +407,8 @@ export function completarConteudo(salvo: unknown): Conteudo {
   const e = c.geral.endereco;
   if (/SQS? 415|70298-400/.test(`${e.linha1} ${e.cep} ${e.consultaMapa}`)) c.geral.endereco = structuredClone(CONTEUDO_PADRAO.geral.endereco);
   for (const ev of c.eventos.itens) ev.local = ev.local.replace(/SHCS SQ 415/g, "SHCS SQS 416");
+  // o Pr. Jefferson não faz mais parte do pastorado (nov/2026)
+  for (const g of c.lideranca.grupos) g.membros = g.membros.filter((m) => !/Jefferson Pontes/i.test(m.nome));
   // fotos novas da liderança entram mesmo em conteúdo já salvo (se ainda sem foto)
   for (const g of c.lideranca.grupos) for (const m of g.membros) {
     if (!m.foto && /Hil[aá]rio Jos[eé]/.test(m.nome)) m.foto = "/fotos/pr-hilario-jose.jpg";

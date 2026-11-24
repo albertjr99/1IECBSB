@@ -13,12 +13,53 @@ export const resumir = (b: Boletim): ResumoBoletim => ({
 });
 
 export async function indice(): Promise<ResumoBoletim[]> {
-  const l = (await ler<ResumoBoletim[]>(INDICE)) ?? [];
+  const l = await semear((await ler<ResumoBoletim[]>(INDICE)) ?? []);
   return l.sort((a, b) => b.data.localeCompare(a.data));
 }
 
+/**
+ * Na primeira leitura, coloca no sistema os boletins de novembro/2026 já no
+ * modelo novo (publicados). Cada data entra uma vez só: se a igreja apagar ou
+ * já tiver um boletim naquela data, nada é sobrescrito.
+ */
+const SEMENTES = "boletins:sementes";
+let semeado: Promise<ResumoBoletim[]> | null = null;
+let pronto = false;
+async function semear(l: ResumoBoletim[]): Promise<ResumoBoletim[]> {
+  if (pronto) return l;
+  semeado ??= (async () => {
+    const feitos = new Set((await ler<string[]>(SEMENTES)) ?? []);
+    const { boletinsNovembro } = await import("@/lib/boletins-novembro");
+    const novos = boletinsNovembro().filter((b) => !feitos.has(b.data));
+    if (!novos.length) return l;
+    let lista = l;
+    for (const b of novos) {
+      feitos.add(b.data);
+      if (lista.some((x) => x.data === b.data)) continue;
+      await gravar(chave(b.id), b);
+      lista = [resumir(b), ...lista];
+    }
+    await gravar(INDICE, lista);
+    await gravar(SEMENTES, [...feitos]);
+    return lista;
+  })();
+  try {
+    const r = await semeado;
+    pronto = true;
+    return r;
+  } catch {
+    semeado = null;
+    return l;
+  }
+}
+
 export async function obter(id: string): Promise<Boletim | null> {
-  return ler<Boletim>(chave(id));
+  const b = await ler<Boletim>(chave(id));
+  // o Pr. Jefferson não faz mais parte do pastorado (nov/2026): sai do expediente
+  if (b) for (const p of b.paginas) for (const x of p.blocos) {
+    if (x.tipo === "expediente") x.pastores = x.pastores.split("\n").filter((l) => !/Jefferson Pontes/i.test(l)).join("\n");
+  }
+  return b;
 }
 
 export async function obterPorData(data: string): Promise<Boletim | null> {

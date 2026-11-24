@@ -17,6 +17,8 @@ export type ItemBoletim = {
   capa?: string;
   /** imagens das páginas (boletins em PDF) — ou nada, para os feitos no editor */
   paginas?: string[];
+  /** o boletim já carregado (evita buscar de novo) */
+  boletim?: Boletim;
 };
 
 function usePar() {
@@ -32,7 +34,7 @@ function usePar() {
 }
 
 export function LeitorBoletim({ item, aoFechar }: { item: ItemBoletim; aoFechar: () => void }) {
-  const [editor, setEditor] = useState<Boletim | null>(null);
+  const [editor, setEditor] = useState<Boletim | null>(item.boletim ?? null);
   const [i, setI] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
   const [zoom, setZoom] = useState(false);
@@ -51,7 +53,7 @@ export function LeitorBoletim({ item, aoFechar }: { item: ItemBoletim; aoFechar:
   }, [zoom]);
 
   useEffect(() => {
-    if (item.paginas) return;
+    if (item.paginas || item.boletim) return;
     obterBoletimPublico({ data: { data: item.data } }).then(setEditor).catch(() => toast.error("Não foi possível abrir o boletim."));
   }, [item]);
 

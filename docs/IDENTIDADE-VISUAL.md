@@ -59,5 +59,11 @@ Arquivos oficiais em `public/marca/` (vetores redesenhados pela comunicação �
 
 ## Fora do site
 O manual também define Instagram, YouTube, projeção (telão), impressos e camisas —
-consulte o PDF ao criar qualquer peça. O boletim semanal mantém o modelo atual da
-igreja (aprovado pela liderança) até que se decida migrar para o modelo do manual.
+consulte o PDF ao criar qualquer peça.
+
+## Boletim (src/components/boletim)
+Modelo da marca desde 24/11/2026: capa em faixa azul com a logo negativa, a data e o
+versículo "Martelando a Palavra" (Lora Itálico); páginas internas com cabeçalho discreto
+(símbolo + data) e rodapé com filete vermelho e número da página; pastoral com capitular
+azul e assinatura com filete; tabelas com faixas azuis e linhas em névoa; expediente em
+azul-noite. Fontes embutidas em public/fontes (Montserrat e Lora) para o PDF sair igual.

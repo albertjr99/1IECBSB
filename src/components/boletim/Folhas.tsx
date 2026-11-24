@@ -10,7 +10,6 @@ import { escapar, marcadoHtml, paragrafos, type ModoTexto } from "./marcacao";
 export { marcadoHtml };
 import type { Bloco, Boletim, Pagina } from "@/lib/boletim";
 import { dataPorExtenso } from "@/lib/boletim";
-import { ARCO_D } from "./arco";
 
 // ─── Marcação: **negrito**, *itálico*, ***ambos*** ─────────────────────────
 
@@ -145,7 +144,7 @@ function FluxoColunas({ pecas, proporcao, gapPt, classe, estilo }: { pecas: Peca
     // refaz sempre que alguma fonte terminar de carregar.
     const fontes = document.fonts;
     if (fontes) {
-      Promise.all(["400 16px BolCalibri", "700 16px BolCalibri", "italic 400 16px BolCalibri", "italic 700 16px BolCalibri"].map((f) => fontes.load(f)))
+      Promise.all(["400 16px BolMontserrat", "700 16px BolMontserrat", "italic 400 16px BolLora", "italic 500 16px BolLora"].map((f) => fontes.load(f)))
         .then(() => fontes.ready)
         .then(calcular)
         .catch(() => {});
@@ -173,71 +172,36 @@ function FluxoColunas({ pecas, proporcao, gapPt, classe, estilo }: { pecas: Peca
   );
 }
 
-// ─── Cabeçalho da capa (vetorial, no lugar da imagem do Word) ──────────────
+// ─── Capa: faixa azul com a logo negativa, a data e o versículo ────────────
 
-function Banner() {
+function Capa({ boletim }: { boletim: Boletim }) {
+  const ed = useContext(EdicaoCtx);
+  const verso = boletim.versiculo ?? "";
+  const ref = boletim.versiculoRef ?? "";
+  const mostra = Boolean(verso) || Boolean(ed?.mudarBoletim);
   return (
-    <svg className="bol-banner" viewBox="0 0 539 113" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      <defs>
-        <linearGradient id="bolFundo" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stopColor="#2e2e2e" />
-          <stop offset="0.07" stopColor="#d9d9d9" />
-          <stop offset="0.18" stopColor="#ffffff" />
-          <stop offset="0.34" stopColor="#b9b9b9" />
-          <stop offset="0.5" stopColor="#8f8f8f" />
-          <stop offset="0.66" stopColor="#b5b5b5" />
-          <stop offset="0.83" stopColor="#ffffff" />
-          <stop offset="0.93" stopColor="#dadada" />
-          <stop offset="1" stopColor="#353535" />
-        </linearGradient>
-        <radialGradient id="bolBrilho" cx="0.5" cy="0.15" r="0.55">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.85" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="bolArco" x1="0" x2="1">
-          <stop offset="0" stopColor="#1b3463" />
-          <stop offset="0.5" stopColor="#0f2448" />
-          <stop offset="1" stopColor="#1b3463" />
-        </linearGradient>
-        <filter id="bolDesfoque" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" /></filter>
-        <filter id="bolCruz" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.6" /></filter>
-        <filter id="bolHalo" x="-5%" y="-30%" width="110%" height="160%">
-          <feMorphology in="SourceAlpha" operator="dilate" radius="1.4" result="g" />
-          <feGaussianBlur in="g" stdDeviation="1.6" result="b" />
-          <feFlood floodColor="#ffffff" />
-          <feComposite in2="b" operator="in" result="h" />
-          <feMerge><feMergeNode in="h" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-        <clipPath id="bolCorte"><rect x="0" y="0" width="539" height="113" /></clipPath>
-      </defs>
-      <g clipPath="url(#bolCorte)">
-        <rect width="539" height="113" fill="url(#bolFundo)" />
-        <rect width="539" height="113" fill="url(#bolBrilho)" />
-        {/* volutas claras e cantos escuros, como no original */}
-        <path d="M0 0 H70 C40 18 30 46 0 70 Z" fill="#262626" opacity="0.85" filter="url(#bolDesfoque)" />
-        <path d="M539 22 C512 40 505 70 539 100 Z" fill="#2a2a2a" opacity="0.9" filter="url(#bolDesfoque)" />
-        <path d="M60 4 C100 30 70 70 30 95 C80 70 120 36 60 4 Z" fill="#fff" opacity="0.7" filter="url(#bolDesfoque)" />
-        <path d="M470 8 C440 40 480 70 520 92 C470 62 462 34 470 8 Z" fill="#fff" opacity="0.75" filter="url(#bolDesfoque)" />
-        {/* cruz vermelha com brilho */}
-        <g transform="translate(404 6)">
-          <g filter="url(#bolCruz)" opacity="0.75">
-            <rect x="23" y="0" width="13" height="66" fill="#ff2b1c" />
-            <rect x="0" y="13" width="62" height="11" fill="#ff2b1c" />
-          </g>
-          <rect x="25.5" y="2" width="8" height="62" fill="#e8261b" />
-          <rect x="3" y="15" width="56" height="7" fill="#e8261b" />
-        </g>
-        {/* arco da marca */}
-        <g transform="translate(20 7) scale(0.7108 0.3245) translate(-165.83 -286)">
-          <path d={ARCO_D} fill="url(#bolArco)" />
-        </g>
-        <g filter="url(#bolHalo)" fill="#262626" textAnchor="middle">
-          <text x="272" y="64" fontFamily="BolCambria, Cambria, Caladea, serif" fontWeight="700" fontSize="22.1">Primeira Igreja Evangélica</text>
-          <text x="272" y="90" fontFamily="BolCambria, Cambria, Caladea, serif" fontWeight="700" fontSize="22.1">Congregacional de Brasília</text>
-          <text x="272" y="104" fontFamily="BolCalibri, Calibri, Carlito, sans-serif" fontWeight="700" fontSize="9.1" fill="#000">Filiada à União das Igrejas Evangélicas Congregacionais do Brasil – UIECB</text>
-        </g>
-      </g>
-    </svg>
+    <header className="bol-capa">
+      <div className="bol-capa-topo">
+        <img src="/marca/logo-horizontal-negativo-branco-cruz-vermelha.svg" alt="Primeira Igreja Evangélica Congregacional de Brasília" />
+        <div className="bol-capa-data">
+          <span>{boletim.titulo}</span>
+          <strong>{dataPorExtenso(boletim.data)}</strong>
+        </div>
+      </div>
+      {mostra && (
+        <div className="bol-capa-verso">
+          <span className="bol-capa-rotulo">Martelando a Palavra</span>
+          <blockquote>
+            {ed?.mudarBoletim
+              ? <Editavel valor={verso} modo="linha" dica="Versículo da semana (opcional)" aoMudar={(v) => ed.mudarBoletim!((d) => { d.versiculo = v; })} />
+              : <Marcado texto={verso} />}
+            {(ref || ed?.mudarBoletim) && (
+              <cite>{ed?.mudarBoletim ? <Editavel valor={ref} modo="linha" dica="Referência" aoMudar={(v) => ed.mudarBoletim!((d) => { d.versiculoRef = v; })} /> : ref}</cite>
+            )}
+          </blockquote>
+        </div>
+      )}
+    </header>
   );
 }
 
@@ -254,7 +218,8 @@ type Setter = (x: any, v: string) => void;
 function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
   const ed = useContext(EdicaoCtx);
   const escala = (b.ajuste || 100) / 100;
-  const estilo = escala !== 1 ? { fontSize: `${16 * escala}pt` } : undefined;
+  const base = b.tipo === "artigo" && b.colunas !== 2 ? 11.4 : 10.2;
+  const estilo = escala !== 1 ? { fontSize: `${base * escala}pt` } : undefined;
 
   /** Texto do bloco: editável no painel, marcado no site/PDF. */
   const T = (valor: string, set: Setter, modo: ModoTexto = "linha", dica?: string, como: "span" | "div" = modo === "paragrafos" ? "div" : "span") => {
@@ -310,7 +275,7 @@ function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
     case "escala": {
       const porteiros = b.porteiros;
       const metade = Math.ceil(porteiros.length / 2);
-      const fonte = escala !== 1 ? { fontSize: `${10 * escala}pt` } : undefined;
+      const fonte = escala !== 1 ? { fontSize: `${6.9 * escala}pt` } : undefined;
       const porteiro = (k: number) => {
         const x = porteiros[k];
         if (!x) return null;
@@ -367,7 +332,7 @@ function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
     }
     case "aniversariantes":
       return (
-        <div style={escala !== 1 ? { fontSize: `${9 * escala}pt` } : undefined}>
+        <div className="bol-aniv-bloco" style={escala !== 1 ? { fontSize: `${6.7 * escala}pt` } : undefined}>
           <table className="bol-tab bol-aniv">
             <tbody>
               <tr><td colSpan={2} className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
@@ -463,7 +428,7 @@ function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
     case "expediente":
       return (
         <div className="bol-expediente">
-          <img src="/simbolo.svg" alt="" />
+          <img src="/simbolo-negativo.svg" alt="" />
           <div className="bol-exp-nome">{T(b.nome, (x, v) => { x.nome = v; }, "linhas", "", "div")}</div>
           <div>{T(b.texto, (x, v) => { x.texto = v; }, "linhas", "", "div")}</div>
           {mostra(b.pastores) && <><div className="bol-exp-tit">{T(b.pastoresTitulo, (x, v) => { x.pastoresTitulo = v; })}</div><div>{T(b.pastores, (x, v) => { x.pastores = v; }, "linhas", "Pastores", "div")}</div></>}
@@ -549,17 +514,15 @@ function PaginaView({ boletim, pagina, n, marcarTransbordo = false, aoSelecionar
     return () => { ro.disconnect(); clearTimeout(t); };
   });
 
-  const dataTxt = `${boletim.titulo} – ${dataPorExtenso(boletim.data)}`;
   return (
     <section className={`bol-pagina ${ehPaginaDeTabelas(pagina) ? "bol-pg-tabelas" : ""}`} data-pagina={n} data-pagina-id={pagina.id}>
+      {n === 1 && <Capa boletim={boletim} />}
       <div className="bol-corpo" ref={corpo} style={{ overflow: "hidden" }}>
-        {n === 1 ? (
-          <>
-            <Banner />
-            <div className="bol-data-capa">{dataTxt}</div>
-          </>
-        ) : (
-          n !== 4 || !ehPaginaDeTabelas(pagina) ? <div className={`bol-cabecalho ${n % 2 === 1 ? "bol-dir" : ""}`}>{dataTxt}</div> : null
+        {n > 1 && (
+          <div className="bol-cabecalho">
+            <span className="bol-cab-marca"><img src="/simbolo.svg" alt="" />{boletim.titulo}</span>
+            <span>{dataPorExtenso(boletim.data)}</span>
+          </div>
         )}
         <div className="bol-blocos">
           {pagina.blocos.map((b) => (
@@ -582,6 +545,7 @@ function PaginaView({ boletim, pagina, n, marcarTransbordo = false, aoSelecionar
           </button>
         )}
       </div>
+      <div className="bol-rodape"><span>1ª IEC Brasília · @1iecbsb</span><span className="bol-num">{String(n).padStart(2, "0")}</span></div>
       {marcarTransbordo && transborda && <div className="bol-transbordo">O conteúdo passou do fim desta página — use “Encaixar na página”, reduza o texto ou mova uma seção.</div>}
     </section>
   );

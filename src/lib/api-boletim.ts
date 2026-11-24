@@ -73,6 +73,13 @@ export const listarBoletinsPublicos = createServerFn({ method: "GET" }).handler(
   return (await indice()).filter((b) => b.publicado);
 });
 
+/** Os publicados mais recentes, completos (para as capas e o leitor do site). */
+export const listarBoletinsPublicosCompletos = createServerFn({ method: "GET" }).handler(async () => {
+  const { indice, obter } = await import("../server/boletins");
+  const l = (await indice()).filter((b) => b.publicado).slice(0, 16);
+  return (await Promise.all(l.map((r) => obter(r.id)))).filter((b): b is NonNullable<typeof b> => Boolean(b));
+});
+
 export const obterBoletimPublico = createServerFn({ method: "GET" })
   .validator((d: { data: string }) => d)
   .handler(async ({ data }) => {

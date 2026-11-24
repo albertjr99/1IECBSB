@@ -155,7 +155,8 @@ export function EstudioBoletim({ id, aoVoltar }: { id: string; aoVoltar: () => v
   const edicao = useMemo<Edicao>(() => ({
     mudar: (blocoId, fn) => mudarBloco(blocoId, fn, `ed:${blocoId}`),
     adicionar: (pagina) => setNovaSecao({ pagina }),
-  }), [mudarBloco]);
+    mudarBoletim: (fn) => mudar(fn, "capa"),
+  }), [mudarBloco, mudar]);
 
   const aoOcupacao = useCallback((pagina: string, pct: number) => {
     setOcupacao((o) => (o[pagina] === pct ? o : { ...o, [pagina]: pct }));
@@ -381,7 +382,7 @@ function Estrutura({ b, sel, ocupacao, irPara, abrir, moverBloco, mudar, novaSec
             <section key={pg.id} className="group/p mb-2 rounded-lg border border-p-borda bg-p-sutil/60" {...zona(pi, pg.blocos.length)}>
               <header className="flex items-center gap-2 px-2.5 py-2">
                 <button onClick={() => document.querySelector(`[data-pagina-id="${pg.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" })} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-                  <span className="grid size-6 place-items-center rounded bg-p-acento text-[11px] font-bold text-white">{pi + 1}</span>
+                  <span className="grid size-6 shrink-0 place-items-center rounded bg-p-acento text-[11px] font-bold text-white">{pi + 1}</span>
                   <span className="whitespace-nowrap text-[12.5px] font-semibold text-p-texto">{pi === 0 ? "Capa" : `Página ${pi + 1}`}</span>
                 </button>
                 <SeloOcupacao pct={oc} compacto />

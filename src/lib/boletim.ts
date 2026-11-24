@@ -2,9 +2,9 @@
  * Boletim dominical — modelo de dados.
  *
  * O boletim é uma lista de páginas A4; cada página tem blocos (pastoral,
- * avisos, escala, agenda…). Cada tipo de bloco tem um desenho fixo, copiado do
- * boletim em Word da igreja — quem edita mexe no conteúdo, e o padrão (fonte,
- * tamanho, cor, tabelas) se mantém.
+ * avisos, escala, agenda…). Cada tipo de bloco tem um desenho fixo, no padrão
+ * da identidade visual da igreja — quem edita mexe no conteúdo, e o padrão
+ * (fonte, tamanho, cor, tabelas) se mantém.
  *
  * Marcação nos textos: **negrito**, *itálico*; linha em branco separa parágrafos.
  */
@@ -84,6 +84,9 @@ export type Boletim = {
   /** yyyy-mm-dd — o domingo do boletim; também forma o endereço no site */
   data: string;
   titulo: string;
+  /** versículo da capa ("Martelando a Palavra") e sua referência */
+  versiculo?: string;
+  versiculoRef?: string;
   paginas: Pagina[];
   publicado: boolean;
   publicadoEm?: string;
@@ -145,7 +148,7 @@ const EXPEDIENTE = {
   nome: "Primeira Igreja Evangélica\nCongregacional de Brasília",
   texto: "SHCS SQS 416 – Plano Piloto\nBrasília/DF - CEP 70298-160\nTel. (61) 3346-7866 / 3245-1739\nCNPJ: 00.371.427/0001-04\ninstagram.com/1iecbsb\nyoutube.com/@iecbsb",
   pastoresTitulo: "Pastores",
-  pastores: "Hilário José Bispo da Graça\nAluízio Lourenço da Silva Filho (Pr. Aux.)\nJefferson Pontes Guimarães",
+  pastores: "Hilário José Bispo da Graça\nAluízio Lourenço da Silva Filho (Pr. Aux.)",
   diretoriaTitulo: "Diretoria da Igreja",
   diretoria: "Pastor-Presidente: Hilário José Bispo da Graça\nVice-Presidente: Pb. Ricardo Rogério D. Santos\nSecretária-Geral: Maria Isabel A. Silva dos Santos\nSecretário do Patrimônio: Pb. Jorge E. S. Bonacorso\n1º Tesoureiro: Cristian Caixeta Fernandes\n2ª Tesoureiro: Dca. Vera Nascimento",
 };
@@ -160,6 +163,8 @@ export function boletimModelo(): Boletim {
     id: id("bol"),
     data: "2026-11-22",
     titulo: "Boletim Dominical",
+    versiculo: "…tomai toda a armadura de Deus, para que possais resistir no dia mau e, depois de terdes vencido tudo, permanecer inabaláveis.",
+    versiculoRef: "Efésios 6.13",
     publicado: false,
     atualizadoEm: new Date().toISOString(),
     atualizadoPor: "",
@@ -208,7 +213,6 @@ Se a mentira é uma das principais armas do inimigo, o Senhor nos oferece os mei
           b({
             tipo: "avisos", largura: "inteira", colunas: 2, proporcao: 0.339, ajuste: 98,
             itens: [
-              { id: id("av"), titulo: "Martelando a Palavra", texto: "*...tomai toda armadura de Deus, para que possais resistir no dia mau e, depois de terdes vencido tudo, permanecer inabaláveis* (Ef 6.13)." },
               { id: id("av"), titulo: "O congresso jovem", texto: "Agradeçamos a Deus por nossos jovens; pela iniciativa e zelo em realizar mais um congresso. Que sigam assim e prosperem em tudo o que Deus lhes designar." },
               { id: id("av"), titulo: "Jovem congregacional", texto: "Amanhã, nossa igreja observa o Dia do Jovem Congregacional. A todos eles, os nossos devidos cumprimentos." },
               { id: id("av"), titulo: "Espanha", texto: "Não deixe de orar pelo projeto na Fuente Del Peregrino, Galícia/Espanha, a partir de 21 de abril/2027. Orem pelos preparativos e por aqueles que intentam compor essa missão. Detalhes de como participar, falar com o Pb. Jorge Bonacorso." },

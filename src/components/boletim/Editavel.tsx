@@ -3,13 +3,15 @@
  * boletim (e nas janelas de edição). Guarda o texto na marcação do boletim.
  */
 import { createContext, useLayoutEffect, useRef, type ClipboardEvent, type CSSProperties, type KeyboardEvent } from "react";
-import type { Bloco } from "@/lib/boletim";
+import type { Bloco, Boletim } from "@/lib/boletim";
 import { escapar, htmlParaMarcado, marcadoParaEdicao, type ModoTexto } from "./marcacao";
 
 /** Presente só no editor do painel: liga a edição direta nas folhas. */
 export type Edicao = {
   mudar: (blocoId: string, fn: (b: Bloco) => void) => void;
   adicionar?: (paginaId: string) => void;
+  /** campos do boletim todo (versículo da capa) */
+  mudarBoletim?: (fn: (b: Boletim) => void) => void;
 };
 export const EdicaoCtx = createContext<Edicao | null>(null);
 

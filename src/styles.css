@@ -273,14 +273,15 @@
 .janela-fundo { animation: janela-fundo 0.18s ease-out; }
 @keyframes barra-entra { from { opacity: 0; transform: translateY(4px); } }
 .barra-flutuante { animation: barra-entra 0.16s ease-out; transition: top 0.12s ease, left 0.12s ease; }
-.boletim-fonte { font-family: "BolCalibri", Calibri, Carlito, sans-serif; }
+.boletim-fonte { font-family: "BolMontserrat", Montserrat, sans-serif; }
 /* área de escrita (pastoral, avisos): papel com a fonte do boletim */
-.escrita { display: block; min-height: 320px; font-family: "BolCalibri", Calibri, Carlito, sans-serif; font-size: 19px; line-height: 1.62; color: #111; text-align: justify; hyphens: auto; }
+.escrita { display: block; min-height: 320px; font-family: "BolMontserrat", Montserrat, sans-serif; font-size: 16.5px; line-height: 1.7; color: #111; text-align: justify; hyphens: auto; }
 .escrita.bol-ed:hover, .escrita.bol-ed:focus, .escrita-celula.bol-ed:hover, .escrita-celula.bol-ed:focus { background: transparent; box-shadow: none; }
-.escrita > p { margin: 0 0 0.55em; text-indent: 2em; }
+.escrita > p { margin: 0 0 0.75em; }
+.escrita em { font-family: "BolLora", Lora, serif; font-size: 1.06em; }
 .escrita-sem-recuo > p, .escrita-aviso > p { text-indent: 0; }
-.escrita-aviso { min-height: 56px; font-size: 17.5px; }
-.escrita-celula { display: block; min-height: 120px; padding: 6px 8px; font-size: 15px; line-height: 1.4; text-align: center; color: #111; border-radius: 6px; }
+.escrita-aviso { min-height: 56px; font-size: 15.5px; }
+.escrita-celula { display: block; min-height: 120px; padding: 6px 8px; font-size: 13.5px; line-height: 1.45; text-align: center; color: #111; border-radius: 6px; }
 .escrita-celula.bol-ed:focus { background: #eef4f8; }
 @keyframes cookies-entra { from { opacity: 0; transform: translateY(16px); } }
 .aviso-cookies { animation: cookies-entra 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s both; }
