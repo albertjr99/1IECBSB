@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Camera, Check, Copy, History, KeyRound, Loader2, RotateCcw, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Conteudo } from "@/lib/conteudo";
-import { carregarVersao, definirMinhaFoto, gerarSenhaProvisoria, listarUsuarios, listarVersoes, removerUsuario, salvarUsuario, trocarMinhaSenha } from "@/lib/api";
+import { carregarVersao, definirFotoDeUsuario, definirMinhaFoto, gerarSenhaProvisoria, listarUsuarios, listarVersoes, removerUsuario, salvarUsuario, trocarMinhaSenha } from "@/lib/api";
 import { PAPEIS, rotuloPapel, type Papel } from "@/lib/permissoes";
 import { cn } from "@/lib/utils";
 import { Campo, Grade, Secao } from "./kit";
@@ -121,7 +121,17 @@ export function PainelUsuarios({ meuUsuario }: { meuUsuario: string }) {
               const sit = situacao(u);
               return (
                 <li key={u.usuario} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5">
-                  <Avatar nome={u.nome} foto={u.foto} tamanho={38} />
+                  <label className="group relative shrink-0 cursor-pointer" title={`Trocar a foto de ${u.nome}`}>
+                    <Avatar nome={u.nome} foto={u.foto} tamanho={42} />
+                    <span className="absolute inset-0 grid place-items-center rounded-full bg-[#001d33]/55 text-white opacity-0 transition group-hover:opacity-100"><Camera size={16} /></span>
+                    <input type="file" accept="image/*" hidden onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      e.target.value = "";
+                      if (!f) return;
+                      try { await definirFotoDeUsuario({ data: { usuario: u.usuario, foto: await fotoQuadrada(f) } }); toast.success(`Foto de ${u.nome} atualizada.`); carregar(); }
+                      catch (err) { toast.error(err instanceof Error ? err.message : "Não foi possível usar esta foto."); }
+                    }} />
+                  </label>
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-2 text-[14px] font-semibold text-p-texto">
                       {u.nome} {u.usuario === meuUsuario && <span className="text-[12px] font-normal text-p-suave">(você)</span>} <SeloPapel papel={u.papel} />

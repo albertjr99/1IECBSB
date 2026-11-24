@@ -268,6 +268,26 @@ export const definirMinhaFoto = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Administrador troca (ou tira) a foto de alguém. */
+export const definirFotoDeUsuario = createServerFn({ method: "POST" })
+  .validator((d: { usuario: string; foto: string }) => {
+    if (d.foto && (!/^data:image\/(jpeg|png|webp);base64,/.test(d.foto) || d.foto.length > 400_000)) throw new Error("Foto inválida ou grande demais.");
+    return d;
+  })
+  .handler(async ({ data }) => {
+    const { exigirAcesso, listarUsuarios: lu, salvarUsuarios } = await import("../server/auth");
+    const { registrar } = await import("../server/armazem");
+    const s = await exigirAcesso("usuarios");
+    const lista = await lu();
+    const u = lista.find((x) => x.usuario === data.usuario);
+    if (!u) throw new Error("Usuário não encontrado.");
+    if (data.foto) u.foto = data.foto;
+    else delete u.foto;
+    await salvarUsuarios(lista);
+    await registrar(s.nome, data.foto ? "Trocou a foto de usuário" : "Tirou a foto de usuário", u.usuario);
+    return { ok: true };
+  });
+
 /** Primeiro acesso com senha provisória: a pessoa cria a própria senha (já entrou com a provisória). */
 export const criarMinhaSenha = createServerFn({ method: "POST" })
   .validator((d: { nova: string }) => {

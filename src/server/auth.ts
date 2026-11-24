@@ -68,7 +68,22 @@ export async function listarUsuarios(): Promise<Usuario[]> {
   const l = (await ler<(Usuario & { email?: string })[]>("usuarios")) ?? [];
   // contas antigas (por e-mail) passam a usar o nome antes do @
   const lista = l.map((u) => (u.usuario ? u : { ...u, usuario: normalizarUsuario((u.email ?? "").split("@")[0] ?? "") }));
-  return criarContasDaEquipe(lista);
+  return aplicarFotosDaEquipe(await criarContasDaEquipe(lista));
+}
+
+/** Fotos enviadas pelo administrador (uma vez só; não substitui foto que a pessoa já colocou). */
+const FOTOS_APLICADAS = "usuarios:fotos:v1";
+let fotosProntas = false;
+async function aplicarFotosDaEquipe(lista: Usuario[]): Promise<Usuario[]> {
+  if (fotosProntas || lista.length === 0) return lista;
+  if (await ler<boolean>(FOTOS_APLICADAS)) { fotosProntas = true; return lista; }
+  const { FOTOS_EQUIPE } = await import("./fotos-equipe");
+  let mudou = false;
+  for (const u of lista) if (!u.foto && FOTOS_EQUIPE[u.usuario]) { u.foto = FOTOS_EQUIPE[u.usuario]; mudou = true; }
+  if (mudou) await gravar("usuarios", lista);
+  await gravar(FOTOS_APLICADAS, true);
+  fotosProntas = true;
+  return lista;
 }
 
 /**
