@@ -39,13 +39,10 @@ function Entrar() {
   const escuro = typeof window !== "undefined" && (localStorage.getItem("iecb_painel_tema") === "escuro" || (!localStorage.getItem("iecb_painel_tema") && window.matchMedia?.("(prefers-color-scheme: dark)").matches));
   return (
     <div className={`painel grid min-h-screen bg-p-superficie text-p-texto lg:grid-cols-[1fr_1.1fr] ${escuro ? "tema-escuro" : ""}`} style={{ fontFamily: "var(--font-texto)" }}>
-      <div className="hidden flex-col justify-between bg-p-lateral p-12 text-white lg:flex">
-        <img src="/simbolo-negativo.svg" alt="" className="w-20" />
-        <div>
-          <p className="text-[13px] font-medium uppercase tracking-[0.12em] text-white/50">Painel administrativo</p>
-          <p className="mt-3 max-w-sm text-[1.7rem] font-semibold leading-tight">Primeira Igreja Evangélica Congregacional de Brasília</p>
-        </div>
-        <p className="text-[12.5px] text-white/40">Acesso restrito à equipe da igreja.</p>
+      <div className="grafismo-monte-escuro hidden flex-col justify-between overflow-hidden bg-[#002a47] p-12 text-white lg:flex">
+        <p className="rotulo-secao !text-white">Painel administrativo</p>
+        <img src="/marca/logo-vertical-negativo-branco-cruz-vermelha.svg" alt="Primeira Igreja Evangélica Congregacional de Brasília" className="w-[300px]" />
+        <p className="text-[12.5px] text-white/50">Acesso restrito à equipe da igreja.</p>
       </div>
       <div className="grid place-items-center bg-p-superficie p-6">
         <form onSubmit={enviar} className="w-full max-w-sm">

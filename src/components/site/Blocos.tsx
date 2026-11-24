@@ -10,18 +10,18 @@ import { LinkSite } from "./Link";
 export function CartaoEvento({ ev }: { ev: Evento }) {
   const { dia, mes } = diaMes(ev.data);
   return (
-    <article className="flex flex-col overflow-hidden rounded-lg border border-linha/70 bg-white">
+    <article className="flex flex-col overflow-hidden border border-linha border-t-[3px] border-t-marca bg-white">
       {ev.imagem && <img src={ev.imagem} alt="" loading="lazy" className="aspect-[16/10] w-full object-cover" />}
       <div className="flex flex-1 gap-5 p-6">
-        <div className="w-12 shrink-0 border-r border-linha/70 pr-4 text-center">
+        <div className="w-12 shrink-0 border-r border-linha pr-4 text-center">
           <div className="text-[1.7rem] font-semibold leading-none text-marca-funda tabular-nums">{dia}</div>
-          <div className="mt-1 text-[12px] font-semibold uppercase text-destaque">{mes}</div>
+          <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-tinta-suave">{mes}</div>
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
-          <h3 className="text-[1.15rem] font-semibold leading-snug text-marca-funda">{ev.titulo}</h3>
+          <h3 className="text-[1.15rem] font-bold leading-snug text-marca">{ev.titulo}</h3>
           <p className="mt-1.5 text-[14.5px] text-tinta-suave">{periodo(ev.data, ev.dataFim)}{ev.horario && ` · ${ev.horario}`}</p>
           {ev.local && <p className="text-[14.5px] text-tinta-suave">{ev.local}</p>}
-          {ev.descricao && <p className="texto-justificado mt-3 line-clamp-3 text-[15px] leading-relaxed text-tinta-suave">{ev.descricao}</p>}
+          {ev.descricao && <p className="texto-justificado mt-3 line-clamp-3 text-[15px] leading-relaxed text-tinta">{ev.descricao}</p>}
           {ev.link && (
             <LinkSite para={ev.link} className="mt-auto inline-flex items-center gap-1 pt-4 text-[14.5px] font-semibold text-marca hover:text-marca-escura">
               {ev.rotuloLink || "Saiba mais"} →

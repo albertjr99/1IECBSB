@@ -8,39 +8,21 @@ import { LinkSite } from "./Link";
 import { IconeFacebook, IconeInstagram, IconeSpotify, IconeWhatsapp, IconeYoutube } from "./Icones";
 import { AvisoEvento } from "./AvisoEvento";
 
-/** Divide o nome em duas linhas equilibradas, como no logotipo. */
-function duasLinhas(nome: string): [string, string] {
-  const p = nome.split(" ");
-  if (p.length < 3) return [nome, ""];
-  let melhor = 1, dif = Infinity;
-  for (let i = 1; i < p.length; i++) {
-    const d = Math.abs(p.slice(0, i).join(" ").length - p.slice(i).join(" ").length);
-    if (d < dif) { dif = d; melhor = i; }
-  }
-  return [p.slice(0, melhor).join(" "), p.slice(melhor).join(" ")];
-}
-
-export function Marca({ negativo = false, compacta = false, destaque = false }: { negativo?: boolean; compacta?: boolean; destaque?: boolean }) {
+/**
+ * Logo horizontal oficial (Manual da Marca, versão vetorial). Colorida sobre
+ * branco; negativa (branca com cruz vermelha) sobre o azul. Largura mínima no
+ * digital: 260 px — abaixo disso o manual pede só o símbolo.
+ */
+export function Marca({ negativo = false, className }: { negativo?: boolean; className?: string }) {
   const { geral } = useConteudo();
-  const [l1, l2] = duasLinhas(geral.nome);
   return (
-    <span className={cn("flex items-center", destaque ? "gap-3.5 xl:gap-4" : "gap-3")}>
-      <img
-        src={negativo ? "/simbolo-negativo.svg" : "/simbolo.svg"}
-        alt=""
-        className={cn("h-auto shrink-0", compacta ? "w-12" : destaque ? "w-14 sm:w-[68px] 2xl:w-[76px]" : "w-14 sm:w-16")}
-      />
-      <span
-        className={cn(
-          "font-[family-name:var(--font-titulo)] font-semibold uppercase leading-[1.2] tracking-[0.045em]",
-          compacta ? "text-[10.5px]" : destaque ? "text-[11px] sm:text-[12.5px] 2xl:text-[13.5px]" : "text-[11px] sm:text-[12.5px]",
-          negativo ? "text-white" : "text-marca",
-        )}
-      >
-        {l1}
-        {l2 && <><br />{l2}</>}
-      </span>
-    </span>
+    <img
+      src={negativo ? "/marca/logo-horizontal-negativo-branco-cruz-vermelha.svg" : "/marca/logo-horizontal-colorida.svg"}
+      alt={geral.nome}
+      width={897}
+      height={131}
+      className={cn("block h-auto w-[260px] max-w-none", className)}
+    />
   );
 }
 
@@ -135,9 +117,9 @@ function Cabecalho() {
           </div>
         </div>
       )}
-      <div className={cn("border-b bg-white/95 backdrop-blur transition-shadow", rolou ? "border-linha/60 shadow-[0_6px_24px_-18px_rgba(0,0,0,0.4)]" : "border-transparent")}>
+      <div className={cn("border-b bg-white/95 backdrop-blur transition-shadow", rolou ? "border-linha shadow-[0_6px_24px_-18px_rgba(0,0,0,0.4)]" : "border-transparent")}>
         <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center gap-6 px-5 sm:px-8 xl:h-[88px] xl:px-10 2xl:px-14">
-          <Link to="/" aria-label="Página inicial" className="shrink-0"><Marca destaque /></Link>
+          <Link to="/" aria-label="Página inicial" className="shrink-0"><Marca className="sm:w-[290px] 2xl:w-[320px]" /></Link>
 
           <div className="ml-auto flex items-center gap-2 xl:gap-0">
             <nav className="hidden items-center xl:flex" aria-label="Principal">
@@ -146,9 +128,9 @@ function Cabecalho() {
                   key={m.id}
                   para={m.para}
                   className={cn(
-                    "relative whitespace-nowrap px-3 py-2 text-[14.5px] font-medium text-tinta-suave transition-colors hover:text-marca 2xl:px-[18px] 2xl:text-[15px]",
-                    "after:absolute after:inset-x-3 after:-bottom-[24px] after:h-[2px] after:origin-center after:scale-x-0 after:bg-marca after:transition-transform 2xl:after:inset-x-[18px]",
-                    ativo(m.para) && "text-marca after:scale-x-100",
+                    "relative whitespace-nowrap px-2.5 py-2 text-[13.5px] font-medium text-tinta transition-colors hover:text-marca 2xl:px-4 2xl:text-[14.5px]",
+                    "after:absolute after:inset-x-2.5 after:-bottom-[24px] after:h-[3px] after:origin-center after:scale-x-0 after:bg-marca after:transition-transform 2xl:after:inset-x-4",
+                    ativo(m.para) && "font-semibold text-marca after:scale-x-100",
                   )}
                 >
                   {m.rotulo}
@@ -177,7 +159,7 @@ function Cabecalho() {
       </div>
 
       {aberto && (
-        <div className="border-b border-linha/60 bg-white shadow-lg xl:hidden">
+        <div className="border-b border-linha bg-white shadow-lg xl:hidden">
           <nav className="container-site flex flex-col py-3">
             {itens.map((m) => (
               <LinkSite
@@ -204,15 +186,15 @@ function Rodape() {
   const g = c.geral;
   const zap = linkWhatsapp(g.whatsapp, "Olá! Vim pelo site.");
   return (
-    <footer className="relative overflow-hidden bg-marca-funda text-white/80">
+    <footer className="grafismo-monte-escuro relative overflow-hidden bg-marca text-white/85">
       <div className="container-site relative grid gap-10 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <Marca negativo />
+          <Marca negativo className="w-[300px]" />
           {c.rodape.texto && <p className="texto-justificado mt-5 max-w-sm text-[15px] text-white/70">{c.rodape.texto}</p>}
           <div className="mt-5 -ml-2"><Redes claro /></div>
         </div>
         <div>
-          <h4 className="text-[12px] font-bold uppercase tracking-[0.18em] text-white">Navegue</h4>
+          <h4 className="text-[11.5px] font-bold uppercase tracking-[0.24em] text-white">Navegue</h4>
           <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-[15px]">
             {c.menu.filter((m) => m.visivel).map((m) => (
               <li key={m.id}><LinkSite para={m.para} className="hover:text-white">{m.rotulo}</LinkSite></li>
@@ -221,7 +203,7 @@ function Rodape() {
           </ul>
         </div>
         <div>
-          <h4 className="text-[12px] font-bold uppercase tracking-[0.18em] text-white">Visite-nos</h4>
+          <h4 className="text-[11.5px] font-bold uppercase tracking-[0.24em] text-white">Visite-nos</h4>
           <ul className="mt-4 grid gap-3 text-[15px]">
             <li className="flex gap-3">
               <MapPin size={17} className="mt-1 shrink-0 text-white/60" />
@@ -232,13 +214,13 @@ function Rodape() {
             {g.horarioAtendimento && <li className="flex gap-3"><Clock size={17} className="mt-1 shrink-0 text-white/60" />{g.horarioAtendimento}</li>}
           </ul>
           {zap && (
-            <a href={zap} target="_blank" rel="noopener noreferrer" className="btn-claro mt-5 !h-10">
+            <a href={zap} target="_blank" rel="noopener noreferrer" className="btn-branco mt-5 !h-11">
               <IconeWhatsapp size={16} /> WhatsApp
             </a>
           )}
         </div>
       </div>
-      <div className="relative border-t border-white/10">
+      <div className="relative border-t border-white/15">
         <div className="container-site flex flex-col gap-2 py-5 text-[13px] text-white/55 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {g.nome}</p>
           <Link to="/admin" className="hover:text-white/80">Área administrativa</Link>
@@ -262,7 +244,7 @@ function Rodape() {
 
 export function LayoutSite({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="site flex min-h-screen flex-col">
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2">Pular para o conteúdo</a>
       <Cabecalho />
       <main id="conteudo" className="flex-1">{children}</main>
@@ -272,30 +254,32 @@ export function LayoutSite({ children }: { children: ReactNode }) {
   );
 }
 
-/** Cabeçalho de seção: título, texto opcional e um link discreto à direita. */
-export function CabecalhoSecao({ titulo, texto, link, rotuloLink, claro = false }: { titulo: string; texto?: string; link?: string; rotuloLink?: string; claro?: boolean }) {
+/** Cabeçalho de seção: sobretítulo com a cruzinha, título, texto e um link à direita. */
+export function CabecalhoSecao({ rotulo, titulo, texto, link, rotuloLink, claro = false }: { rotulo?: string; titulo: string; texto?: string; link?: string; rotuloLink?: string; claro?: boolean }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
       <div className="max-w-2xl">
-        <h2 className={claro ? "text-[1.85rem] font-semibold tracking-[-0.015em] text-white sm:text-[2.25rem]" : "titulo-secao"}>{titulo}</h2>
-        {texto && <p className={claro ? "texto-justificado mt-2 text-white/70" : "texto-justificado mt-2 text-tinta-suave"}>{texto}</p>}
+        {rotulo && <p className={cn("rotulo-secao mb-3", claro && "!text-white")}>{rotulo}</p>}
+        <h2 className={claro ? "text-[1.9rem] font-bold leading-[1.12] tracking-[-0.02em] text-white sm:text-[2.4rem]" : "titulo-secao"}>{titulo}</h2>
+        {texto && <p className={claro ? "texto-justificado mt-3 text-white/75" : "texto-justificado mt-3 text-tinta"}>{texto}</p>}
       </div>
       {link && rotuloLink && (
-        <LinkSite para={link} className={`inline-flex items-center gap-1.5 text-[15px] font-semibold ${claro ? "text-white/85 hover:text-white" : "text-marca hover:text-marca-escura"}`}>
-          {rotuloLink} <ArrowRight size={16} />
+        <LinkSite para={link} className={`inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.14em] ${claro ? "text-white hover:text-white/80" : "text-marca hover:text-marca-funda"}`}>
+          {rotuloLink} <ArrowRight size={15} />
         </LinkSite>
       )}
     </div>
   );
 }
 
-/** Cabeçalho das páginas internas. */
-export function CapaPagina({ titulo, texto }: { rotulo?: string; titulo: string; texto?: string }) {
+/** Cabeçalho das páginas internas: azul-noite com o grafismo Monte ao fundo. */
+export function CapaPagina({ rotulo, titulo, texto }: { rotulo?: string; titulo: string; texto?: string }) {
   return (
-    <section className="border-b border-white/10 bg-marca-funda text-white">
-      <div className="container-site py-14 sm:py-16">
-        <h1 className="max-w-3xl text-[2.2rem] font-semibold leading-tight tracking-[-0.02em] sm:text-[2.75rem]">{titulo}</h1>
-        {texto && <p className="texto-justificado mt-3 max-w-2xl text-[17px] leading-relaxed text-white/70">{texto}</p>}
+    <section className="grafismo-monte-escuro overflow-hidden bg-marca-funda text-white">
+      <div className="container-site py-16 sm:py-20">
+        {rotulo && <p className="rotulo-secao mb-4 !text-white">{rotulo}</p>}
+        <h1 className="max-w-3xl text-[2.3rem] font-bold leading-[1.08] tracking-[-0.02em] sm:text-[3rem]">{titulo}</h1>
+        {texto && <p className="texto-justificado mt-4 max-w-2xl text-[16.5px] leading-relaxed text-white/75">{texto}</p>}
       </div>
     </section>
   );

@@ -4,8 +4,8 @@
  */
 import type { ReactNode } from "react";
 import { Building2, CalendarClock, CalendarHeart, Church, Eye, EyeOff, HandCoins, HeartHandshake, House, ListTree, Mail, MonitorPlay, Palette, Users, type LucideIcon } from "lucide-react";
-import { novoId, type Conteudo } from "@/lib/conteudo";
-import { Campo, CampoCor, CampoImagem, Grade, Interruptor, ListaEditavel, ListaTextos, Secao, Selecao } from "./kit";
+import { ICONES_MARCA, iconeMinisterio, novoId, type Conteudo } from "@/lib/conteudo";
+import { Campo, CampoImagem, Grade, Interruptor, ListaEditavel, ListaTextos, Secao, Selecao } from "./kit";
 
 export type Mudar = (fn: (c: Conteudo) => void) => void;
 type P = { c: Conteudo; mudar: Mudar };
@@ -55,23 +55,45 @@ export function EditorGeral({ c, mudar }: P) {
   );
 }
 
-export function EditorAparencia({ c, mudar }: P) {
-  const a = c.aparencia;
+const PALETA = [
+  { nome: "Branco", hex: "#FFFFFF", uso: "Base · 60%" },
+  { nome: "Névoa", hex: "#F3F6F9", uso: "Fundos de apoio" },
+  { nome: "Azul Congregacional", hex: "#00436F", uso: "Principal · 30–35%" },
+  { nome: "Azul Noite", hex: "#002A47", uso: "Fundos escuros" },
+  { nome: "Azul Céu", hex: "#D9E6EF", uso: "Linhas e tons claros" },
+  { nome: "Azul Médio", hex: "#5B7F99", uso: "Texto secundário" },
+  { nome: "Grafite", hex: "#1D2B36", uso: "Texto corrido" },
+  { nome: "Vermelho Cruz", hex: "#CC2127", uso: "Só detalhes · até 5%" },
+];
+
+/** As cores e fontes seguem o Manual da Marca e ficam fixas — aqui só são exibidas. */
+export function EditorAparencia(_: P) {
   return (
-    <Secao titulo="Cores do site" descricao="Os tons mais claros e mais escuros são calculados a partir destas três cores.">
-      <Grade cols={3}>
-        <CampoCor rotulo="Cor principal" valor={a.corPrimaria} onChange={(v) => mudar((d) => { d.aparencia.corPrimaria = v; })} dica="Azul do logotipo" />
-        <CampoCor rotulo="Cor de destaque" valor={a.corDestaque} onChange={(v) => mudar((d) => { d.aparencia.corDestaque = v; })} dica="Vermelho da cruz" />
-        <CampoCor rotulo="Fundo" valor={a.corFundo} onChange={(v) => mudar((d) => { d.aparencia.corFundo = v; })} />
-      </Grade>
-      <button
-        type="button"
-        onClick={() => mudar((d) => { d.aparencia = { corPrimaria: "#00416B", corDestaque: "#C1242C", corFundo: "#F7F5F0" }; })}
-        className="justify-self-start text-[13px] font-semibold text-p-acento hover:underline"
-      >
-        Restaurar cores da marca
-      </button>
-    </Secao>
+    <>
+      <Secao titulo="Cores da marca" descricao="Definidas pelo Manual da Marca da igreja. Ficam fixas para o site nunca sair da identidade visual.">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {PALETA.map((c) => (
+            <div key={c.hex} className="overflow-hidden rounded-md border border-p-borda">
+              <div className="h-12 border-b border-p-borda" style={{ background: c.hex }} />
+              <div className="p-2">
+                <p className="text-[12px] font-semibold text-p-texto">{c.nome}</p>
+                <p className="font-mono text-[11px] text-p-suave">{c.hex}</p>
+                <p className="text-[11px] text-p-suave">{c.uso}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Secao>
+      <Secao titulo="Regras de uso" descricao="O que o site já aplica automaticamente.">
+        <ul className="grid gap-1.5 text-[13px] leading-relaxed text-p-texto-2 [&_strong]:text-p-texto">
+          <li>• <strong>Montserrat</strong> em títulos e textos; <strong>Lora Itálico</strong> só em versículos e citações.</li>
+          <li>• <strong>Vermelho só em detalhes:</strong> a cruz, a cruzinha antes dos sobretítulos, o traço acima dos nomes e o selo “ao vivo”.</li>
+          <li>• <strong>Cantos retos</strong> e botões azuis em maiúsculas espaçadas.</li>
+          <li>• <strong>Fotos:</strong> a foto principal da página inicial aparece recortada no formato do monte.</li>
+          <li>• Logos, grafismos e ícones oficiais ficam em <span className="font-mono">/marca</span>.</li>
+        </ul>
+      </Secao>
+    </>
   );
 }
 
@@ -343,13 +365,16 @@ export function EditorMinisterios({ c, mudar }: P) {
         <ListaEditavel
           itens={m.itens}
           onChange={(v) => mudar((d) => { d.ministerios.itens = v; })}
-          novo={() => ({ id: novoId("min"), nome: "Novo ministério", descricao: "", imagem: "", lider: "", quando: "", contato: "" })}
+          novo={(): Conteudo["ministerios"]["itens"][number] => ({ id: novoId("min"), nome: "Novo ministério", descricao: "", icone: "grupos", imagem: "", lider: "", quando: "", contato: "" })}
           titulo={(x) => x.nome}
           subtitulo={(x) => x.lider}
           rotuloNovo="Adicionar ministério"
           render={(x, mm) => (
             <>
-              <Campo rotulo="Nome" valor={x.nome} onChange={(v) => mm((d) => { d.nome = v; })} />
+              <Grade>
+                <Campo rotulo="Nome" valor={x.nome} onChange={(v) => mm((d) => { d.nome = v; })} />
+                <Selecao rotulo="Ícone (da marca)" valor={x.icone || iconeMinisterio(x)} opcoes={ICONES_MARCA.map((i) => ({ valor: i.valor as string, rotulo: i.rotulo }))} onChange={(v) => mm((d) => { d.icone = v; })} />
+              </Grade>
               <Campo rotulo="Descrição" valor={x.descricao} multilinha linhas={3} onChange={(v) => mm((d) => { d.descricao = v; })} />
               <CampoImagem rotulo="Foto" valor={x.imagem} onChange={(v) => mm((d) => { d.imagem = v; })} proporcao="aspect-[4/3] max-w-sm" />
               <Grade cols={3}>
@@ -448,7 +473,7 @@ export type DefSecao = {
 
 export const SECOES: DefSecao[] = [
   { id: "geral", rotulo: "Dados da igreja", descricao: "Nome, contatos, endereço, mapa e redes sociais.", grupo: "Site", previa: "/contato", Icone: Building2, chaves: ["geral"], Editor: EditorGeral },
-  { id: "aparencia", rotulo: "Cores", descricao: "As três cores da marca usadas em todo o site.", grupo: "Site", previa: "/", Icone: Palette, chaves: ["aparencia"], Editor: EditorAparencia },
+  { id: "aparencia", rotulo: "Identidade visual", descricao: "Cores, fontes e regras do Manual da Marca.", grupo: "Site", previa: "/", Icone: Palette, chaves: ["aparencia"], Editor: EditorAparencia },
   { id: "menu", rotulo: "Menu", descricao: "Itens, ordem e visibilidade do menu do site.", grupo: "Site", previa: "/", Icone: ListTree, chaves: ["menu"], Editor: EditorMenu },
   { id: "inicio", rotulo: "Página inicial", descricao: "Destaque do topo, seções e textos da página inicial.", grupo: "Páginas", previa: "/", Icone: House, chaves: ["inicio"], Editor: EditorInicio },
   { id: "programacao", rotulo: "Agenda semanal", descricao: "Os dias e horários do carrossel da agenda.", grupo: "Páginas", previa: "/programacao", Icone: CalendarClock, chaves: ["programacao"], Editor: EditorProgramacao },

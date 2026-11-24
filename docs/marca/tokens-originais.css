@@ -1,0 +1,15 @@
+/* Primeira Igreja Evangélica Congregacional de Brasília · tokens da marca */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Lora:ital,wght@1,400;1,500&display=swap');
+:root{
+  --branco:#FFFFFF; --nevoa:#F3F6F9; --azul:#00436F; --azul-noite:#002A47;
+  --azul-ceu:#D9E6EF; --azul-medio:#5B7F99; --vermelho:#CC2127; --grafite:#1D2B36;
+  --fonte-titulo:'Montserrat',system-ui,sans-serif; --fonte-texto:'Montserrat',system-ui,sans-serif; --fonte-versiculo:'Lora',Georgia,serif;
+  --raio:0; /* a marca usa cantos retos, como a linha do horizonte */
+}
+body{background:var(--branco);color:var(--grafite);font-family:var(--fonte-texto);}
+h1,h2,h3{font-family:var(--fonte-titulo);font-weight:700;color:var(--azul);letter-spacing:-.02em;}
+.sobretitulo{font-size:.8rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--azul);}
+.versiculo{font-family:var(--fonte-versiculo);font-style:italic;}
+.botao{background:var(--azul);color:#fff;padding:1rem 1.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.8rem;border:0;}
+.botao--contorno{background:transparent;color:var(--azul);border:2px solid var(--azul);}
+.detalhe-vermelho{color:var(--vermelho);} /* use só em pequenos detalhes: cruz, marcador, ao vivo */

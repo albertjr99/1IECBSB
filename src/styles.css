@@ -1,34 +1,53 @@
 @import "tailwindcss";
 
 /*
- * As três cores da marca vêm do conteúdo (painel › Aparência) e entram como
- * variáveis no <html>. Os tons derivados são calculados aqui, então trocar a
- * cor no painel repinta o site inteiro.
+ * IDENTIDADE VISUAL — Manual da Marca da 1ª IEC Brasília (nov/2026).
+ * Regras completas em docs/IDENTIDADE-VISUAL.md. Resumo:
+ *  · Branco 60% (base) · Azul 30–35% (títulos, áreas de destaque) · Vermelho até 5%.
+ *  · Vermelho só em detalhes: a cruz, a cruzinha antes dos sobretítulos, um traço
+ *    curto acima de nomes e selos de urgência ("ao vivo", "inscrições").
+ *  · Montserrat para tudo; Lora Itálico só em versículos e citações.
+ *  · Cantos retos, como a linha do horizonte.
+ * As cores são fixas (não vêm mais do painel) para o site nunca sair do manual.
  */
 :root {
-  --cor-primaria: #00416b;
-  --cor-destaque: #c1242c;
-  --cor-fundo: #f7f5f0;
+  --branco: #ffffff;
+  --nevoa: #f3f6f9;
+  --azul: #00436f;
+  --azul-noite: #002a47;
+  --azul-ceu: #d9e6ef;
+  --azul-medio: #5b7f99;
+  --vermelho: #cc2127;
+  --grafite: #1d2b36;
+  /* nomes antigos, usados pelo painel e pelo boletim */
+  --cor-primaria: var(--azul);
+  --cor-destaque: var(--vermelho);
+  --cor-fundo: var(--branco);
+  /* cruz da marca, para sobretítulos e marcadores */
+  --cruz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='206 1 35 63'%3E%3Cpath fill='%23CC2127' d='M219 1h8v14h14v8h-14v41h-8v-41h-13v-8h13z'/%3E%3C/svg%3E");
 }
 
 @theme inline {
-  --color-marca: var(--cor-primaria);
-  --color-marca-escura: color-mix(in oklab, var(--cor-primaria) 72%, black);
-  --color-marca-funda: color-mix(in oklab, var(--cor-primaria) 45%, black);
-  --color-marca-clara: color-mix(in oklab, var(--cor-primaria) 10%, white);
-  --color-marca-suave: color-mix(in oklab, var(--cor-primaria) 22%, white);
-  --color-destaque: var(--cor-destaque);
-  --color-destaque-escuro: color-mix(in oklab, var(--cor-destaque) 80%, black);
-  --color-destaque-claro: color-mix(in oklab, var(--cor-destaque) 10%, white);
-  --color-fundo: var(--cor-fundo);
-  --color-papel: color-mix(in oklab, var(--cor-fundo) 55%, white);
-  --color-tinta: #16202b;
-  --color-tinta-suave: #4b5866;
-  --color-linha: color-mix(in oklab, var(--cor-fundo) 70%, #8a8f96);
+  --color-marca: var(--azul);
+  --color-marca-escura: #003559;
+  --color-marca-funda: var(--azul-noite);
+  --color-marca-clara: var(--nevoa);
+  --color-marca-suave: var(--azul-ceu);
+  --color-marca-media: var(--azul-medio);
+  --color-ceu: var(--azul-ceu);
+  --color-nevoa: var(--nevoa);
+  --color-destaque: var(--vermelho);
+  --color-destaque-escuro: #a81a20;
+  --color-destaque-claro: #fbeaea;
+  --color-fundo: var(--branco);
+  --color-papel: var(--nevoa);
+  --color-tinta: var(--grafite);
+  --color-tinta-suave: var(--azul-medio);
+  --color-linha: var(--azul-ceu);
 
   --font-titulo: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-  --font-texto: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
-  --font-escritura: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-texto: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-escritura: "Lora", ui-serif, Georgia, serif;
 }
 
 @layer base {
@@ -39,20 +58,20 @@
   body {
     @apply bg-fundo text-tinta antialiased;
     font-family: var(--font-texto);
-    font-size: 17px;
-    line-height: 1.6;
+    font-size: 16px;
+    line-height: 1.7;
   }
   h1, h2, h3, h4 {
     font-family: var(--font-titulo);
-    font-weight: 600;
-    letter-spacing: -0.015em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     line-height: 1.15;
   }
   ::selection {
-    background: color-mix(in oklab, var(--cor-primaria) 25%, white);
+    background: var(--azul-ceu);
   }
   :focus-visible {
-    outline: 2px solid var(--cor-destaque);
+    outline: 2px solid var(--azul);
     outline-offset: 2px;
   }
 }
@@ -60,29 +79,49 @@
 @utility container-site {
   @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
 }
-/* Rótulo discreto acima de um título — usado com parcimônia. */
+/* Sobretítulo do manual: MAIÚSCULAS bem espaçadas, com a cruzinha vermelha antes. */
 @utility rotulo-secao {
-  @apply text-[12.5px] font-semibold uppercase tracking-[0.12em] text-destaque;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85em;
   font-family: var(--font-titulo);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--azul);
+  &::before {
+    content: "";
+    flex: none;
+    width: 0.62em;
+    height: 1.12em;
+    background: var(--cruz) center / contain no-repeat;
+  }
 }
 @utility titulo-secao {
-  @apply text-[1.85rem] font-semibold leading-tight tracking-[-0.015em] text-marca-funda sm:text-[2.25rem];
+  @apply text-[1.9rem] font-bold leading-[1.12] tracking-[-0.02em] text-marca sm:text-[2.4rem];
 }
+/* Botões: azuis, cantos retos, texto em maiúsculas espaçadas (tokens do manual). */
 @utility btn {
-  @apply inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-[14.5px] font-semibold transition-colors duration-150 disabled:opacity-50;
+  @apply inline-flex h-12 items-center justify-center gap-2 rounded-md px-6 text-[14px] font-semibold transition-colors duration-150 disabled:opacity-50;
   font-family: var(--font-texto);
 }
 @utility btn-primario {
-  @apply btn bg-marca text-white hover:bg-marca-escura;
+  @apply btn bg-marca text-white hover:bg-marca-funda;
 }
+/* O vermelho nunca vira área grande: o botão "de destaque" também é azul. */
 @utility btn-destaque {
-  @apply btn bg-destaque text-white hover:bg-destaque-escuro;
+  @apply btn bg-marca text-white hover:bg-marca-funda;
 }
 @utility btn-contorno {
-  @apply btn border border-marca/30 bg-transparent text-marca hover:border-marca hover:bg-marca-clara;
+  @apply btn border-2 border-marca bg-transparent text-marca hover:bg-marca hover:text-white;
 }
 @utility btn-claro {
-  @apply btn border border-white/45 bg-transparent text-white hover:border-white hover:bg-white/10;
+  @apply btn border-2 border-white bg-transparent text-white hover:bg-white hover:text-marca;
+}
+@utility btn-branco {
+  @apply btn bg-white text-marca hover:bg-nevoa;
 }
 @utility texto-corrido {
   text-align: justify;
@@ -98,11 +137,64 @@
   text-justify: inter-word;
   hyphens: auto;
   -webkit-hyphens: auto;
-  text-wrap: pretty;
 }
+/* Versículos e citações: Lora Itálico. */
 @utility escritura {
   font-family: var(--font-escritura);
   font-style: italic;
+  font-weight: 400;
+}
+/* Referência bíblica: maiúsculas espaçadas abaixo do versículo. */
+@utility referencia {
+  font-family: var(--font-titulo);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+/* Filete vermelho curto acima de nomes e assinaturas. */
+@utility filete {
+  &::before {
+    content: "";
+    display: block;
+    width: 28px;
+    height: 3px;
+    margin-bottom: 12px;
+    background: var(--vermelho);
+  }
+}
+
+/* ─── Site público: regras do manual que valem para todos os componentes ─── */
+/* Cantos retos em tudo (círculos continuam círculos: ícones, avatares, pontos). */
+.site [class*="rounded"]:not([class*="rounded-full"]) {
+  border-radius: 0;
+}
+.site :is(.btn-primario, .btn-destaque, .btn-contorno, .btn-claro, .btn-branco) {
+  border-radius: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.site :is(input, select, textarea, .campo) {
+  border-radius: 0;
+}
+/* Grafismo "Monte": linhas finas concêntricas como fundo leve. */
+.grafismo-monte-claro {
+  background: url("/marca/grafismo-monte-transparente-azul.svg") center bottom / 1200px auto no-repeat;
+}
+.grafismo-monte-escuro {
+  position: relative;
+  isolation: isolate;
+}
+.grafismo-monte-escuro::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url("/marca/grafismo-monte-transparente-branco.svg") right -260px bottom -40px / 1300px auto no-repeat;
+  opacity: 0.1;
 }
 
 @keyframes pulso-vivo {
@@ -130,9 +222,9 @@
   --p-texto: #111827;
   --p-texto-2: #374151;
   --p-suave: #6b7280;
-  --p-acento: var(--cor-primaria);
-  --p-realce: color-mix(in oklab, var(--cor-primaria) 8%, white);
-  --p-lateral: #071a2c;
+  --p-acento: #00436f;
+  --p-realce: #eaf1f6;
+  --p-lateral: #002a47;
   color-scheme: light;
 }
 .painel.tema-escuro {
@@ -145,13 +237,13 @@
   --p-texto: #e6eaef;
   --p-texto-2: #c2c9d2;
   --p-suave: #8a94a1;
-  --p-acento: #6aa8e8;
-  --p-realce: rgba(106, 168, 232, 0.12);
-  --p-lateral: #080c11;
+  --p-acento: #8fb6d3;
+  --p-realce: rgba(143, 182, 211, 0.12);
+  --p-lateral: #071827;
   color-scheme: dark;
 }
-.painel.tema-escuro .btn-primario { background: #1f66b0; }
-.painel.tema-escuro .btn-primario:hover { background: #2a77c6; }
+.painel.tema-escuro .btn-primario { background: #1d5e8c; }
+.painel.tema-escuro .btn-primario:hover { background: #2a6f9f; }
 .painel.tema-escuro .btn-contorno { color: var(--p-acento); border-color: var(--p-borda-forte); }
 .painel.tema-escuro .btn-contorno:hover { background: var(--p-hover); border-color: var(--p-acento); }
 

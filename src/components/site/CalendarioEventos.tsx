@@ -67,11 +67,11 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
   };
 
   return (
-    <div className="grid overflow-hidden rounded-lg border border-linha/70 bg-white lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid overflow-hidden rounded-lg border border-linha bg-white lg:grid-cols-[minmax(0,1fr)_360px]">
       {/* Mês */}
       <div className="p-4 sm:p-6">
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h3 className="font-[family-name:var(--font-titulo)] text-[1.25rem] font-semibold text-marca-funda">
+          <h3 className="font-[family-name:var(--font-titulo)] text-[1.25rem] font-bold text-marca">
             {MESES[mes.m]} <span className="font-normal text-tinta-suave">{mes.a}</span>
           </h3>
           <div className="flex items-center gap-1">
@@ -81,7 +81,7 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-7 border-b border-linha/70 pb-2">
+        <div className="grid grid-cols-7 border-b border-linha pb-2">
           {SEMANA.map((s) => (
             <div key={s} className="text-center text-[11.5px] font-semibold uppercase tracking-[.1em] text-tinta-suave">{s}</div>
           ))}
@@ -118,7 +118,7 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
                 {c.eventos.length > 0 && (
                   <span className="mt-1 flex gap-1 sm:hidden">
                     {c.eventos.slice(0, 3).map((e) => (
-                      <span key={e.id} className={cn("size-1.5 rounded-full", e.destaque ? "bg-destaque" : "bg-marca")} />
+                      <span key={e.id} className={cn("size-1.5 rounded-full", e.destaque ? "bg-marca-funda" : "bg-marca")} />
                     ))}
                   </span>
                 )}
@@ -133,7 +133,7 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
                         key={e.id}
                         className={cn(
                           "block truncate py-[3px] text-[11.5px] font-semibold leading-tight",
-                          e.destaque ? "bg-destaque-claro text-destaque-escuro" : "bg-marca-suave/70 text-marca-funda",
+                          e.destaque ? "bg-marca text-white" : "bg-marca-suave text-marca-funda",
                           comeca ? "rounded-l pl-1.5" : "-ml-1.5 pl-1.5",
                           termina ? "rounded-r pr-1.5" : "-mr-1.5",
                           !c.doMes && "opacity-50",
@@ -157,7 +157,7 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
       </div>
 
       {/* Detalhes do dia */}
-      <aside className="border-t border-linha/70 bg-papel/60 p-5 sm:p-6 lg:border-l lg:border-t-0">
+      <aside className="border-t border-linha bg-papel/60 p-5 sm:p-6 lg:border-l lg:border-t-0">
         <p className="text-[12px] font-semibold uppercase tracking-[.14em] text-tinta-suave first-letter:uppercase">{diaPorExtenso(selecionado)}</p>
 
         {doDia.length ? (
@@ -165,8 +165,8 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
             {doDia.map((ev) => (
               <article key={ev.id}>
                 {ev.imagem && <img src={ev.imagem} alt="" className="mb-4 aspect-[16/10] w-full rounded-md object-cover" />}
-                {ev.destaque && <span className="mb-2 inline-block rounded bg-destaque px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[.08em] text-white">Destaque</span>}
-                <h4 className="font-[family-name:var(--font-titulo)] text-[1.15rem] font-semibold leading-snug text-marca-funda">{ev.titulo}</h4>
+                {ev.destaque && <span className="mb-2 inline-block rounded bg-marca px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[.08em] text-white">Destaque</span>}
+                <h4 className="font-[family-name:var(--font-titulo)] text-[1.15rem] font-bold leading-snug text-marca">{ev.titulo}</h4>
                 <ul className="mt-3 space-y-1.5 text-[14.5px] text-tinta-suave">
                   <li className="flex gap-2"><Clock size={16} className="mt-[3px] shrink-0 text-marca" />{periodo(ev.data, ev.dataFim)}{ev.horario && ` · ${ev.horario}`}</li>
                   {ev.local && <li className="flex gap-2"><MapPin size={16} className="mt-[3px] shrink-0 text-marca" />{ev.local}</li>}
@@ -198,7 +198,7 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
                     {seguintes.map((e) => (
                       <li key={e.id}>
                         <button type="button" onClick={() => irPara(e.data < selecionado ? selecionado : e.data)} className="group flex w-full items-baseline gap-3 py-3 text-left">
-                          <span className="w-12 shrink-0 text-[13px] font-semibold uppercase text-destaque tabular-nums">
+                          <span className="w-12 shrink-0 text-[13px] font-semibold uppercase text-marca tabular-nums">
                             {e.data.slice(8, 10)}/{e.data.slice(5, 7)}
                           </span>
                           <span className="text-[15px] font-medium text-tinta group-hover:text-marca">{e.titulo}</span>

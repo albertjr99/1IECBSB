@@ -66,9 +66,9 @@ function Mensagens() {
 
   return (
     <>
-      <CapaPagina titulo={m.titulo} texto={m.subtitulo} />
+      <CapaPagina rotulo="Assista" titulo={m.titulo} texto={m.subtitulo} />
       <section className="container-site py-12">
-        <div className="sticky top-[76px] md:top-[116px] xl:top-[128px] z-20 -mx-5 border-b border-linha/60 bg-fundo px-5 py-4 sm:-mx-8 sm:px-8">
+        <div className="sticky top-[76px] md:top-[116px] xl:top-[128px] z-20 -mx-5 border-b border-linha bg-fundo px-5 py-4 sm:-mx-8 sm:px-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <label className="relative block flex-1 sm:max-w-xl">
               <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-tinta-suave" />
@@ -95,7 +95,7 @@ function Mensagens() {
         </p>
 
         {erro && !videos.length ? (
-          <div className="mt-8 rounded-lg bg-white p-10 text-center border border-linha/70">
+          <div className="mt-8 rounded-lg bg-white p-10 text-center border border-linha">
             <p className="text-tinta-suave">{erro}</p>
             <a href={geral.redes.youtube} target="_blank" rel="noopener noreferrer" className="btn-destaque mt-5"><IconeYoutube /> Ver no YouTube</a>
           </div>
@@ -107,7 +107,7 @@ function Mensagens() {
         )}
 
         {!carregando && !erro && videos.length === 0 && (
-          <div className="mt-8 rounded-lg border border-linha/70 bg-white p-10 text-center text-tinta-suave">
+          <div className="mt-8 rounded-lg border border-linha bg-white p-10 text-center text-tinta-suave">
             <p>Nenhum vídeo encontrado.</p>
             {(q || de || ate) && (
               <button onClick={() => { setTexto(""); navegar({ search: {}, replace: true }); }} className="mt-3 text-[14px] font-semibold text-marca hover:underline">Limpar busca e período</button>
@@ -212,7 +212,7 @@ function SeletorPeriodo({ de, ate, onChange }: Periodo & { onChange: (p: Periodo
       {aberto && (
         <div className="absolute right-0 z-30 mt-2 w-[min(92vw,540px)] overflow-hidden rounded-lg border border-linha bg-white shadow-[0_18px_40px_-18px_rgba(0,30,55,.35)] sm:left-auto max-sm:left-0 max-sm:right-auto">
           <div className="grid sm:grid-cols-[200px_1fr]">
-            <ul className="border-b border-linha/70 py-2 sm:border-b-0 sm:border-r">
+            <ul className="border-b border-linha py-2 sm:border-b-0 sm:border-r">
               {lista.map((a, i) => {
                 const sel = a.p.de === de && a.p.ate === ate;
                 return (

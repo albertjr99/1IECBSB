@@ -27,7 +27,7 @@ function Contato() {
 
   return (
     <>
-      <CapaPagina titulo={ct.titulo} texto={ct.texto} />
+      <CapaPagina rotulo="Fale conosco" titulo={ct.titulo} texto={ct.texto} />
       <section className="container-site grid gap-10 py-20 lg:grid-cols-[1fr_1.2fr]">
         <div className="grid content-start gap-6">
           <Info titulo="Endereço">{g.endereco.linha1}<br />{g.endereco.linha2}{g.endereco.cep && <><br />CEP {g.endereco.cep}</>}</Info>
@@ -37,8 +37,8 @@ function Contato() {
           <div className="-ml-2"><Redes /></div>
         </div>
         {podeEnviar ? (
-          <form onSubmit={enviar} className="rounded-lg bg-white p-8 border border-linha/70 sm:p-10">
-            <h2 className="text-2xl font-semibold text-marca-funda">Envie uma mensagem</h2>
+          <form onSubmit={enviar} className="rounded-lg bg-white p-8 border border-linha sm:p-10">
+            <h2 className="text-2xl font-bold text-marca">Envie uma mensagem</h2>
             <p className="mt-1 text-sm text-tinta-suave">{g.whatsapp ? "A mensagem abre no WhatsApp da igreja." : "A mensagem abre no seu e-mail."}</p>
             <div className="mt-6 grid gap-4">
               <Campo rotulo="Seu nome"><input required value={nome} onChange={(e) => setNome(e.target.value)} className="campo" /></Campo>
@@ -53,8 +53,8 @@ function Contato() {
           </form>
         ) : (
           <div className="self-start border-l-4 border-marca pl-6">
-            <h2 className="text-2xl font-semibold text-marca-funda">Fale com a secretaria</h2>
-            <p className="texto-justificado mt-2 max-w-md leading-relaxed text-tinta-suave">Ligue para a igreja ou envie uma mensagem pelo Instagram.</p>
+            <h2 className="text-2xl font-bold text-marca">Fale com a secretaria</h2>
+            <p className="texto-justificado mt-2 max-w-md leading-relaxed text-tinta">Ligue para a igreja ou envie uma mensagem pelo Instagram.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               {g.telefone && <a href={linkTelefone(g.telefone)} className="btn-primario">Ligar {g.telefone}</a>}
               {g.redes.instagram && <a href={g.redes.instagram} target="_blank" rel="noopener noreferrer" className="btn-contorno">Mensagem no Instagram</a>}

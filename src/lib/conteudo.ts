@@ -43,10 +43,37 @@ export type Evento = {
 export type Membro = { id: string; nome: string; cargo: string; foto: string; bio: string };
 export type GrupoLideranca = { id: string; nome: string; membros: Membro[] };
 
+/** Ícones oficiais da marca (Manual, 06 · Grafismos), em public/marca/icones. */
+export const ICONES_MARCA = [
+  { valor: "cultos", rotulo: "Cultos (cruz)" },
+  { valor: "louvor", rotulo: "Louvor" },
+  { valor: "kids", rotulo: "Kids" },
+  { valor: "jovens", rotulo: "Jovens" },
+  { valor: "grupos", rotulo: "Grupos" },
+  { valor: "missoes", rotulo: "Missões" },
+  { valor: "ofertas", rotulo: "Ofertas / ação social" },
+  { valor: "agenda", rotulo: "Agenda" },
+  { valor: "contato", rotulo: "Contato" },
+  { valor: "sobre", rotulo: "Sobre" },
+] as const;
+
+/** Ícone do ministério: o escolhido no painel ou um palpite pelo nome. */
+export function iconeMinisterio(m: { icone?: string; id: string; nome: string }): string {
+  if (m.icone) return m.icone;
+  const n = `${m.id} ${m.nome}`.toLowerCase();
+  if (/louvor|m[uú]sica|coral/.test(n)) return "louvor";
+  if (/infantil|crian|kids|junior/.test(n)) return "kids";
+  if (/jove|adolesc/.test(n)) return "jovens";
+  if (/miss/.test(n)) return "missoes";
+  if (/social|assist|diacon/.test(n)) return "ofertas";
+  return "grupos";
+}
+
 export type Ministerio = {
   id: string;
   nome: string;
   descricao: string;
+  icone?: string;
   imagem: string;
   lider: string;
   quando: string;
@@ -183,9 +210,9 @@ export const CONTEUDO_PADRAO: Conteudo = {
     },
   },
   aparencia: {
-    corPrimaria: "#00416B",
-    corDestaque: "#C1242C",
-    corFundo: "#F7F5F0",
+    corPrimaria: "#00436F",
+    corDestaque: "#CC2127",
+    corFundo: "#FFFFFF",
   },
   menu: [
     { id: "inicio", rotulo: "Início", para: "/", visivel: true },
@@ -200,13 +227,13 @@ export const CONTEUDO_PADRAO: Conteudo = {
   ],
   inicio: {
     hero: {
-      sobretitulo: "Bem-vindo à",
-      titulo: "Primeira Igreja Evangélica Congregacional de Brasília",
-      subtitulo: "Venha adorar a Deus conosco, crescer na Palavra e viver em comunhão.",
+      sobretitulo: "Bem-vindo à sua casa em Brasília",
+      titulo: "Uma igreja para caminhar junto.",
+      subtitulo: "Somos uma família de fé que se reúne para adorar a Deus, ouvir a Palavra e servir a cidade com amor.",
       imagem: "",
       botoes: [
-        { rotulo: "Horários dos cultos", link: "/programacao" },
-        { rotulo: "Assistir mensagens", link: "/mensagens" },
+        { rotulo: "Planeje sua visita", link: "/contato" },
+        { rotulo: "Assista online", link: "/mensagens" },
       ],
     },
     boasVindas: {

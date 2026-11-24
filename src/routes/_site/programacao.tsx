@@ -19,17 +19,18 @@ function Programacao() {
   const passados = publicados.filter((x) => (x.dataFim || x.data) < hoje).sort((a, b) => b.data.localeCompare(a.data)).slice(0, 6);
   return (
     <>
-      <CapaPagina titulo={p.titulo} texto={p.subtitulo} />
+      <CapaPagina rotulo="Toda semana" titulo={p.titulo} texto={p.subtitulo} />
       <section className="container-site overflow-hidden py-16">
         <AgendaSemanal />
         {p.aviso && <p className="mt-4 text-center text-sm text-tinta-suave">{p.aviso}</p>}
       </section>
-      <section id="eventos" className="scroll-mt-36 border-t border-linha/60 bg-papel">
+      <section id="eventos" className="scroll-mt-36 border-t border-linha bg-papel">
         <div className="container-site py-20">
           <div className="flex flex-wrap items-end justify-between gap-5">
             <div>
+              <p className="rotulo-secao mb-3">Agenda</p>
               <h2 className="titulo-secao">{e.titulo}</h2>
-              {e.subtitulo && <p className="texto-justificado mt-3 text-tinta-suave">{e.subtitulo}</p>}
+              {e.subtitulo && <p className="texto-justificado mt-3 text-tinta">{e.subtitulo}</p>}
             </div>
             {publicados.length > 0 && (
               <div className="inline-flex rounded-md border border-linha bg-white p-1" role="tablist" aria-label="Forma de exibir os eventos">
@@ -59,11 +60,11 @@ function Programacao() {
           ) : proximos.length ? (
             <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{proximos.map((ev) => <CartaoEvento key={ev.id} ev={ev} />)}</div>
           ) : (
-            <p className="mt-8 rounded-md bg-white p-8 text-center text-tinta-suave border border-linha/70">Nenhum evento agendado no momento. Acompanhe nossas redes sociais.</p>
+            <p className="mt-8 rounded-md bg-white p-8 text-center text-tinta-suave border border-linha">Nenhum evento agendado no momento. Acompanhe nossas redes sociais.</p>
           )}
           {visao === "lista" && passados.length > 0 && (
             <>
-              <h3 className="mt-16 text-xl font-semibold text-marca-funda">Eventos anteriores</h3>
+              <h3 className="mt-16 text-xl font-bold text-marca">Eventos anteriores</h3>
               <div className="mt-6 grid gap-6 opacity-80 md:grid-cols-2 lg:grid-cols-3">{passados.map((ev) => <CartaoEvento key={ev.id} ev={ev} />)}</div>
             </>
           )}

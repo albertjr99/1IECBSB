@@ -37,7 +37,7 @@ function AoVivo() {
 
   return (
     <>
-      <CapaPagina titulo="Ao vivo" texto="Acompanhe os cultos e estudos em tempo real, onde você estiver." />
+      <CapaPagina rotulo="Transmissão" titulo="Ao vivo" texto="Acompanhe os cultos e estudos em tempo real, onde você estiver." />
       <section className="container-site py-14">
         {!s ? (
           <div className="aspect-video animate-pulse rounded-lg bg-marca/10" />
@@ -47,29 +47,29 @@ function AoVivo() {
               <span className="ponto-vivo size-2 rounded-full bg-white" /> Transmitindo agora
             </p>
             <Player id={s.aoVivo.id} titulo={s.aoVivo.titulo} />
-            <h2 className="mt-5 text-2xl font-semibold text-marca-funda">{s.aoVivo.titulo}</h2>
+            <h2 className="mt-5 text-2xl font-bold text-marca">{s.aoVivo.titulo}</h2>
           </>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
             <div>
               <div className="flex items-start gap-4 border-l-4 border-marca pl-5">
                 <div>
-                  <h2 className="text-xl font-semibold text-marca-funda">Não estamos ao vivo agora</h2>
+                  <h2 className="text-xl font-bold text-marca">Não estamos ao vivo agora</h2>
                   {s.agendado ? (
                     <p className="mt-1 flex items-center gap-2 text-tinta-suave">
-                      <CalendarClock size={16} className="text-destaque" />
+                      <CalendarClock size={16} className="text-marca" />
                       Próxima transmissão: <strong className="text-tinta">{new Date(s.agendado.inicio).toLocaleString("pt-BR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</strong>
                     </p>
                   ) : (
-                    <p className="texto-justificado mt-1 text-tinta-suave">Esta página mostra a transmissão automaticamente quando começar. Enquanto isso, assista à última mensagem.</p>
+                    <p className="texto-justificado mt-1 text-tinta">Esta página mostra a transmissão automaticamente quando começar. Enquanto isso, assista à última mensagem.</p>
                   )}
                 </div>
               </div>
               {ultimo && (
                 <div className="mt-6">
-                  <h3 className="mb-3 text-lg font-semibold text-marca-funda">Última mensagem</h3>
+                  <h3 className="mb-3 text-lg font-bold text-marca">Última mensagem</h3>
                   <Player id={ultimo.id} titulo={ultimo.titulo} />
-                  <h3 className="mt-4 text-xl font-semibold text-marca-funda">{ultimo.titulo}</h3>
+                  <h3 className="mt-4 text-xl font-bold text-marca">{ultimo.titulo}</h3>
                 </div>
               )}
               <div className="mt-6 flex flex-wrap gap-3">
@@ -78,7 +78,7 @@ function AoVivo() {
               </div>
             </div>
             <div className="grid content-start gap-4">
-              <h3 className="text-lg font-semibold text-marca-funda">Horários da semana</h3>
+              <h3 className="text-lg font-bold text-marca">Horários da semana</h3>
               <AgendaCompacta />
             </div>
           </div>
