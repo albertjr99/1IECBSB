@@ -8,20 +8,20 @@
 export type Papel = "admin" | "pastor" | "comunicacao" | "editor";
 
 /** Áreas do painel. "site" = todas as seções de edição do site. */
-export type Area = "site" | "boletim" | "deliberacao" | "financas" | "alteracoes" | "usuarios";
+export type Area = "site" | "boletim" | "deliberacao" | "financas" | "agentes" | "alteracoes" | "usuarios";
 
 export const PERMISSOES: Record<Papel, readonly Area[]> = {
-  admin: ["site", "boletim", "deliberacao", "financas", "alteracoes", "usuarios"],
+  admin: ["site", "boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios"],
   pastor: ["boletim", "deliberacao", "alteracoes"],
-  comunicacao: ["site"],
+  comunicacao: ["site", "agentes"],
   // perfil antigo ("Editor"): equivale à comunicação
-  editor: ["site"],
+  editor: ["site", "agentes"],
 };
 
 export const PAPEIS: { valor: Exclude<Papel, "editor">; rotulo: string; descricao: string }[] = [
   { valor: "admin", rotulo: "Administrador", descricao: "Acesso a tudo, inclusive usuários." },
   { valor: "pastor", rotulo: "Pastor", descricao: "Boletim, deliberações e controle de alterações." },
-  { valor: "comunicacao", rotulo: "Comunicação", descricao: "Toda a edição do site. Sem boletim, deliberações e controle de alterações." },
+  { valor: "comunicacao", rotulo: "Comunicação", descricao: "Toda a edição do site e os Agentes de IA. Sem boletim, deliberações e controle de alterações." },
 ];
 
 export function rotuloPapel(p: string) {
@@ -34,7 +34,7 @@ export function pode(papel: string | undefined, area: Area) {
 
 /** Área de cada item do menu do painel. */
 export function areaDoItem(id: string): Area {
-  if (id === "boletim" || id === "deliberacao" || id === "financas" || id === "alteracoes" || id === "usuarios") return id;
+  if (id === "boletim" || id === "deliberacao" || id === "financas" || id === "agentes" || id === "alteracoes" || id === "usuarios") return id;
   return "site";
 }
 

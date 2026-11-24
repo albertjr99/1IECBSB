@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import {
   AlertTriangle, Check, ChevronsLeft, ChevronsRight, CircleDot, Command, ExternalLink, Eye, EyeOff, Gavel, History, Landmark, Loader2,
-  KeyRound, Lock, LogOut, Menu, Monitor, Moon, Newspaper, RotateCw, Search, Smartphone, Sun, Tablet, Undo2, Upload, Users, X, type LucideIcon,
+  KeyRound, Lock, LogOut, Sparkles, Menu, Monitor, Moon, Newspaper, RotateCw, Search, Smartphone, Sun, Tablet, Undo2, Upload, Users, X, type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Conteudo } from "@/lib/conteudo";
@@ -13,7 +13,8 @@ import { cn } from "@/lib/utils";
 import { SECOES } from "@/components/painel/editores";
 import { JanelaMinhaSenha, PainelUsuarios, PainelVersoes } from "@/components/painel/Extras";
 import { ModuloBoletim } from "@/components/painel/boletim/ModuloBoletim";
-import { Contorno, ModuloDeliberacao, ModuloFinancas } from "@/components/painel/Modulos";
+import { Contorno, ModuloAgentes, ModuloDeliberacao, ModuloFinancas } from "@/components/painel/Modulos";
+import "@/components/painel/boletim/editor.css";
 
 export const Route = createFileRoute("/admin/")({
   ssr: false,
@@ -36,6 +37,9 @@ const MODULOS: ItemNav[] = [
   { id: "boletim", rotulo: "Boletim", Icone: Newspaper, descricao: "Boletim dominical no modelo da igreja." },
   { id: "deliberacao", rotulo: "Deliberação", Icone: Gavel, descricao: "Votação Online e Assembleia Online." },
   { id: "financas", rotulo: "Finanças", Icone: Landmark, breve: true, descricao: "Controle financeiro da igreja." },
+];
+const CRIACAO: ItemNav[] = [
+  { id: "agentes", rotulo: "Agentes de IA", Icone: Sparkles, breve: true, descricao: "Gratia Ars: artes no padrão visual da igreja." },
 ];
 const SISTEMA: ItemNav[] = [
   { id: "alteracoes", rotulo: "Controle de alterações", Icone: History, descricao: "Publicações, restauração e registro de atividades." },
@@ -140,11 +144,12 @@ function Painel() {
   }, [enviarPrevia]);
 
   const def = SECOES.find((s) => s.id === secao);
-  const itemAtual: ItemNav | undefined = def ?? MODULOS.find((m) => m.id === secao) ?? SISTEMA.find((m) => m.id === secao);
+  const itemAtual: ItemNav | undefined = def ?? [...MODULOS, ...CRIACAO, ...SISTEMA].find((m) => m.id === secao);
+  const grupoAtual = def ? "Conteúdo do site" : MODULOS.some((m) => m.id === secao) ? "Igreja" : CRIACAO.some((m) => m.id === secao) ? "Criação" : "Sistema";
   const caminhoPrevia = def?.previa ?? "/";
   const [base, ancora] = caminhoPrevia.split("#");
   const srcPrevia = `${base}?previa=1${ancora ? `#${ancora}` : ""}`;
-  const ehModulo = MODULOS.some((m) => m.id === secao);
+  const ehModulo = [...MODULOS, ...CRIACAO].some((m) => m.id === secao);
   const mostrarPrevia = !!def && previaVisivel === "sim";
 
   const fazerPublicacao = async () => {
@@ -173,7 +178,7 @@ function Painel() {
   const menuRecolhido = recolhida === "sim";
 
   return (
-    <div className={cn("painel flex h-screen overflow-hidden bg-p-fundo text-p-texto print:block print:h-auto", tema === "escuro" && "tema-escuro")} style={{ fontFamily: "var(--font-texto)" }}>
+    <div className={cn("painel ef flex h-screen overflow-hidden bg-p-fundo text-p-texto print:block print:h-auto", tema === "escuro" && "tema-escuro")} style={{ fontFamily: "var(--font-texto)" }}>
       {/* Menu lateral (computador) */}
       <Lateral
         className="hidden lg:flex"
@@ -214,13 +219,13 @@ function Painel() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Barra superior */}
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-p-borda bg-p-superficie px-3 sm:px-5 print:hidden">
-          <button className="rounded-md p-2 text-p-texto-2 hover:bg-p-hover lg:hidden" onClick={() => setGaveta(true)} aria-label="Abrir menu"><Menu size={19} /></button>
-          {itemAtual && <itemAtual.Icone size={17} className="hidden shrink-0 text-p-suave sm:block" />}
-          <div className="min-w-0">
-            <h1 className="truncate text-[15px] font-semibold leading-tight">{itemAtual?.rotulo}</h1>
-            {itemAtual?.descricao && <p className="hidden truncate text-[12px] text-p-suave md:block">{itemAtual.descricao}</p>}
-          </div>
+        <header className="ef-vidro relative z-20 flex h-[60px] shrink-0 items-center gap-3 px-3 sm:px-6 print:hidden">
+          <button className="p-2 text-p-texto-2 hover:bg-p-hover lg:hidden" onClick={() => setGaveta(true)} aria-label="Abrir menu"><Menu size={19} /></button>
+          <nav aria-label="Você está em" className="flex min-w-0 items-center gap-2 text-[13px]">
+            <span className="ef-sobre !text-[10px] hidden sm:inline-flex">{grupoAtual}</span>
+            <span className="hidden text-p-borda-forte sm:inline">/</span>
+            <h1 className="truncate font-bold text-p-texto">{itemAtual?.rotulo}</h1>
+          </nav>
 
           <div className="ml-auto flex items-center gap-1.5">
             {!ehModulo && pode(papel, "site") && (
@@ -229,18 +234,18 @@ function Painel() {
                 {def && (
                   <button
                     onClick={() => (window.innerWidth >= 1280 ? setPreviaVisivel(mostrarPrevia ? "nao" : "sim") : setPreviaCheia(true))}
-                    className="hidden h-8 items-center gap-1.5 rounded-md border border-p-borda px-2.5 text-[13px] font-medium text-p-texto-2 hover:bg-p-hover sm:inline-flex"
+                    className="ef-btn ef-btn-sec !hidden !h-9 !px-3 sm:!inline-flex"
                     title="Mostrar ou esconder a prévia"
                   >
                     {mostrarPrevia ? <EyeOff size={14} /> : <Eye size={14} />} Prévia
                   </button>
                 )}
                 {pendentes && (
-                  <button onClick={descartar} className="hidden h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium text-p-texto-2 hover:bg-p-hover md:inline-flex" title="Descartar alterações não publicadas">
+                  <button onClick={descartar} className="ef-btn ef-btn-fantasma !hidden !h-9 md:!inline-flex" title="Descartar alterações não publicadas">
                     <Undo2 size={14} /> Descartar
                   </button>
                 )}
-                <button disabled={!pendentes} onClick={() => setDialogo(true)} className="inline-flex h-8 items-center gap-1.5 rounded-md bg-destaque px-3 text-[13px] font-semibold text-white hover:bg-destaque-escuro disabled:bg-p-hover disabled:text-p-suave">
+                <button disabled={!pendentes} onClick={() => setDialogo(true)} className="ef-btn ef-btn-pri !h-9 !px-4" title={pendentes ? "Colocar as alterações no ar" : "Nada para publicar"}>
                   <Upload size={14} /> Publicar
                 </button>
               </>
@@ -262,15 +267,21 @@ function Painel() {
         {/* Conteúdo (só depois que a pessoa cria a própria senha) */}
         {!dados.sessao.trocarSenha && <div className="flex min-h-0 flex-1">
           {ehModulo ? (
-            <main className="relative min-w-0 flex-1 overflow-y-auto">
+            <main className="ef-mesa relative min-w-0 flex-1 overflow-y-auto">
+              {secao === "agentes" && liberado("agentes") && <ModuloAgentes />}
               {secao === "boletim" && liberado("boletim") && <ModuloBoletim />}
               {secao === "deliberacao" && liberado("deliberacao") && <Contorno><ModuloDeliberacao /></Contorno>}
               {secao === "financas" && liberado("financas") && <Contorno><ModuloFinancas /></Contorno>}
             </main>
           ) : (
             <>
-              <main className={cn("min-w-0 overflow-y-auto", mostrarPrevia ? "flex-1 xl:w-[540px] xl:flex-none 2xl:w-[600px]" : "flex-1")}>
-                <div className={cn("grid grid-cols-[minmax(0,1fr)] gap-4 p-4 sm:p-5", !mostrarPrevia && "mx-auto max-w-3xl sm:p-6")}>
+              <main className={cn("ef-mesa @container min-w-0 overflow-y-auto", mostrarPrevia ? "flex-1 xl:w-[560px] xl:flex-none 2xl:w-[620px]" : "flex-1")}>
+                <div className={cn("grid grid-cols-[minmax(0,1fr)] gap-5 p-4 sm:p-6", !mostrarPrevia && "mx-auto max-w-3xl sm:p-8")}>
+                  <header className="px-1 pb-1 pt-1">
+                    <p className="ef-sobre">{grupoAtual}</p>
+                    <h2 className="ef-titulo mt-2.5">{itemAtual?.rotulo}</h2>
+                    {itemAtual?.descricao && <p className="ef-sub mt-1">{itemAtual.descricao}{def ? " As mudanças aparecem na prévia na hora e só vão para o site quando você clicar em Publicar." : ""}</p>}
+                  </header>
                   {def && liberado(def.id) && <def.Editor c={c} mudar={mudar} />}
                   {secao === "alteracoes" && liberado("alteracoes") && <PainelVersoes podeRestaurar={pode(papel, "site")} aoRestaurar={(v) => { setC(v); setSecao("inicio"); }} />}
                   {secao === "usuarios" && liberado("usuarios") && <PainelUsuarios meuUsuario={dados.sessao.usuario} />}
@@ -280,7 +291,7 @@ function Painel() {
                 </div>
               </main>
               {mostrarPrevia && (
-                <section className="hidden min-w-0 flex-1 flex-col border-l border-p-borda bg-p-sutil xl:flex">
+                <section className="ef-palco hidden min-w-0 flex-1 flex-col xl:flex">
                   <BarraPrevia caminho={base ?? "/"} dispositivo={dispositivo} setDispositivo={setDispositivo} aoRecarregar={() => setChavePrevia((k) => k + 1)} aoAmpliar={() => setPreviaCheia(true)} />
                   <Previa key={`${srcPrevia}-${chavePrevia}-${dispositivo}`} ref={iframe} src={srcPrevia} dispositivo={dispositivo} />
                 </section>
@@ -292,7 +303,7 @@ function Painel() {
 
       {/* Prévia em tela cheia */}
       {previaCheia && def && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-p-sutil">
+        <div className="ef-palco fixed inset-0 z-50 flex flex-col">
           <BarraPrevia caminho={base ?? "/"} dispositivo={dispositivo} setDispositivo={setDispositivo} aoRecarregar={() => setChavePrevia((k) => k + 1)} aoFechar={() => setPreviaCheia(false)} />
           <Previa key={`cheia-${srcPrevia}-${chavePrevia}-${dispositivo}`} src={srcPrevia} dispositivo={dispositivo} />
         </div>
@@ -303,22 +314,23 @@ function Painel() {
       {dados.sessao.trocarSenha && <CriarSenha nome={dados.sessao.nome} aoConcluir={() => router.invalidate()} />}
 
       {dialogo && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={() => !publicando && setDialogo(false)}>
-          <div className="w-full max-w-md rounded-xl border border-p-borda bg-p-superficie p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-semibold">Publicar alterações</h2>
-            <p className="mt-1 text-[13.5px] text-p-suave">O site passa a mostrar o que está na prévia. A versão anterior fica guardada no controle de alterações.</p>
+        <div className="ef-janela-fundo fixed inset-0 z-50 grid place-items-center p-4" onClick={() => !publicando && setDialogo(false)}>
+          <div className="ef-janela w-full max-w-md p-7" onClick={(e) => e.stopPropagation()}>
+            <p className="ef-sobre">Site</p>
+            <h2 className="mt-3 text-[21px] font-bold tracking-[-0.015em]">Publicar alterações</h2>
+            <p className="mt-1.5 text-[14px] leading-relaxed text-p-texto-2">O site passa a mostrar o que está na prévia. A versão anterior fica guardada no controle de alterações.</p>
             <ul className="mt-4 flex flex-wrap gap-1.5">
               {SECOES.filter((s) => alteradas.has(s.id)).map((s) => (
-                <li key={s.id} className="inline-flex items-center gap-1.5 rounded-md bg-p-hover px-2 py-1 text-[12.5px] text-p-texto-2"><s.Icone size={13} /> {s.rotulo}</li>
+                <li key={s.id} className="inline-flex items-center gap-1.5 border border-p-borda bg-p-sutil px-2 py-1 text-[12.5px] font-semibold text-p-texto-2"><s.Icone size={13} /> {s.rotulo}</li>
               ))}
             </ul>
             <label className="mt-5 grid gap-1.5 text-[12.5px] font-medium text-p-texto-2">
               Descrição da alteração (opcional)
-              <input autoFocus value={resumo} onChange={(e) => setResumo(e.target.value)} placeholder="Ex.: Horários de dezembro" className="h-9 rounded-md border border-p-borda-forte bg-p-superficie px-3 text-[14px] font-normal text-p-texto outline-none focus:border-p-acento focus:ring-3 focus:ring-p-acento/20" onKeyDown={(e) => e.key === "Enter" && fazerPublicacao()} />
+              <input autoFocus value={resumo} onChange={(e) => setResumo(e.target.value)} placeholder="Ex.: Horários de dezembro" className="ef-campo !text-[14.5px] font-normal" onKeyDown={(e) => e.key === "Enter" && fazerPublicacao()} />
             </label>
             <div className="mt-6 flex justify-end gap-2">
-              <button disabled={publicando} onClick={() => setDialogo(false)} className="h-9 rounded-md px-4 text-[13.5px] font-medium text-p-texto-2 hover:bg-p-hover">Cancelar</button>
-              <button disabled={publicando} onClick={fazerPublicacao} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-destaque px-4 text-[13.5px] font-semibold text-white hover:bg-destaque-escuro">
+              <button disabled={publicando} onClick={() => setDialogo(false)} className="ef-btn ef-btn-fantasma">Cancelar</button>
+              <button disabled={publicando} onClick={fazerPublicacao} className="ef-btn ef-btn-pri">
                 {publicando ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />} Publicar agora
               </button>
             </div>
@@ -352,6 +364,7 @@ function Lateral({
 }) {
   const grupos: { titulo: string; itens: ItemNav[] }[] = [
     { titulo: "Igreja", itens: MODULOS },
+    { titulo: "Criação", itens: CRIACAO },
     { titulo: "Conteúdo do site", itens: SECOES },
     { titulo: "Sistema", itens: SISTEMA },
   ];
@@ -497,6 +510,7 @@ function PaletaBusca({ aoFechar, ir, alteradas, liberado }: { aoFechar: () => vo
   const [sel, setSel] = useState(0);
   const todos: (ItemNav & { grupo: string })[] = [
     ...MODULOS.map((m) => ({ ...m, grupo: "Igreja" })),
+    ...CRIACAO.map((m) => ({ ...m, grupo: "Criação" })),
     ...SECOES.map((s) => ({ ...s, grupo: "Conteúdo do site" })),
     ...SISTEMA.map((s) => ({ ...s, grupo: "Sistema" })),
   ];
@@ -560,23 +574,23 @@ function BarraPrevia({ caminho, dispositivo, setDispositivo, aoRecarregar, aoAmp
     { id: "celular", Icone: Smartphone, rotulo: "Celular" },
   ];
   return (
-    <div className="flex h-11 shrink-0 items-center gap-2 border-b border-p-borda bg-p-superficie px-3">
-      <span className="flex min-w-0 flex-1 items-center gap-2 text-[12.5px] text-p-suave">
-        <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
-        <span className="font-medium text-p-texto-2">Prévia ao vivo</span>
-        <span className="truncate rounded bg-p-hover px-1.5 py-0.5 font-mono text-[11.5px]">{caminho}</span>
+    <div className="ef-palco-barra flex h-12 shrink-0 items-center gap-2 px-4 text-white">
+      <span className="flex min-w-0 flex-1 items-center gap-2.5 text-[12.5px]">
+        <span className="ef-ponto shrink-0" />
+        <span className="ef-palco-selo">Prévia ao vivo</span>
+        <span className="truncate border border-white/15 bg-white/[0.06] px-1.5 py-0.5 font-mono text-[11.5px] text-white/70">{caminho}</span>
       </span>
-      <div className="flex rounded-md bg-p-hover p-0.5">
+      <div className="flex border border-white/15 bg-white/[0.06] p-0.5">
         {opcoes.map((o) => (
-          <button key={o.id} onClick={() => setDispositivo(o.id)} title={o.rotulo} aria-label={o.rotulo} className={cn("grid h-7 w-8 place-items-center rounded text-p-suave", dispositivo === o.id && "bg-p-superficie text-p-texto shadow-sm")}>
+          <button key={o.id} onClick={() => setDispositivo(o.id)} title={o.rotulo} aria-label={o.rotulo} className={cn("grid h-7 w-8 place-items-center text-white/60 transition hover:text-white", dispositivo === o.id && "bg-white text-[#002a47] hover:text-[#002a47]")}>
             <o.Icone size={14} />
           </button>
         ))}
       </div>
-      <button onClick={aoRecarregar} title="Recarregar" className="grid size-8 place-items-center rounded-md text-p-suave hover:bg-p-hover hover:text-p-texto"><RotateCw size={14} /></button>
-      <a href={caminho} target="_blank" rel="noopener" title="Abrir a página publicada em nova aba" className="grid size-8 place-items-center rounded-md text-p-suave hover:bg-p-hover hover:text-p-texto"><ExternalLink size={14} /></a>
-      {aoAmpliar && <button onClick={aoAmpliar} title="Tela cheia" className="grid size-8 place-items-center rounded-md text-p-suave hover:bg-p-hover hover:text-p-texto"><Monitor size={14} /></button>}
-      {aoFechar && <button onClick={aoFechar} title="Fechar" className="grid size-8 place-items-center rounded-md text-p-suave hover:bg-p-hover hover:text-p-texto"><X size={16} /></button>}
+      <button onClick={aoRecarregar} title="Recarregar" className="grid size-8 place-items-center text-white/60 transition hover:bg-white/10 hover:text-white"><RotateCw size={14} /></button>
+      <a href={caminho} target="_blank" rel="noopener" title="Abrir a página publicada em nova aba" className="grid size-8 place-items-center text-white/60 transition hover:bg-white/10 hover:text-white"><ExternalLink size={14} /></a>
+      {aoAmpliar && <button onClick={aoAmpliar} title="Tela cheia" className="grid size-8 place-items-center text-white/60 transition hover:bg-white/10 hover:text-white"><Monitor size={14} /></button>}
+      {aoFechar && <button onClick={aoFechar} title="Fechar" className="grid size-8 place-items-center text-white/60 transition hover:bg-white/10 hover:text-white"><X size={16} /></button>}
     </div>
   );
 }
@@ -608,7 +622,7 @@ const Previa = ({ src, dispositivo, ref }: { src: string; dispositivo: Dispositi
   return (
     <div ref={caixa} className="relative min-h-0 flex-1 overflow-hidden">
       <div
-        className={cn("absolute left-1/2 top-4 origin-top overflow-hidden bg-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_8px_24px_-8px_rgba(0,0,0,0.25)]", dispositivo === "computador" ? "rounded-md" : "rounded-[18px]")}
+        className={cn("absolute left-1/2 top-4 origin-top overflow-hidden bg-white shadow-[0_1px_1px_rgba(0,0,0,0.25),0_18px_30px_-18px_rgba(0,0,0,0.6),0_60px_90px_-50px_rgba(0,0,0,0.85)]", dispositivo === "computador" ? "" : "!rounded-[22px] ring-[6px] ring-[#0b1620]")}
         style={{ width: largura, height: altura, transform: `translateX(-50%) scale(${escala})` }}
       >
         <iframe ref={ref} data-previa src={src} title="Prévia do site" className="size-full border-0" />

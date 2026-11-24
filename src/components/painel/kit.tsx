@@ -10,25 +10,26 @@ import { cn } from "@/lib/utils";
 
 export function Secao({ titulo, descricao, children, acao }: { titulo: string; descricao?: string; children: ReactNode; acao?: ReactNode }) {
   return (
-    <section className="rounded-lg border border-p-borda bg-p-superficie">
-      <div className="flex items-start justify-between gap-4 border-b border-p-borda px-5 py-3.5">
+    <section className="ef-peca ef-peca-filete">
+      <div className="flex items-start justify-between gap-4 border-b border-p-borda px-5 pb-4 pt-5 sm:px-6">
         <div>
-          <h3 className="text-[14px] font-semibold text-p-texto">{titulo}</h3>
-          {descricao && <p className="mt-0.5 text-[12.5px] leading-snug text-p-suave">{descricao}</p>}
+          <h3 className="text-[16px] font-bold leading-tight tracking-[-0.01em] text-p-texto">{titulo}</h3>
+          {descricao && <p className="mt-1 text-[13.5px] leading-relaxed text-p-suave">{descricao}</p>}
         </div>
         {acao}
       </div>
-      <div className="grid gap-4 p-5">{children}</div>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 px-5 py-5 sm:px-6 sm:py-6">{children}</div>
     </section>
   );
 }
 
 export function Grade({ children, cols = 2 }: { children: ReactNode; cols?: 2 | 3 }) {
-  return <div className={cn("grid gap-4", cols === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3")}>{children}</div>;
+  return <div className={cn("grid gap-5", cols === 2 ? "@xl:grid-cols-2 sm:grid-cols-2" : "sm:grid-cols-3")}>{children}</div>;
 }
 
-const estiloCampo =
-  "h-9 w-full rounded-md border border-p-borda-forte bg-p-superficie px-3 text-[13.5px] text-p-texto outline-none transition placeholder:text-p-suave focus:border-p-acento focus:ring-3 focus:ring-p-acento/20";
+const estiloCampo = "ef-campo !h-11 !text-[15px]";
+const estiloRotulo = "ef-rotulo !text-[13.5px]";
+const estiloDica = "ef-dica !mt-0 !text-[12.5px]";
 
 export function Campo({
   rotulo, valor, onChange, dica, multilinha, linhas = 4, placeholder, tipo = "text",
@@ -37,14 +38,14 @@ export function Campo({
 }) {
   const id = useId();
   return (
-    <div className="grid gap-1.5">
-      <label htmlFor={id} className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</label>
+    <div className="grid min-w-0 gap-2">
+      <label htmlFor={id} className={estiloRotulo}>{rotulo}</label>
       {multilinha ? (
-        <textarea id={id} rows={linhas} value={valor} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={cn(estiloCampo, "h-auto resize-y py-2 leading-relaxed")} />
+        <textarea id={id} rows={linhas} value={valor} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={cn(estiloCampo, "!h-auto resize-y py-2.5 leading-relaxed")} />
       ) : (
         <input id={id} type={tipo} value={valor} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className={estiloCampo} />
       )}
-      {dica && <p className="text-[12px] text-p-suave">{dica}</p>}
+      {dica && <p className={estiloDica}>{dica}</p>}
     </div>
   );
 }
@@ -52,8 +53,8 @@ export function Campo({
 export function Selecao<T extends string>({ rotulo, valor, opcoes, onChange }: { rotulo: string; valor: T; opcoes: { valor: T; rotulo: string }[]; onChange: (v: T) => void }) {
   const id = useId();
   return (
-    <div className="grid gap-1.5">
-      <label htmlFor={id} className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</label>
+    <div className="grid min-w-0 gap-2">
+      <label htmlFor={id} className={estiloRotulo}>{rotulo}</label>
       <select id={id} value={valor} onChange={(e) => onChange(e.target.value as T)} className={estiloCampo}>
         {opcoes.map((o) => <option key={o.valor} value={o.valor}>{o.rotulo}</option>)}
       </select>
@@ -63,19 +64,19 @@ export function Selecao<T extends string>({ rotulo, valor, opcoes, onChange }: {
 
 export function Interruptor({ rotulo, valor, onChange, dica }: { rotulo: string; valor: boolean; onChange: (v: boolean) => void; dica?: string }) {
   return (
-    <label className="flex cursor-pointer items-start justify-between gap-4 rounded-md border border-p-borda px-3.5 py-2.5 hover:bg-p-sutil">
+    <label className="flex cursor-pointer items-start justify-between gap-4 border border-p-borda bg-p-superficie px-4 py-3.5 transition hover:border-p-borda-forte">
       <span>
-        <span className="block text-[13.5px] font-medium text-p-texto">{rotulo}</span>
-        {dica && <span className="block text-[12px] text-p-suave">{dica}</span>}
+        <span className="block text-[14px] font-bold text-p-texto">{rotulo}</span>
+        {dica && <span className="mt-0.5 block text-[12.5px] leading-relaxed text-p-suave">{dica}</span>}
       </span>
       <button
         type="button"
         role="switch"
         aria-checked={valor}
         onClick={() => onChange(!valor)}
-        className={cn("relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors", valor ? "bg-p-acento" : "bg-p-borda-forte")}
+        className={cn("relative mt-0.5 h-6 w-11 shrink-0 rounded-full shadow-inner transition-colors", valor ? "bg-p-acento" : "bg-p-borda-forte")}
       >
-        <span className={cn("absolute top-0.5 size-4 rounded-full bg-white shadow transition-all", valor ? "left-[18px]" : "left-0.5")} />
+        <span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow-md transition-all", valor ? "left-[22px]" : "left-0.5")} />
       </button>
     </label>
   );
@@ -83,13 +84,13 @@ export function Interruptor({ rotulo, valor, onChange, dica }: { rotulo: string;
 
 export function CampoCor({ rotulo, valor, onChange, dica }: { rotulo: string; valor: string; onChange: (v: string) => void; dica?: string }) {
   return (
-    <div className="grid gap-1.5">
-      <span className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</span>
+    <div className="grid min-w-0 gap-2">
+      <span className={estiloRotulo}>{rotulo}</span>
       <div className="flex items-center gap-2">
-        <input type="color" value={valor} onChange={(e) => onChange(e.target.value)} className="h-9 w-11 cursor-pointer rounded-md border border-p-borda-forte bg-p-superficie p-0.5" />
+        <input type="color" value={valor} onChange={(e) => onChange(e.target.value)} className="h-11 w-12 shrink-0 cursor-pointer border border-p-borda-forte bg-p-superficie p-1" />
         <input value={valor} onChange={(e) => onChange(e.target.value)} className={cn(estiloCampo, "font-mono uppercase")} />
       </div>
-      {dica && <p className="text-[12px] text-p-suave">{dica}</p>}
+      {dica && <p className={estiloDica}>{dica}</p>}
     </div>
   );
 }
@@ -136,32 +137,32 @@ export function CampoImagem({ rotulo, valor, onChange, dica, proporcao = "aspect
   };
 
   return (
-    <div className="grid gap-1.5">
-      <span className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</span>
+    <div className="grid min-w-0 gap-2">
+      <span className={estiloRotulo}>{rotulo}</span>
       <div
-        className={cn("group relative overflow-hidden rounded-md border border-dashed border-p-borda-forte bg-p-sutil", proporcao, valor && "border-solid border-p-borda")}
+        className={cn("group relative overflow-hidden border border-dashed border-p-borda-forte bg-p-sutil transition hover:border-p-acento", proporcao, valor && "border-solid border-p-borda shadow-sm")}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); escolher(e.dataTransfer.files[0]); }}
       >
         {valor ? (
           <>
             <img src={valor} alt="" className="size-full object-cover" />
-            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-slate-900/50 opacity-0 transition-opacity group-hover:opacity-100">
-              <button type="button" onClick={() => entrada.current?.click()} className="rounded-md bg-white px-3 py-1.5 text-[12.5px] font-medium text-slate-900">Trocar</button>
-              <button type="button" onClick={() => onChange("")} className="rounded-md bg-white px-3 py-1.5 text-[12.5px] font-medium text-red-600 dark:text-red-400">Remover</button>
+            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-[#001d33]/55 opacity-0 backdrop-blur-[2px] transition-opacity group-hover:opacity-100">
+              <button type="button" onClick={() => entrada.current?.click()} className="ef-btn ef-btn-branco !h-9 !px-3.5">Trocar</button>
+              <button type="button" onClick={() => onChange("")} className="ef-btn ef-btn-vidro !h-9 !px-3.5">Remover</button>
             </div>
           </>
         ) : (
           <button type="button" onClick={() => entrada.current?.click()} className="flex size-full flex-col items-center justify-center gap-2 p-4 text-p-suave hover:text-p-acento">
             {enviando ? <Loader2 className="animate-spin" /> : <ImagePlus />}
-            <span className="text-[12.5px] font-medium">{enviando ? "Enviando…" : "Clique ou arraste uma imagem"}</span>
+            <span className="text-[13.5px] font-semibold">{enviando ? "Enviando…" : "Clique aqui ou arraste uma foto"}</span>
           </button>
         )}
         {enviando && valor && <div className="absolute inset-0 grid place-items-center bg-p-superficie/70"><Loader2 className="animate-spin text-p-acento" /></div>}
       </div>
       <input ref={entrada} type="file" accept="image/*" hidden onChange={(e) => escolher(e.target.files?.[0])} />
       <div className="flex items-center justify-between gap-2">
-        {dica ? <p className="text-[12px] text-p-suave">{dica}</p> : <span />}
+        {dica ? <p className={estiloDica}>{dica}</p> : <span />}
         <button type="button" onClick={() => setLink((v) => !v)} className="shrink-0 text-[12px] font-semibold text-p-acento hover:underline">
           {link ? "Fechar" : "Usar endereço (URL)"}
         </button>
@@ -174,26 +175,26 @@ export function CampoImagem({ rotulo, valor, onChange, dica, proporcao = "aspect
 /** Lista de textos curtos (horários, valores…). */
 export function ListaTextos({ rotulo, valores, onChange, placeholder, dica }: { rotulo: string; valores: string[]; onChange: (v: string[]) => void; placeholder?: string; dica?: string }) {
   return (
-    <div className="grid gap-1.5">
-      <span className="text-[12.5px] font-medium text-p-texto-2">{rotulo}</span>
+    <div className="grid min-w-0 gap-2">
+      <span className={estiloRotulo}>{rotulo}</span>
       <div className="flex flex-wrap gap-2">
         {valores.map((v, i) => (
-          <span key={i} className="flex h-9 items-center rounded-md border border-p-borda-forte bg-p-superficie pl-3">
+          <span key={i} className="flex h-11 items-center border border-p-borda-forte bg-p-superficie pl-3 shadow-[inset_0_1px_2px_rgba(0,42,71,0.05)]">
             <input
               value={v}
               placeholder={placeholder}
               onChange={(e) => onChange(valores.map((x, j) => (j === i ? e.target.value : x)))}
-              className="w-28 bg-transparent text-[13.5px] text-p-texto outline-none"
+              className="w-28 bg-transparent text-[15px] text-p-texto outline-none"
               style={{ width: `${Math.max(6, v.length + 2)}ch` }}
             />
             <button type="button" onClick={() => onChange(valores.filter((_, j) => j !== i))} className="px-2 text-p-suave hover:text-red-600 dark:text-red-400" aria-label="Remover"><X size={14} /></button>
           </span>
         ))}
-        <button type="button" onClick={() => onChange([...valores, ""])} className="inline-flex h-9 items-center gap-1 rounded-md border border-dashed border-p-borda-forte px-3 text-[13px] font-medium text-p-acento hover:border-p-acento">
-          <Plus size={14} /> Adicionar
+        <button type="button" onClick={() => onChange([...valores, ""])} className="ef-adicionar !h-11 !w-auto px-4">
+          <Plus size={15} /> Adicionar
         </button>
       </div>
-      {dica && <p className="text-[12px] text-p-suave">{dica}</p>}
+      {dica && <p className={estiloDica}>{dica}</p>}
     </div>
   );
 }
@@ -227,19 +228,20 @@ export function ListaEditavel<T extends { id: string }>({
   };
 
   return (
-    <div className="grid gap-2">
-      {itens.length === 0 && <p className="rounded-md bg-p-sutil px-4 py-6 text-center text-[13px] text-p-suave">{vazio}</p>}
+    <div className="grid min-w-0 gap-2">
+      {itens.length === 0 && <p className="border border-dashed border-p-borda-forte px-4 py-7 text-center text-[14px] text-p-suave">{vazio}</p>}
       {itens.map((item, i) => {
         const ab = aberto === item.id;
         return (
-          <div key={item.id} className={cn("rounded-md border bg-p-superficie", ab ? "border-p-acento/50 ring-3 ring-p-acento/10" : "border-p-borda")}>
+          <div key={item.id} className={cn("border bg-p-superficie transition", ab ? "border-p-acento shadow-[0_14px_30px_-20px_rgba(0,42,71,0.5)]" : "border-p-borda hover:border-p-borda-forte")} style={ab ? { borderTopWidth: 3 } : undefined}>
             <div className="flex items-center gap-0.5 pl-3 pr-1.5">
-              <button type="button" onClick={() => setAberto(ab ? null : item.id)} className="flex min-w-0 flex-1 items-center gap-2.5 py-2.5 text-left">
-                <ChevronDown size={16} className={cn("shrink-0 text-p-suave transition-transform", ab && "rotate-180")} />
-                <span className="min-w-0">
-                  <span className="block truncate text-[13.5px] font-medium text-p-texto">{titulo(item) || "(sem título)"}</span>
-                  {subtitulo && subtitulo(item) && <span className="block truncate text-[12px] text-p-suave">{subtitulo(item)}</span>}
+              <button type="button" onClick={() => setAberto(ab ? null : item.id)} className="flex min-w-0 flex-1 items-center gap-3 py-3 text-left">
+                <span className="ef-num w-6 shrink-0 text-[12px] font-bold text-p-acento">{String(i + 1).padStart(2, "0")}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[14.5px] font-semibold text-p-texto">{titulo(item) || "(sem título)"}</span>
+                  {subtitulo && subtitulo(item) && <span className="block truncate text-[12.5px] text-p-suave">{subtitulo(item)}</span>}
                 </span>
+                <span className={cn("hidden shrink-0 items-center gap-1 text-[11px] font-bold uppercase tracking-[0.12em] sm:inline-flex", ab ? "text-p-acento" : "text-p-suave")}>{ab ? "Fechar" : "Editar"} <ChevronDown size={14} className={cn("transition-transform", ab && "rotate-180")} /></span>
               </button>
               <BotaoIcone titulo="Subir" onClick={() => mover(i, -1)} desativado={i === 0}><ArrowUp size={15} /></BotaoIcone>
               <BotaoIcone titulo="Descer" onClick={() => mover(i, 1)} desativado={i === itens.length - 1}><ArrowDown size={15} /></BotaoIcone>
@@ -254,16 +256,16 @@ export function ListaEditavel<T extends { id: string }>({
                 if (confirm(`Excluir “${titulo(item) || "item"}”?`)) onChange(itens.filter((_, j) => j !== i));
               }}><Trash2 size={15} /></BotaoIcone>
             </div>
-            {ab && <div className="grid gap-4 border-t border-p-borda p-4">{render(item, mudarItem(i))}</div>}
+            {ab && <div className="grid grid-cols-[minmax(0,1fr)] gap-5 border-t border-p-borda bg-[color-mix(in_srgb,var(--p-sutil)_60%,transparent)] p-4 sm:p-5">{render(item, mudarItem(i))}</div>}
           </div>
         );
       })}
       <button
         type="button"
         onClick={() => { const n = novo(); onChange([...itens, n]); setAberto(n.id); }}
-        className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-dashed border-p-borda-forte text-[13px] font-medium text-p-acento hover:border-p-acento hover:bg-p-realce"
+        className="ef-adicionar"
       >
-        <Plus size={16} /> {rotuloNovo}
+        <Plus size={17} strokeWidth={2.4} /> {rotuloNovo}
       </button>
     </div>
   );
@@ -277,7 +279,7 @@ function BotaoIcone({ children, titulo, onClick, desativado, perigo }: { childre
       aria-label={titulo}
       disabled={desativado}
       onClick={onClick}
-      className={cn("grid size-7 place-items-center rounded-md text-p-suave hover:bg-p-hover disabled:opacity-30", perigo ? "hover:text-red-600 dark:text-red-400" : "hover:text-p-texto")}
+      className={cn("grid size-8 place-items-center text-p-suave transition hover:bg-p-hover disabled:opacity-30", perigo ? "hover:text-red-600 dark:hover:text-red-400" : "hover:text-p-texto")}
     >
       {children}
     </button>

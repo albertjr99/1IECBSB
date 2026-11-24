@@ -170,7 +170,7 @@ export function PainelUsuarios({ meuUsuario }: { meuUsuario: string }) {
             </div>
           </fieldset>
           <div className="flex gap-2">
-            <button disabled={salvando} className="btn-primario !h-9 !px-3.5 !text-[13.5px] !py-2.5">{salvando ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />} {form.editando ? "Salvar alterações" : "Criar acesso"}</button>
+            <button disabled={salvando} className="ef-btn ef-btn-pri">{salvando ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />} {form.editando ? "Salvar alterações" : "Criar acesso"}</button>
             {form.editando && <button type="button" onClick={() => setForm({ nome: "", usuario: "", papel: "comunicacao", editando: false })} className="h-9 rounded-md px-3.5 text-[13.5px] font-medium text-p-texto-2 hover:bg-p-hover">Cancelar</button>}
           </div>
         </form>
@@ -201,8 +201,8 @@ function JanelaSenha({ nome, usuario, senha, aoFechar }: { nome: string; usuario
           <div className="flex items-center justify-between gap-3"><dt className="text-p-suave">Senha provisória</dt><dd className="font-mono text-[15px] font-bold tracking-wide text-p-texto">{senha}</dd></div>
         </dl>
         <div className="mt-5 grid gap-2 sm:grid-cols-2">
-          <button onClick={() => copiar(mensagem, "Mensagem copiada.")} className="btn-primario !h-9 !px-3.5 !text-[13px] !py-2"><Copy size={15} /> Copiar mensagem</button>
-          <button onClick={() => copiar(senha, "Senha copiada.")} className="btn-contorno !h-9 !px-3.5 !text-[13px] !py-2">Copiar só a senha</button>
+          <button onClick={() => copiar(mensagem, "Mensagem copiada.")} className="ef-btn ef-btn-pri"><Copy size={15} /> Copiar mensagem</button>
+          <button onClick={() => copiar(senha, "Senha copiada.")} className="ef-btn ef-btn-sec">Copiar só a senha</button>
         </div>
       </div>
     </div>
@@ -235,7 +235,7 @@ export function JanelaMinhaSenha({ aoFechar }: { aoFechar: () => void }) {
         <Campo rotulo="Senha atual" tipo="password" valor={atual} onChange={setAtual} />
         <Campo rotulo="Nova senha" tipo="password" valor={nova} onChange={setNova} dica="Mínimo de 8 caracteres." />
         <Campo rotulo="Repita a nova senha" tipo="password" valor={confirma} onChange={setConfirma} />
-        <button disabled={enviando} className="btn-primario !h-10 !text-[13.5px]">{enviando && <Loader2 size={15} className="animate-spin" />} Alterar senha</button>
+        <button disabled={enviando} className="ef-btn ef-btn-pri">{enviando && <Loader2 size={15} className="animate-spin" />} Alterar senha</button>
       </form>
     </div>
   );
