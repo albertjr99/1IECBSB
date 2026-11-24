@@ -191,14 +191,21 @@ export function ModuloDeliberacao() {
 
 export function ModuloFinancas() {
   return (
-    <div className="grid gap-10">
-      <header className="max-w-[68ch]">
-        <p className="ef-sobre">Igreja</p>
-        <h1 className="ef-titulo mt-2.5">Finanças</h1>
-        <p className="ef-sub mt-1.5">Dízimos e ofertas informados pelos membros no aplicativo. O controle financeiro completo (caixa, despesas e balancete) está em planejamento com a tesouraria.</p>
-      </header>
-      <PainelContribuicoes />
-    </div>
+    <EmBreve
+      titulo="Finanças"
+      texto="O controle financeiro da igreja está sendo preparado com a tesouraria."
+      itens={[
+        "Dízimos e ofertas recebidos pelo Pix do aplicativo, com conferência pela tesouraria",
+        "Entradas e saídas do caixa, por categoria",
+        "Balancete mensal e relatório para a assembleia",
+        "Exportação para planilha e para a contabilidade",
+      ]}
+      passos={[
+        { texto: "Pix da igreja no aplicativo dos membros", feito: true },
+        { texto: "Definir com a tesouraria as categorias de entradas e despesas" },
+        { texto: "Liberar o módulo para a tesouraria" },
+      ]}
+    />
   );
 }
 

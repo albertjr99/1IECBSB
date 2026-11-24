@@ -40,7 +40,7 @@ const MODULOS: ItemNav[] = [
   { id: "boletim", rotulo: "Boletim", Icone: Newspaper, descricao: "Boletim dominical no modelo da igreja." },
   { id: "membros", rotulo: "Membros do app", Icone: Smartphone, descricao: "Cadastro, aprovação e acesso ao aplicativo dos membros." },
   { id: "deliberacao", rotulo: "Deliberação", Icone: Gavel, descricao: "Votação Online e Assembleia Online." },
-  { id: "financas", rotulo: "Finanças", Icone: Landmark, descricao: "Dízimos e ofertas pelo aplicativo." },
+  { id: "financas", rotulo: "Finanças", Icone: Landmark, breve: true, descricao: "Controle financeiro da igreja (em breve)." },
 ];
 const CRIACAO: ItemNav[] = [
   { id: "agentes", rotulo: "Agentes de IA", Icone: PenTool, breve: true, descricao: "Gratia Ars: artes no padrão visual da igreja." },
