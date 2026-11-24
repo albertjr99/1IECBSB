@@ -199,7 +199,7 @@ function PainelLayout({ b, m, encaixar, encaixando, cheio }: { b: Bloco; m: Muda
               </button>
             ))}
           </div>
-          {colunas === 2 && (
+          {colunas === 2 && b.tipo === "artigo" && (
             <div className="grid grid-cols-4 gap-1.5">
               {DIVISOES.map((d) => (
                 <button key={d.v} type="button" onClick={() => m((x) => { if (x.tipo === "artigo" || x.tipo === "avisos") x.proporcao = d.v; })} className={cn("grid gap-1 rounded-md border px-2 py-1.5 text-[11px] font-semibold", Math.abs(proporcao - d.v) < 0.01 ? "border-p-acento bg-p-realce text-p-acento" : "border-p-borda text-p-texto-2 hover:border-p-borda-forte")}>
@@ -347,6 +347,12 @@ function EdAvisos({ b, m }: { b: BlocoAvisos; m: MudarBloco<BlocoAvisos> }) {
               </div>
             </div>
             <Editavel valor={a.texto} modo="paragrafos" como="div" dica="Texto do aviso…" className="escrita escrita-aviso mt-1" aoMudar={(v) => m((x) => { x.itens[i]!.texto = v; }, `x${a.id}`)} />
+            <div className="mt-3 flex items-center gap-1.5 text-[11px] text-p-suave">
+              <span className="mr-1 font-semibold uppercase tracking-wider">Aparência</span>
+              {([["normal", "Normal"], ["destaque", "Destaque"], ["caixa", "Caixa larga"]] as const).map(([v, r]) => (
+                <button key={v} type="button" onClick={() => m((x) => { if (v === "normal") delete x.itens[i]!.estilo; else x.itens[i]!.estilo = v; })} className={cn("rounded-full border px-2.5 py-0.5 font-semibold transition", (a.estilo ?? "normal") === v ? "border-[#00436f] bg-[#00436f] text-white" : "border-[#d9e6ef] text-[#5b7f99] hover:border-[#00436f]")}>{r}</button>
+              ))}
+            </div>
           </div>
         </article>
       ))}

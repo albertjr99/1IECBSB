@@ -32,7 +32,10 @@ export type BlocoArtigo = Base & {
   /** Em duas colunas: fração da largura para a coluna da esquerda (0,5 = iguais). */
   proporcao?: number;
 };
-export type BlocoAvisos = Base & { tipo: "avisos"; colunas?: 1 | 2; proporcao?: number; itens: { id: string; titulo: string; texto: string }[] };
+/** Estilo de um aviso: normal, em destaque (fundo névoa) ou em caixa de largura inteira (ex.: motivos de oração). */
+export type EstiloAviso = "normal" | "destaque" | "caixa";
+export type ItemAviso = { id: string; titulo: string; texto: string; estilo?: EstiloAviso };
+export type BlocoAvisos = Base & { tipo: "avisos"; colunas?: 1 | 2; proporcao?: number; itens: ItemAviso[] };
 export type BlocoEscala = Base & {
   tipo: "escala";
   titulo: string;
@@ -146,7 +149,7 @@ export function blocoNovo(tipo: TipoBloco): Bloco {
 
 const EXPEDIENTE = {
   nome: "Primeira Igreja Evangélica\nCongregacional de Brasília",
-  texto: "SHCS SQS 416 – Plano Piloto\nBrasília/DF - CEP 70298-160\nTel. (61) 3346-7866 / 3245-1739\nCNPJ: 00.371.427/0001-04\ninstagram.com/1iecbsb\nyoutube.com/@iecbsb",
+  texto: "SHCS SQS 416 – Plano Piloto\nBrasília/DF · CEP 70298-160\n(61) 3346-7866 · (61) 3245-1739\nCNPJ 00.371.427/0001-04\n@1iecbsb · youtube.com/@iecbsb",
   pastoresTitulo: "Pastores",
   pastores: "Hilário José Bispo da Graça\nAluízio Lourenço da Silva Filho (Pr. Aux.)",
   diretoriaTitulo: "Diretoria da Igreja",
@@ -173,7 +176,7 @@ export function boletimModelo(): Boletim {
         id: id("pg"),
         blocos: [
           b({
-            tipo: "artigo", largura: "inteira", rotulo: "Pastoral", rotuloLado: "direita", colunas: 1,
+            tipo: "artigo", largura: "inteira", rotulo: "Pastoral", rotuloLado: "esquerda", colunas: 2, proporcao: 0.5,
             titulo: "A questão do coração", autor: "Pr. Hilário José",
             texto: `Coração é a categoria bíblica que designa o homem interior. A Bíblia diz que ele deve ser guardado (Pv 4.23). Eis aí uma das grandes questões da vida: como guardar o coração, a estrutura espiritual pela qual reagimos a tudo o que nos cerca?
 
@@ -189,7 +192,7 @@ Por último, cientes dessa verdade, devemos nos submeter à terapia espiritual q
         id: id("pg"),
         blocos: [
           b({
-            tipo: "artigo", largura: "inteira", rotulo: "Segunda da pastoral", rotuloLado: "esquerda", colunas: 2, proporcao: 0.591, ajuste: 99,
+            tipo: "artigo", largura: "inteira", rotulo: "Segunda da pastoral", rotuloLado: "esquerda", colunas: 2, proporcao: 0.5,
             titulo: "Firmes contra as ciladas do inimigo", autor: "Sem. Rodrigo Morais",
             texto: `A vida cristã não está livre de aflições e tentações; por isso, precisamos permanecer vigilantes contra as ciladas do diabo. Na Epístola aos Efésios, o apóstolo Paulo recomenda que nos revistamos de toda a armadura de Deus, para que possamos resistir no dia mau, tudo vencer e permanecer inabaláveis. Os componentes dessa armadura são conhecidos: o cinturão da verdade, a couraça da justiça, o evangelho da paz, o escudo da fé, o capacete da salvação e a palavra de Deus, que é a espada do Espírito (Ef 6.11-17).
 
@@ -211,17 +214,17 @@ Se a mentira é uma das principais armas do inimigo, o Senhor nos oferece os mei
         id: id("pg"),
         blocos: [
           b({
-            tipo: "avisos", largura: "inteira", colunas: 2, proporcao: 0.339, ajuste: 98,
+            tipo: "avisos", largura: "inteira", colunas: 2,
             itens: [
-              { id: id("av"), titulo: "O congresso jovem", texto: "Agradeçamos a Deus por nossos jovens; pela iniciativa e zelo em realizar mais um congresso. Que sigam assim e prosperem em tudo o que Deus lhes designar." },
+              { id: id("av"), estilo: "destaque", titulo: "IEC de Brasília · 54 anos", texto: "Em dois cultos, agradeceremos a Deus pelo tempo desta igreja: **5 de dezembro (sábado, 19h)** e **6 de dezembro (domingo, 19h)**. Nas duas oportunidades, o mensageiro será o Pr. Eleazar Duarte, diretor do Projeto Zero. No sábado, receberemos o Coral Adorai, da Igreja Presbiteriana de Águas Claras. Outras participações devem ser informadas ao Pr. Hilário José, que está organizando toda a programação." },
+              { id: id("av"), estilo: "destaque", titulo: "Juniores", texto: "Já será no próximo fim de semana, dias **28 e 29 de novembro**, o **1º Congresso dos Juniores IECB**. Vamos agradecer a Deus pela vida dos nossos pequeninos, que estão muito ávidos pela realização desse importante evento. **Participe e traga convidados!**" },
+              { id: id("av"), titulo: "O congresso jovem", texto: "Agradeçamos a Deus por nossos jovens, pela iniciativa e zelo em realizar mais um congresso. Que sigam assim e prosperem em tudo o que Deus lhes designar." },
+              { id: id("av"), titulo: "Projeto Zero", texto: "Terá seu impacto missionário realizado na cidade de Iporã-PR, entre 11 e 18 de janeiro de 2027. Interessados em participar, falar com o Pr. Hilário José." },
               { id: id("av"), titulo: "Jovem congregacional", texto: "Amanhã, nossa igreja observa o Dia do Jovem Congregacional. A todos eles, os nossos devidos cumprimentos." },
-              { id: id("av"), titulo: "Espanha", texto: "Não deixe de orar pelo projeto na Fuente Del Peregrino, Galícia/Espanha, a partir de 21 de abril/2027. Orem pelos preparativos e por aqueles que intentam compor essa missão. Detalhes de como participar, falar com o Pb. Jorge Bonacorso." },
-              { id: id("av"), titulo: "Projeto Zero", texto: "Terá seu impacto missionário realizado na cidade de Iporã-PR, entre 11 e 18 de janeiro/2027. Interessados em participar, falar com o Pr. Hilário José." },
               { id: id("av"), titulo: "Assistência Social", texto: "Hoje é o dia. Fale com a diretora, irmã Silvana Silva, e saiba como cooperar na assistência aos mais necessitados." },
+              { id: id("av"), titulo: "Espanha", texto: "Não deixe de orar pelo projeto na Fuente Del Peregrino, Galícia/Espanha, a partir de 21 de abril de 2027. Orem pelos preparativos e por aqueles que intentam compor essa missão. Detalhes de como participar com o Pb. Jorge Bonacorso." },
               { id: id("av"), titulo: "Bazar", texto: "Durante os dois dias de programação de aniversário da igreja, funcionará o nosso Bazar Missionário. A irmã Silvana Silva aguarda as doações. Fale com ela e participe." },
-              { id: id("av"), titulo: "IEC de Brasília - 54 anos", texto: "Em dois cultos, agradeceremos a Deus pelo tempo desta igreja. Um deles será no dia 5 de dezembro (sábado, 19h) e o outro no dia seguinte (domingo, 19h). Nas duas oportunidades, o mensageiro será o Pr. Eleazar Duarte, diretor do Projeto Zero. Também no sábado, receberemos o Coral Adorai, da Igreja Presbiteriana de Águas Claras. Outras participações devem ser informadas ao Pr. Hilário José, que está organizando toda a programação." },
-              { id: id("av"), titulo: "Juniores", texto: "Já será no próximo fim de semana, dias **28 e 29 de novembro**, o **1º Congresso dos Juniores IECB**. Vamos agradecer a Deus pela vida dos nossos pequeninos, que estão muito ávidos pela realização desse importante evento. **Participe e traga convidados!**" },
-              { id: id("av"), titulo: "Motivos de oração", texto: "Pela saúde do Pr. Leônidas Duarte, que passará por cirurgia, após diagnóstico de câncer; e demais casos médicos: Cíntia Nascimento, cunhada do Pr. Hilário José; Tereza Pereira, mãe da Dca. Ozanilda Santos; Dc. José Alves, internado em clínica de atenção permanente. Por irmãos que talvez você não conheça, mas que carecem da nossa intercessão: Margarida França; Rossana Marins; Tati BS." },
+              { id: id("av"), estilo: "caixa", titulo: "Motivos de oração", texto: "Pela saúde do Pr. Leônidas Duarte, que passará por cirurgia, após diagnóstico de câncer; e demais casos médicos: Cíntia Nascimento, cunhada do Pr. Hilário José; Tereza Pereira, mãe da Dca. Ozanilda Santos; Dc. José Alves, internado em clínica de atenção permanente. Por irmãos que talvez você não conheça, mas que carecem da nossa intercessão: Margarida França; Rossana Marins; Tati BS." },
             ],
           }),
         ],
@@ -248,16 +251,8 @@ Se a mentira é uma das principais armas do inimigo, o Senhor nos oferece os mei
               ["Das 19h45 às 20h", "Luciana Pinzan"], ["Das 20h às 20h15", "Maria da Luz"], ["Das 20h15 às 20h30", "Dca. Selma R."],
             ].map(([horario, nome]) => ({ id: id("po"), horario: horario!, nome: nome! })),
             semanaTitulo: "Outros Trabalhos da Semana",
-            semanaColunas: [
-              { id: id("sc"), dia: "Quarta-Feira (19h30)", atividade: "Estudo Bíblico" },
-              { id: id("sc"), dia: "Sexta-Feira (20h)", atividade: "Oração | Casais" },
-            ],
-            semanaLinhas: [
-              ["Preletor/Pregador", "Pr. Hilário José", "Min. Casais"],
-              ["Dirigente da Oração", "Sem. Renan Bonacorso", "Min. Casais"],
-              ["Dirigente do Louvor", "Min. Louvor", "Min. Casais"],
-              ["Operador de Som/Mult.", "Por escala", "Min. Casais"],
-            ].map(([funcao, ...valores]) => ({ id: id("sl"), funcao: funcao!, valores })),
+            semanaColunas: [],
+            semanaLinhas: [],
           }),
           b({
             tipo: "aniversariantes", largura: "estreita",
@@ -274,16 +269,48 @@ Se a mentira é uma das principais armas do inimigo, o Senhor nos oferece os mei
             referencia: "(Salmo 90.12).",
           }),
           b({
-            tipo: "oficios", largura: "inteira", titulo: "Ofícios Regulares",
+            tipo: "agenda", largura: "larga", titulo: "Agenda e Datas Magnas 2026",
+            grupos: [
+              {
+                id: id("g"), titulo: "NOVEMBRO",
+                itens: [
+                  ["22 (dom)", "-", "Congresso dos Jovens IECB (cont.)"], ["22 (dom)", "-", "Domingo da Assistência Social"], ["22 (dom)", "8h", "Manhã de Consagração (Direção: UHC)"],
+                  ["23 (seg)", "-", "Dia do Jovem Congregacional - Data Denominacional"], ["27 (sex)", "-", "Dia do Homem Congregacional - Data Denominacional"],
+                  ["28 (sab)", "9h", "Término das atividades da AIECCO (IEC Cristalina-GO)"], ["28 (sab)", "19h", "Congresso dos Juniores IECB"],
+                  ["29 (dom)", "-", "Congresso dos Juniores IECB (cont.)"],
+                ].map(([data, hora, texto]) => ({ id: id("i"), data: data!, hora: hora!, texto: texto! })),
+              },
+              {
+                id: id("g"), titulo: "DEZEMBRO",
+                itens: [
+                  ["4 (sex)", "19h", "Jantar de Confraternização IECB"], ["5 (sab)", "19h", "Culto de Gratidão a Deus – IECB 54 Anos"],
+                  ["6 (dom)", "-", "Recesso da Escola Dominical"], ["6 (dom)", "19h", "Culto e Ceia do Senhor – IECB 54 Anos"],
+                  ["13 (dom)", "9h", "Café da Manhã – aniversariantes do trimestre"],
+                ].map(([data, hora, texto]) => ({ id: id("i"), data: data!, hora: hora!, texto: texto! })),
+              },
+            ],
+          }),
+          b({
+            tipo: "tabela", largura: "estreita", titulo: "Outros Trabalhos da Semana",
+            cabecalho: ["", "Quarta-feira (19h30) · Estudo Bíblico", "Sexta-feira (20h) · Oração | Casais"],
+            linhas: [
+              ["Preletor/Pregador", "Pr. Hilário José", "Min. Casais"],
+              ["Dirigente da Oração", "Sem. Renan Bonacorso", "Min. Casais"],
+              ["Dirigente do Louvor", "Min. Louvor", "Min. Casais"],
+              ["Operador de Som/Mult.", "Por escala", "Min. Casais"],
+            ].map((celulas) => ({ id: id("tl"), celulas })),
+          }),
+          b({
+            tipo: "oficios", largura: "estreita", titulo: "Ofícios Regulares",
             colunas: [
-              "***Domingo***\nCulto Matutino, 9h\nEscola Dominical, 10h20\nCulto Noturno, 19h",
-              "***Quarta-feira***\nEstudo Bíblico e\nOração, 19h30\n(Estudo sistemático e\ndoutrinário e oração)",
-              "***1ª Sexta-feira***\nOração, no Templo, 20h\n***3ª Sexta-feira***\nEncontro para casais, 20h\n(oração e ação)",
-              "***2ª e 4ª Sextas-feiras***\nTreinamento por Depto.\nAconselhamento, 20h\n**Eventualmente:**\nReunião nos Lares, 20h",
+              "**Domingo**\nCulto Matutino · 9h\nEscola Dominical · 10h20\nCulto Noturno · 19h",
+              "**Quarta-feira**\nEstudo Bíblico e Oração · 19h30\n(estudo sistemático e doutrinário e oração)",
+              "**Sextas-feiras**\n1ª · Oração no Templo · 20h\n2ª e 4ª · Treinamento por Depto. e Aconselhamento · 20h\n3ª · Encontro para casais · 20h",
+              "**Eventualmente**\nReunião nos Lares · 20h",
             ].map((texto) => ({ id: id("of"), texto })),
           }),
           b({
-            tipo: "trabalhos", largura: "inteira", titulo: "Outros Trabalhos",
+            tipo: "trabalhos", largura: "inteira", titulo: "Campos Missionários",
             itens: [
               ["Campo Missionário em Joinville-SC", "Pr. Luiz Felipe de Souza Cintra Duarte\nRua Cidade de Damasco, 787 - Bairro Itaum, Joinville – SC\nCEP 89209-700 – Tel. (21) 98737-9764"],
               ["Campo Missionário - Pirenópolis – GO", "Oficiais da IECB/Missionários voluntários/JOCUM\nRua Tarumã, Qd. 9 - Lote 1 - Vila Cintra – Pirenópolis - GO\nCEP 72980-000 - Tel. (62) 98509-3477"],
@@ -308,33 +335,10 @@ Se a mentira é uma das principais armas do inimigo, o Senhor nos oferece os mei
               ["Leandro e Lilian Santos", "Missionários de base para formação de novos obreiros."],
               ["Mis. Raquel Villela Alves", "Missionária de base (diversos projetos missionários)."],
               ["Gustavo e Aline Costa", "Missionários na Espanha (assistência a refugiados)"],
-              ["", ""],
               ["Pr. Luciano José Bispo da Graça", "Missionário da BigLife."],
             ].map(([nome, texto]) => ({ id: id("pa"), nome: nome!, texto: texto! })),
           }),
-          b({
-            tipo: "agenda", largura: "larga", titulo: "Agenda e Datas Magnas 2026",
-            grupos: [
-              {
-                id: id("g"), titulo: "NOVEMBRO",
-                itens: [
-                  ["22 (dom)", "-", "Congresso dos Jovens IECB (cont.)"], ["22 (dom)", "-", "Domingo da Assistência Social"], ["22 (dom)", "8h", "Manhã de Consagração (Direção: UHC)"],
-                  ["23 (seg)", "-", "Dia do Jovem Congregacional - Data Denominacional"], ["27 (sex)", "-", "Dia do Homem Congregacional - Data Denominacional"],
-                  ["28 (sab)", "9h", "Término das atividades da AIECCO (IEC Cristalina-GO)"], ["28 (sab)", "19h", "Congresso dos Juniores IECB"],
-                  ["29 (dom)", "-", "Congresso dos Juniores IECB (cont.)"],
-                ].map(([data, hora, texto]) => ({ id: id("i"), data: data!, hora: hora!, texto: texto! })),
-              },
-              {
-                id: id("g"), titulo: "DEZEMBRO",
-                itens: [
-                  ["4 (sex)", "19h", "Jantar de Confraternização IECB"], ["5 (sab)", "19h", "Culto de Gratidão a Deus – IECB 54 Anos"],
-                  ["6 (dom)", "-", "Recesso da Escola Dominical"], ["6 (dom)", "19h", "Culto e Ceia do Senhor – IECB 54 Anos"],
-                  ["13 (dom)", "9h", "Café da Manhã – aniversariantes do trimestre"],
-                ].map(([data, hora, texto]) => ({ id: id("i"), data: data!, hora: hora!, texto: texto! })),
-              },
-            ],
-          }),
-          b({ tipo: "expediente", largura: "estreita", ...EXPEDIENTE }),
+          b({ tipo: "expediente", largura: "inteira", ...EXPEDIENTE }),
         ],
       },
     ],

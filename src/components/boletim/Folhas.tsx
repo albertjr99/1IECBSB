@@ -172,36 +172,42 @@ function FluxoColunas({ pecas, proporcao, gapPt, classe, estilo }: { pecas: Peca
   );
 }
 
-// ─── Capa: faixa azul com a logo negativa, a data e o versículo ────────────
+// ─── Topo da primeira página: logo colorida, filiação e data ───────────────
 
 function Capa({ boletim }: { boletim: Boletim }) {
+  return (
+    <header className="bol-capa">
+      <div className="bol-capa-marca">
+        <img src="/marca/logo-horizontal-colorida.svg" alt="Primeira Igreja Evangélica Congregacional de Brasília" />
+        <small>Filiada à União das Igrejas Evangélicas Congregacionais do Brasil – UIECB</small>
+      </div>
+      <div className="bol-capa-data">
+        <span>{boletim.titulo}</span>
+        <strong>{dataPorExtenso(boletim.data)}</strong>
+      </div>
+    </header>
+  );
+}
+
+/** "Martelando a Palavra": painel azul no alto da página dos avisos. */
+function Versiculo({ boletim }: { boletim: Boletim }) {
   const ed = useContext(EdicaoCtx);
   const verso = boletim.versiculo ?? "";
   const ref = boletim.versiculoRef ?? "";
-  const mostra = Boolean(verso) || Boolean(ed?.mudarBoletim);
+  if (!verso && !ed?.mudarBoletim) return null;
+  const limpo = verso.replace(/^[“"]|[”"]$/g, "");
   return (
-    <header className="bol-capa">
-      <div className="bol-capa-topo">
-        <img src="/marca/logo-horizontal-negativo-branco-cruz-vermelha.svg" alt="Primeira Igreja Evangélica Congregacional de Brasília" />
-        <div className="bol-capa-data">
-          <span>{boletim.titulo}</span>
-          <strong>{dataPorExtenso(boletim.data)}</strong>
-        </div>
-      </div>
-      {mostra && (
-        <div className="bol-capa-verso">
-          <span className="bol-capa-rotulo">Martelando a Palavra</span>
-          <blockquote>
-            {ed?.mudarBoletim
-              ? <Editavel valor={verso} modo="linha" dica="Versículo da semana (opcional)" aoMudar={(v) => ed.mudarBoletim!((d) => { d.versiculo = v; })} />
-              : <Marcado texto={verso} />}
-            {(ref || ed?.mudarBoletim) && (
-              <cite>{ed?.mudarBoletim ? <Editavel valor={ref} modo="linha" dica="Referência" aoMudar={(v) => ed.mudarBoletim!((d) => { d.versiculoRef = v; })} /> : ref}</cite>
-            )}
-          </blockquote>
-        </div>
+    <aside className="bol-verso">
+      <span className="bol-verso-rotulo">Martelando a Palavra</span>
+      <blockquote>
+        {ed?.mudarBoletim
+          ? <>“<Editavel valor={limpo} modo="linha" dica="Versículo da semana" aoMudar={(v) => ed.mudarBoletim!((d) => { d.versiculo = v; })} />”</>
+          : <>“<Marcado texto={limpo} />”</>}
+      </blockquote>
+      {(ref || ed?.mudarBoletim) && (
+        <cite>{ed?.mudarBoletim ? <Editavel valor={ref} modo="linha" dica="Referência" aoMudar={(v) => ed.mudarBoletim!((d) => { d.versiculoRef = v; })} /> : ref}</cite>
       )}
-    </header>
+    </aside>
   );
 }
 
@@ -218,7 +224,7 @@ type Setter = (x: any, v: string) => void;
 function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
   const ed = useContext(EdicaoCtx);
   const escala = (b.ajuste || 100) / 100;
-  const base = b.tipo === "artigo" && b.colunas !== 2 ? 11.4 : 10.2;
+  const base = b.tipo === "artigo" ? 10.6 : b.tipo === "avisos" ? ((b.colunas ?? 1) === 2 ? 8.8 : 9.2) : 9.4;
   const estilo = escala !== 1 ? { fontSize: `${base * escala}pt` } : undefined;
 
   /** Texto do bloco: editável no painel, marcado no site/PDF. */
@@ -234,13 +240,18 @@ function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
   switch (b.tipo) {
     case "artigo": {
       if (b.colunas === 2) {
+        // rótulo e título por cima das duas colunas; o texto corre de uma coluna para a outra
         const pecas: Peca[] = [
-          ...(b.rotulo ? [{ tag: "div" as const, classe: `bol-rotulo ${b.rotuloLado === "direita" ? "bol-dir" : ""}`, texto: b.rotulo, divisivel: false, titulo: true }] : []),
-          ...(b.titulo ? [{ tag: "h2" as const, texto: b.titulo, divisivel: false, titulo: true }] : []),
           ...paragrafos(b.texto).map((t) => ({ tag: "p" as const, texto: t, divisivel: true })),
           ...(b.autor ? [{ tag: "p" as const, classe: "bol-assinatura", texto: b.autor, divisivel: false }] : []),
         ];
-        return <FluxoColunas pecas={pecas} proporcao={b.proporcao ?? 0.5} gapPt={11} classe="bol-artigo bol-2col" {...(estilo ? { estilo } : {})} />;
+        return (
+          <div className="bol-artigo bol-artigo-2col" style={estilo}>
+            {mostra(b.rotulo) && <div className="bol-rotulo">{T(b.rotulo, (x, v) => { x.rotulo = v; }, "linha", "Rótulo (ex.: Pastoral)")}</div>}
+            {mostra(b.titulo) && <h2>{T(b.titulo, (x, v) => { x.titulo = v; }, "linha", "Título")}</h2>}
+            <FluxoColunas pecas={pecas} proporcao={b.proporcao ?? 0.5} gapPt={18} classe="bol-artigo bol-2col" {...(estilo ? { estilo } : {})} />
+          </div>
+        );
       }
       return (
         <div className="bol-artigo" style={estilo}>
@@ -254,12 +265,18 @@ function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
       );
     }
     case "avisos": {
+      // Duas colunas: cartões em grade (destaques com fundo névoa; caixa ocupa a largura toda)
       if ((b.colunas ?? 1) === 2) {
-        const pecas: Peca[] = b.itens.flatMap((a) => [
-          ...(a.titulo ? [{ tag: "h3" as const, texto: a.titulo, divisivel: false, titulo: true }] : []),
-          ...paragrafos(a.texto).map((t) => ({ tag: "p" as const, texto: t, divisivel: true })),
-        ]);
-        return <FluxoColunas pecas={pecas} proporcao={b.proporcao ?? 0.5} gapPt={12} classe="bol-avisos" {...(estilo ? { estilo } : {})} />;
+        return (
+          <div className="bol-avisos-grade" style={estilo}>
+            {b.itens.map((a, i) => (
+              <div key={a.id} className={`bol-aviso bol-aviso-${a.estilo ?? "normal"}`}>
+                {mostra(a.titulo) && <h3>{T(a.titulo, (x, v) => { x.itens[i].titulo = v; }, "linha", "Título do aviso")}</h3>}
+                {paras(a.texto, (x, v) => { x.itens[i].texto = v; }, "Texto do aviso…")}
+              </div>
+            ))}
+          </div>
+        );
       }
       return (
         <div className="bol-avisos" style={estilo}>
@@ -273,55 +290,48 @@ function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
       );
     }
     case "escala": {
-      const porteiros = b.porteiros;
-      const metade = Math.ceil(porteiros.length / 2);
-      const fonte = escala !== 1 ? { fontSize: `${6.9 * escala}pt` } : undefined;
-      const porteiro = (k: number) => {
-        const x = porteiros[k];
-        if (!x) return null;
-        return <><strong>{T(x.horario, (y, v) => { y.porteiros[k].horario = v; }, "linha", "Horário")}</strong>{(x.horario || ed) && ": "}{T(x.nome, (y, v) => { y.porteiros[k].nome = v; }, "linha", "Nome")}</>;
-      };
-      // Três tabelas encostadas, como no Word: cada parte tem suas colunas.
+      const fonte = escala !== 1 ? { fontSize: `${6.3 * escala}pt` } : undefined;
       return (
         <div className="bol-escala" style={fonte}>
-          <table className="bol-tab" style={fonte}>
+          <table className="bol-tab">
             <colgroup><col style={{ width: "36%" }} /><col style={{ width: "32%" }} /><col style={{ width: "32%" }} /></colgroup>
             <tbody>
               <tr><td colSpan={3} className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
-              <tr>{b.cabecalho.map((c, i) => <td key={i} className="bol-sub-medio">{T(c, (x, v) => { x.cabecalho[i] = v; })}</td>)}</tr>
+              <tr className="bol-cab">{b.cabecalho.map((c, i) => <td key={i}>{T(c, (x, v) => { x.cabecalho[i] = v; })}</td>)}</tr>
               {b.linhas.map((l, li) => (
                 <tr key={l.id}>
                   <td className="bol-rot">{T(l.celulas[0], (x, v) => { x.linhas[li].celulas[0] = v; }, "linha", "Função")}</td>
-                  <td className="bol-c">{T(l.celulas[1], (x, v) => { x.linhas[li].celulas[1] = v; })}</td>
-                  <td className="bol-c">{T(l.celulas[2], (x, v) => { x.linhas[li].celulas[2] = v; })}</td>
+                  <td>{T(l.celulas[1], (x, v) => { x.linhas[li].celulas[1] = v; })}</td>
+                  <td>{T(l.celulas[2], (x, v) => { x.linhas[li].celulas[2] = v; })}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {porteiros.length > 0 && (
-            <table className="bol-tab" style={{ ...fonte, marginTop: "-0.5pt" }}>
-              <tbody>
-                <tr><td colSpan={2} className="bol-sub-escuro">{T(b.porteirosTitulo, (x, v) => { x.porteirosTitulo = v; })}</td></tr>
-                {Array.from({ length: metade }).map((_, i) => (
-                  <tr key={i}>
-                    <td style={{ width: "50%" }}>{porteiro(i)}</td>
-                    <td>{porteiro(i + metade)}</td>
-                  </tr>
+          {b.porteiros.length > 0 && (
+            <div className="bol-porteiros">
+              <div className="bol-tit-escuro">{T(b.porteirosTitulo, (x, v) => { x.porteirosTitulo = v; })}</div>
+              <div className="bol-porteiros-grade">
+                {b.porteiros.map((p, k) => (
+                  <div key={p.id}>
+                    <small>{T(p.horario.replace(/^Das\s+/i, ""), (y, v) => { y.porteiros[k].horario = v; }, "linha", "Horário")}</small>
+                    <span>{T(p.nome, (y, v) => { y.porteiros[k].nome = v; }, "linha", "Nome")}</span>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
           )}
           {b.semanaColunas.length > 0 && (
-            <table className="bol-tab" style={{ ...fonte, marginTop: "-0.5pt" }}>
+            <table className="bol-tab bol-semana">
               <colgroup><col style={{ width: "36%" }} />{b.semanaColunas.map((c) => <col key={c.id} />)}</colgroup>
               <tbody>
-                <tr><td colSpan={1 + b.semanaColunas.length} className="bol-sub-escuro">{T(b.semanaTitulo, (x, v) => { x.semanaTitulo = v; })}</td></tr>
-                <tr><td className="bol-sub-medio" rowSpan={2} />{b.semanaColunas.map((c, ci) => <td key={c.id} className="bol-sub-medio">{T(c.dia, (x, v) => { x.semanaColunas[ci].dia = v; }, "linha", "Dia")}</td>)}</tr>
-                <tr>{b.semanaColunas.map((c, ci) => <td key={c.id} className="bol-sub-medio">{T(c.atividade, (x, v) => { x.semanaColunas[ci].atividade = v; }, "linha", "Atividade")}</td>)}</tr>
+                <tr><td colSpan={1 + b.semanaColunas.length} className="bol-tit-escuro">{T(b.semanaTitulo, (x, v) => { x.semanaTitulo = v; })}</td></tr>
+                <tr className="bol-cab"><td />{b.semanaColunas.map((c, ci) => (
+                  <td key={c.id}>{T(c.dia, (x, v) => { x.semanaColunas[ci].dia = v; }, "linha", "Dia")}{(c.atividade || ed) && " · "}{T(c.atividade, (x, v) => { x.semanaColunas[ci].atividade = v; }, "linha", "Atividade")}</td>
+                ))}</tr>
                 {b.semanaLinhas.map((l, li) => (
                   <tr key={l.id}>
                     <td className="bol-rot">{T(l.funcao, (x, v) => { x.semanaLinhas[li].funcao = v; }, "linha", "Função")}</td>
-                    {b.semanaColunas.map((c, i) => <td key={c.id} className="bol-c">{T(l.valores[i] ?? "", (x, v) => { x.semanaLinhas[li].valores[i] = v; })}</td>)}
+                    {b.semanaColunas.map((c, i) => <td key={c.id}>{T(l.valores[i] ?? "", (x, v) => { x.semanaLinhas[li].valores[i] = v; })}</td>)}
                   </tr>
                 ))}
               </tbody>
@@ -330,109 +340,102 @@ function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
         </div>
       );
     }
-    case "aniversariantes":
+    case "aniversariantes": {
+      // uma pessoa por linha; o dia se repete, como na lista impressa
+      const linhas = b.linhas.flatMap((l, li) => {
+        const nomes = ed ? [l.nomes] : l.nomes.split("\n").filter((n) => n.trim());
+        return (nomes.length ? nomes : [""]).map((n, k) => ({ l, li, n, k }));
+      });
       return (
-        <div className="bol-aniv-bloco" style={escala !== 1 ? { fontSize: `${6.7 * escala}pt` } : undefined}>
+        <div className="bol-aniv-bloco" style={escala !== 1 ? { fontSize: `${6.2 * escala}pt` } : undefined}>
           <table className="bol-tab bol-aniv">
             <tbody>
               <tr><td colSpan={2} className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
-              {b.linhas.map((l, li) => (
-                <tr key={l.id}><td className="bol-dia">{T(l.dia, (x, v) => { x.linhas[li].dia = v; }, "linha", "Dia")}</td><td>{T(l.nomes, (x, v) => { x.linhas[li].nomes = v; }, "linhas", "Nomes")}</td></tr>
+              {linhas.map(({ l, li, n, k }) => (
+                <tr key={`${l.id}-${k}`}>
+                  <td className="bol-dia">{T(l.dia, (x, v) => { x.linhas[li].dia = v; }, "linha", "Dia")}</td>
+                  <td>{ed ? T(l.nomes, (x, v) => { x.linhas[li].nomes = v; }, "linhas", "Nomes") : <Marcado texto={n} />}</td>
+                </tr>
               ))}
             </tbody>
           </table>
           {mostra(b.versiculo) && (
             <p className="bol-versiculo">
-              {T(b.versiculo, (x, v) => { x.versiculo = v; }, "linhas", "Versículo")}
-              {mostra(b.referencia) && <small>{T(b.referencia, (x, v) => { x.referencia = v; }, "linha", "Referência")}</small>}
+              <em>“{T(b.versiculo.replace(/^[“"]|[”".]+$/g, ""), (x, v) => { x.versiculo = v; }, "linhas", "Versículo")}.”</em>{" "}
+              {mostra(b.referencia) && <small>{T(b.referencia.replace(/^\(|\)\.?$/g, ""), (x, v) => { x.referencia = v; }, "linha", "Referência")}</small>}
             </p>
           )}
         </div>
       );
+    }
     case "oficios":
       return (
-        <table className="bol-tab bol-oficios">
-          <tbody>
-            <tr><td colSpan={b.colunas.length} className="bol-tit-cinza">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
-            <tr>{b.colunas.map((c, ci) => <td key={c.id} style={{ width: `${100 / b.colunas.length}%` }}>{T(c.texto, (x, v) => { x.colunas[ci].texto = v; }, "linhas")}</td>)}</tr>
-          </tbody>
-        </table>
+        <div className="bol-quadro bol-oficios">
+          <div className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; })}</div>
+          <div className="bol-oficios-grade">
+            {b.colunas.map((c, ci) => <div key={c.id}>{T(c.texto, (x, v) => { x.colunas[ci].texto = v; }, "linhas")}</div>)}
+          </div>
+        </div>
       );
-    case "trabalhos": {
-      const pares: number[][] = [];
-      for (let i = 0; i < b.itens.length; i += 2) pares.push(i + 1 < b.itens.length ? [i, i + 1] : [i]);
+    case "trabalhos":
       return (
-        <table className="bol-tab bol-trabalhos">
-          <tbody>
-            <tr><td colSpan={2} className="bol-tit-cinza">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
-            {pares.map((par, i) => (
-              <Fragment key={i}>
-                <tr>{par.map((k) => <td key={b.itens[k]!.id} className="bol-sub-claro" colSpan={par.length === 1 ? 2 : 1}>{T(b.itens[k]!.titulo, (x, v) => { x.itens[k].titulo = v; }, "linha", "Título")}</td>)}</tr>
-                <tr>{par.map((k) => <td key={b.itens[k]!.id} colSpan={par.length === 1 ? 2 : 1}>{T(b.itens[k]!.texto, (x, v) => { x.itens[k].texto = v; }, "linhas", "Endereço, contato…")}</td>)}</tr>
-              </Fragment>
+        <div className="bol-quadro bol-trabalhos">
+          <div className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; })}</div>
+          <div className="bol-trabalhos-grade" style={{ gridTemplateColumns: `repeat(${Math.min(4, Math.max(1, b.itens.length))}, minmax(0, 1fr))` }}>
+            {b.itens.map((t, k) => (
+              <div key={t.id}>
+                <strong>{T(t.titulo, (x, v) => { x.itens[k].titulo = v; }, "linha", "Título")}</strong>
+                <span>{T(t.texto, (x, v) => { x.itens[k].texto = v; }, "linhas", "Endereço, contato…")}</span>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
       );
-    }
-    case "parcerias": {
-      const pares: number[][] = [];
-      for (let i = 0; i < b.itens.length; i += 2) pares.push([i, i + 1]);
+    case "parcerias":
       return (
-        <table className="bol-tab bol-parcerias">
-          <tbody>
-            <tr><td colSpan={2} className="bol-tit-cinza">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
-            {pares.map((par, i) => (
-              <tr key={i}>
-                {par.map((k) => {
-                  const x = b.itens[k];
-                  if (!x) return <td key={k} />;
-                  if (ed) return <td key={k}><strong>{T(x.nome, (y, v) => { y.itens[k].nome = v; }, "linha", "Nome")}</strong>{" – "}{T(x.texto, (y, v) => { y.itens[k].texto = v; }, "linha", "Descrição")}</td>;
-                  return <td key={k}>{x.nome || x.texto ? <><strong>{x.nome}</strong>{x.nome && x.texto && " – "}<Marcado texto={x.texto} /></> : null}</td>;
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="bol-quadro bol-parcerias">
+          <div className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; })}</div>
+          <div className="bol-parcerias-grade">
+            {b.itens.map((p, k) => (!p.nome && !p.texto && !ed ? null : (
+              <div key={p.id}>
+                <strong>{T(p.nome, (y, v) => { y.itens[k].nome = v; }, "linha", "Nome")}</strong>
+                {(p.texto || ed) && <> · </>}{T(p.texto, (y, v) => { y.itens[k].texto = v; }, "linha", "Descrição")}
+              </div>
+            )))}
+          </div>
+        </div>
       );
-    }
     case "agenda":
       return (
         <table className="bol-tab bol-agenda">
+          <colgroup><col style={{ width: "15%" }} /><col style={{ width: "8%" }} /><col /></colgroup>
           <tbody>
-            <tr><td colSpan={3} className="bol-tit-agenda">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
-            {b.grupos.map((g, gi) => {
-              // agrupa linhas seguidas com a mesma data (como as células mescladas do Word)
-              const grupos: { data: string; ks: number[] }[] = [];
-              g.itens.forEach((it, k) => {
-                const ult = grupos[grupos.length - 1];
-                if (ult && it.data && ult.data === it.data) ult.ks.push(k);
-                else grupos.push({ data: it.data, ks: [k] });
-              });
-              return (
-                <Fragment key={g.id}>
-                  <tr><td colSpan={3} className="bol-mes">{T(g.titulo, (x, v) => { x.grupos[gi].titulo = v; }, "linha", "Mês")}</td></tr>
-                  {grupos.map((gr) => (
-                    <tr key={g.itens[gr.ks[0]!]!.id}>
-                      <td className="bol-data">{T(gr.data, (x, v) => { for (const k of gr.ks) x.grupos[gi].itens[k].data = v; }, "linha", "Data")}</td>
-                      <td className="bol-hora">{gr.ks.map((k, j) => <Fragment key={k}>{j > 0 && <br />}{T(g.itens[k]!.hora, (x, v) => { x.grupos[gi].itens[k].hora = v; }, "linha", "–")}</Fragment>)}</td>
-                      <td>{gr.ks.map((k, j) => <Fragment key={k}>{j > 0 && <br />}{T(g.itens[k]!.texto, (x, v) => { x.grupos[gi].itens[k].texto = v; }, "linha", "Evento")}</Fragment>)}</td>
-                    </tr>
-                  ))}
-                </Fragment>
-              );
-            })}
+            <tr><td colSpan={3} className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
+            {b.grupos.map((g, gi) => (
+              <Fragment key={g.id}>
+                <tr><td colSpan={3} className="bol-mes">{T(g.titulo, (x, v) => { x.grupos[gi].titulo = v; }, "linha", "Mês")}</td></tr>
+                {g.itens.map((it, k) => (
+                  <tr key={it.id}>
+                    <td className="bol-data">{ed ? T(it.data, (x, v) => { x.grupos[gi].itens[k].data = v; }, "linha", "Data") : it.data.replace(/\s*\((\w+)\)/, " $1").replace(/\bsab\b/, "sáb")}</td>
+                    <td className="bol-hora">{ed ? T(it.hora, (x, v) => { x.grupos[gi].itens[k].hora = v; }, "linha", "–") : it.hora === "-" ? "" : it.hora}</td>
+                    <td>{T(it.texto, (x, v) => { x.grupos[gi].itens[k].texto = v; }, "linha", "Evento")}</td>
+                  </tr>
+                ))}
+              </Fragment>
+            ))}
           </tbody>
         </table>
       );
     case "expediente":
       return (
         <div className="bol-expediente">
-          <img src="/simbolo-negativo.svg" alt="" />
-          <div className="bol-exp-nome">{T(b.nome, (x, v) => { x.nome = v; }, "linhas", "", "div")}</div>
-          <div>{T(b.texto, (x, v) => { x.texto = v; }, "linhas", "", "div")}</div>
-          {mostra(b.pastores) && <><div className="bol-exp-tit">{T(b.pastoresTitulo, (x, v) => { x.pastoresTitulo = v; })}</div><div>{T(b.pastores, (x, v) => { x.pastores = v; }, "linhas", "Pastores", "div")}</div></>}
-          {mostra(b.diretoria) && <><div className="bol-exp-tit">{T(b.diretoriaTitulo, (x, v) => { x.diretoriaTitulo = v; })}</div><div>{T(b.diretoria, (x, v) => { x.diretoria = v; }, "linhas", "Diretoria", "div")}</div></>}
+          <div className="bol-exp-marca">
+            <img src="/marca/logo-horizontal-negativo-branco-cruz-vermelha.svg" alt="" />
+            <small>Filiada à União das Igrejas Evangélicas Congregacionais do Brasil – UIECB</small>
+          </div>
+          <div><div className="bol-exp-tit">Contato</div>{T(b.texto, (x, v) => { x.texto = v; }, "linhas", "", "div")}</div>
+          <div><div className="bol-exp-tit">{T(b.pastoresTitulo, (x, v) => { x.pastoresTitulo = v; })}</div>{T(b.pastores, (x, v) => { x.pastores = v; }, "linhas", "Pastores", "div")}</div>
+          <div><div className="bol-exp-tit">{T(b.diretoriaTitulo, (x, v) => { x.diretoriaTitulo = v; })}</div>{T(b.diretoria, (x, v) => { x.diretoria = v; }, "linhas", "Diretoria", "div")}</div>
         </div>
       );
     case "texto":
@@ -444,12 +447,12 @@ function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
       );
     case "tabela":
       return (
-        <table className="bol-tab">
+        <table className="bol-tab bol-tabela">
           <tbody>
-            {mostra(b.titulo) && <tr><td colSpan={Math.max(b.cabecalho.length, 1)} className="bol-tit-cinza">{T(b.titulo, (x, v) => { x.titulo = v; }, "linha", "Título da tabela")}</td></tr>}
-            {(b.cabecalho.some(Boolean) || ed) && <tr>{b.cabecalho.map((c, i) => <td key={i} className="bol-sub-claro">{T(c, (x, v) => { x.cabecalho[i] = v; }, "linha", "Coluna")}</td>)}</tr>}
+            {mostra(b.titulo) && <tr><td colSpan={Math.max(b.cabecalho.length, 1)} className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; }, "linha", "Título da tabela")}</td></tr>}
+            {(b.cabecalho.some(Boolean) || ed) && <tr className="bol-cab">{b.cabecalho.map((c, i) => <td key={i}>{T(c, (x, v) => { x.cabecalho[i] = v; }, "linha", "Coluna")}</td>)}</tr>}
             {b.linhas.map((l, li) => (
-              <tr key={l.id}>{b.cabecalho.map((_, i) => <td key={i} className={i === 0 ? "bol-rot" : "bol-c"}>{T(l.celulas[i] ?? "", (x, v) => { x.linhas[li].celulas[i] = v; }, "linhas")}</td>)}</tr>
+              <tr key={l.id}>{b.cabecalho.map((_, i) => <td key={i} className={i === 0 ? "bol-rot" : ""}>{T(l.celulas[i] ?? "", (x, v) => { x.linhas[li].celulas[i] = v; }, "linhas")}</td>)}</tr>
             ))}
           </tbody>
         </table>
@@ -508,35 +511,58 @@ function PaginaView({ boletim, pagina, n, marcarTransbordo = false, aoSelecionar
     medir();
     const ro = new ResizeObserver(medir);
     ro.observe(el);
-    Array.from(el.querySelectorAll(".bol-blocos > *")).forEach((c) => ro.observe(c));
+    Array.from(el.querySelectorAll(".bol-blocos > *, .bol-pilha > *")).forEach((c) => ro.observe(c));
     document.fonts?.ready.then(medir);
     const t = setTimeout(medir, 120);
     return () => { ro.disconnect(); clearTimeout(t); };
   });
 
+  const envolver = (b: Bloco) => (
+    <div
+      key={b.id}
+      className={`bol-l-${b.largura} ${aoSelecionar ? "bol-selecionavel" : ""} ${selecionado === b.id ? "bol-selecionado" : ""}`}
+      data-bloco={b.id}
+      data-tipo={b.tipo}
+      onClick={aoSelecionar ? (e) => { e.stopPropagation(); aoSelecionar(b.id); } : undefined}
+      onDoubleClick={aoAbrir ? (e) => { if ((e.target as HTMLElement).closest(".bol-ed")) return; e.stopPropagation(); aoAbrir(b.id); } : undefined}
+    >
+      <BlocoView b={b} ativo={selecionado === b.id} />
+    </div>
+  );
+
+  // expediente de largura inteira vira a faixa azul do pé da página
+  const faixa = pagina.blocos.find((b) => b.tipo === "expediente" && b.largura === "inteira");
+  const blocos = pagina.blocos.filter((b) => b !== faixa);
+  // blocos "largos" e "estreitos" seguidos formam duas pilhas lado a lado
+  const grupos: (Bloco | { esq: Bloco[]; dir: Bloco[] })[] = [];
+  for (const b of blocos) {
+    if (b.largura === "larga" || b.largura === "estreita") {
+      const ult = grupos[grupos.length - 1];
+      const pilha = ult && "esq" in ult ? ult : (grupos.push({ esq: [], dir: [] }), grupos[grupos.length - 1] as { esq: Bloco[]; dir: Bloco[] });
+      (b.largura === "larga" ? pilha.esq : pilha.dir).push(b);
+    } else grupos.push(b);
+  }
+  const temAvisos = blocos.some((b) => b.tipo === "avisos");
+  const primeiraComAvisos = boletim.paginas.find((p) => p.blocos.some((b) => b.tipo === "avisos"))?.id === pagina.id;
+
   return (
-    <section className={`bol-pagina ${ehPaginaDeTabelas(pagina) ? "bol-pg-tabelas" : ""}`} data-pagina={n} data-pagina-id={pagina.id}>
+    <section className={`bol-pagina ${ehPaginaDeTabelas(pagina) ? "bol-pg-tabelas" : ""} ${faixa ? "bol-com-faixa" : ""}`} data-pagina={n} data-pagina-id={pagina.id}>
       {n === 1 && <Capa boletim={boletim} />}
       <div className="bol-corpo" ref={corpo} style={{ overflow: "hidden" }}>
         {n > 1 && (
           <div className="bol-cabecalho">
-            <span className="bol-cab-marca"><img src="/simbolo.svg" alt="" />{boletim.titulo}</span>
-            <span>{dataPorExtenso(boletim.data)}</span>
+            <span className="bol-cab-marca"><img src="/marca/logo-simbolo-colorida.svg" alt="" /><strong>{boletim.titulo}</strong><span>· {dataPorExtenso(boletim.data)}</span></span>
+            <span className="bol-num">{n}</span>
           </div>
         )}
         <div className="bol-blocos">
-          {pagina.blocos.map((b) => (
-            <div
-              key={b.id}
-              className={`bol-l-${b.largura} ${aoSelecionar ? "bol-selecionavel" : ""} ${selecionado === b.id ? "bol-selecionado" : ""}`}
-              data-bloco={b.id}
-              data-tipo={b.tipo}
-              onClick={aoSelecionar ? (e) => { e.stopPropagation(); aoSelecionar(b.id); } : undefined}
-              onDoubleClick={aoAbrir ? (e) => { if ((e.target as HTMLElement).closest(".bol-ed")) return; e.stopPropagation(); aoAbrir(b.id); } : undefined}
-            >
-              <BlocoView b={b} ativo={selecionado === b.id} />
+          {temAvisos && primeiraComAvisos && <div className="bol-l-inteira"><Versiculo boletim={boletim} /></div>}
+          {grupos.map((g) => ("esq" in g ? (
+            <div key={`pilha-${g.esq[0]?.id ?? g.dir[0]?.id}`} className="bol-pilhas">
+              <div className="bol-pilha bol-pilha-esq">{g.esq.map(envolver)}</div>
+              <div className="bol-pilha bol-pilha-dir">{g.dir.map(envolver)}</div>
             </div>
-          ))}
+          ) : envolver(g)))}
         </div>
         {ed && pagina.blocos.length === 0 && (
           <button type="button" className="bol-vazia" onClick={(e) => { e.stopPropagation(); ed.adicionar?.(pagina.id); }}>
@@ -545,7 +571,9 @@ function PaginaView({ boletim, pagina, n, marcarTransbordo = false, aoSelecionar
           </button>
         )}
       </div>
-      <div className="bol-rodape"><span>1ª IEC Brasília · @1iecbsb</span><span className="bol-num">{String(n).padStart(2, "0")}</span></div>
+      {faixa ? <div className="bol-faixa">{envolver(faixa)}</div> : (
+        <div className="bol-rodape"><span>Primeira Igreja Evangélica Congregacional de Brasília</span><span>@1iecbsb · youtube.com/@iecbsb</span></div>
+      )}
       {marcarTransbordo && transborda && <div className="bol-transbordo">O conteúdo passou do fim desta página — use “Encaixar na página”, reduza o texto ou mova uma seção.</div>}
     </section>
   );

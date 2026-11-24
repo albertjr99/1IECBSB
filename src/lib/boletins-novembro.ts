@@ -3,19 +3,24 @@
  * para o modelo novo. Entram no sistema sozinhos (já publicados) na primeira
  * vez que o site lê a lista de boletins — ver src/server/boletins.ts.
  */
-import { boletimModelo, novoIdB, type BlocoArtigo, type BlocoAvisos, type BlocoAgenda, type BlocoEscala, type Boletim } from "./boletim";
+import { boletimModelo, novoIdB, type BlocoArtigo, type BlocoAvisos, type BlocoAgenda, type BlocoEscala, type BlocoTabela, type Boletim, type EstiloAviso } from "./boletim";
 
 const id = novoIdB;
 const linhasEscala = (l: string[][]) => l.map((c) => ({ id: id("l"), celulas: c as [string, string, string] }));
 const porteiros = (nomes: string[]) =>
   ["Das 19h00 às 19h15", "Das 19h15 às 19h30", "Das 19h30 às 19h45", "Das 19h45 às 20h", "Das 20h às 20h15", "Das 20h15 às 20h30"].map((horario, i) => ({ id: id("po"), horario, nome: nomes[i] ?? "" }));
 const itensAgenda = (l: string[][]) => l.map(([data, hora, texto]) => ({ id: id("i"), data: data!, hora: hora!, texto: texto! }));
-const avisos = (l: [string, string][]) => l.map(([titulo, texto]) => ({ id: id("av"), titulo, texto }));
+/** Avisos na ordem da folha: destaques primeiro, a caixa (motivos de oração) por último. */
+const avisos = (l: [string, string, EstiloAviso?][]) => {
+  const peso = (e?: EstiloAviso) => (e === "destaque" ? 0 : e === "caixa" ? 2 : 1);
+  return [...l].sort((a, b) => peso(a[2]) - peso(b[2])).map(([titulo, texto, estilo]) => ({ id: id("av"), titulo, texto, ...(estilo ? { estilo } : {}) }));
+};
+const semanaLinhas = (l: string[][]) => l.map((celulas) => ({ id: id("tl"), celulas }));
 
-const IEC_54 = "Em dois cultos, agradeceremos a Deus pelo tempo desta igreja. Um deles será no dia 5 de dezembro (sábado, 19h) e o outro no dia seguinte (domingo, 19h). Nas duas oportunidades, o mensageiro será o Pr. Eleazar Duarte, diretor do Projeto Zero. Também no sábado, receberemos o Coral Adorai, da Igreja Presbiteriana de Águas Claras. Outras participações devem ser informadas ao Pr. Hilário José, que está organizando toda a programação.";
+const IEC_54 = "Em dois cultos, agradeceremos a Deus pelo tempo desta igreja: **5 de dezembro (sábado, 19h)** e **6 de dezembro (domingo, 19h)**. Nas duas oportunidades, o mensageiro será o Pr. Eleazar Duarte, diretor do Projeto Zero. Também no sábado, receberemos o Coral Adorai, da Igreja Presbiteriana de Águas Claras. Outras participações devem ser informadas ao Pr. Hilário José, que está organizando toda a programação.";
 
 /** Parte do boletim de 22/11 e troca o que muda de uma semana para outra. */
-function semana(data: string, mudar: (b: Boletim, blocos: { p1: BlocoArtigo; p2: BlocoArtigo; avisos: BlocoAvisos; escala: BlocoEscala; agenda: BlocoAgenda }) => void): Boletim {
+function semana(data: string, mudar: (b: Boletim, blocos: { p1: BlocoArtigo; p2: BlocoArtigo; avisos: BlocoAvisos; escala: BlocoEscala; agenda: BlocoAgenda; semana: BlocoTabela }) => void): Boletim {
   const b = boletimModelo();
   b.id = id("bol");
   b.data = data;
@@ -30,6 +35,7 @@ function semana(data: string, mudar: (b: Boletim, blocos: { p1: BlocoArtigo; p2:
     avisos: p3!.blocos[0] as BlocoAvisos,
     escala: p4!.blocos.find((x) => x.tipo === "escala") as BlocoEscala,
     agenda: p4!.blocos.find((x) => x.tipo === "agenda") as BlocoAgenda,
+    semana: p4!.blocos.find((x) => x.tipo === "tabela") as BlocoTabela,
   });
   return b;
 }
@@ -75,9 +81,9 @@ Por outro lado, igrejas precisam ser despertadas para a manutenção dos campos 
       ["Nota de falecimento", "Faleceu na madrugada do dia 6 de novembro a Sra. Arlinda Medina, avó do Pr. Aluízio Lourenço, pela qual vínhamos orando. Mas oremos, agora, pelos familiares enlutados, para que descansem na promessa da ressurreição."],
       ["Arthur Muniz", "Nasceu em 29 de agosto de 2026, o segundo filho dos irmãos Gleuber e Natanrry. Desde as primeiras horas de vida, passou por uns “apertos”, assustando a todos; mas hoje, durante o culto da noite, será apresentado por seus pais ao Senhor. Glórias a Deus."],
       ["Domingo Machado", "Hoje é o nosso Domingo de Missões. Oremos por todos os nossos projetos missionários anotados na quarta página deste boletim. Ajudas à gratificação natalina que pretendemos estender aos obreiros em campo, falar com o Pr. Hilário José e/ou o Pb. Jorge Bonacorso."],
-      ["IEC de Brasília – 54 anos", IEC_54],
-      ["Jovens", "Já no próximo fim de semana, dias 21 e 22 de novembro, realizarão o 4º Congresso da Juventude, com o tema “Mente blindada, coração guardado” (Provérbios 4.23).\n\nNo sábado, às 19h, teremos o culto de abertura com Cláudio Brito, capelão da Força Aérea, e a participação do Ministério de Louvor da Igreja de Cristo.\n\nNo domingo, a missionária Raquel Guerreiro (MPC) pregará nos cultos das 9h e das 19h. Às 10h20, teremos classe única da EBD com a psicóloga Sol Yoshimura e, às 12h, feijoada na Cantina dos Jovens. **Participe e traga convidados!**"],
-      ["Motivos de oração", "Pela saúde da Cíntia Nascimento, tia do Davi e do Lucas, cunhada do Pr. Hilário José. Pela saúde da irmã Tereza Pereira, mãe da Dca. Ozanilda. Por Ilza, irmã da nossa Isabel Santos, após alta hospitalar, por sua recuperação. Pelo irmão Dc. José Alves, internado em clínica de atenção permanente. Por irmãos que talvez você não conheça, mas que carecem da nossa intercessão: Pr. Samuel Cesarino (IEC Agronomia-RJ); Margarida França; Rossana Marins; Tati BS."],
+      ["IEC de Brasília · 54 anos", IEC_54, "destaque"],
+      ["Jovens", "Já no próximo fim de semana, dias 21 e 22 de novembro, realizarão o 4º Congresso da Juventude, com o tema “Mente blindada, coração guardado” (Provérbios 4.23).\n\nNo sábado, às 19h, teremos o culto de abertura com Cláudio Brito, capelão da Força Aérea, e a participação do Ministério de Louvor da Igreja de Cristo.\n\nNo domingo, a missionária Raquel Guerreiro (MPC) pregará nos cultos das 9h e das 19h. Às 10h20, teremos classe única da EBD com a psicóloga Sol Yoshimura e, às 12h, feijoada na Cantina dos Jovens. **Participe e traga convidados!**", "destaque"],
+      ["Motivos de oração", "Pela saúde da Cíntia Nascimento, tia do Davi e do Lucas, cunhada do Pr. Hilário José. Pela saúde da irmã Tereza Pereira, mãe da Dca. Ozanilda. Por Ilza, irmã da nossa Isabel Santos, após alta hospitalar, por sua recuperação. Pelo irmão Dc. José Alves, internado em clínica de atenção permanente. Por irmãos que talvez você não conheça, mas que carecem da nossa intercessão: Pr. Samuel Cesarino (IEC Agronomia-RJ); Margarida França; Rossana Marins; Tati BS.", "caixa"],
     ]);
     x.escala.linhas = linhasEscala([
       ["Pregador(a) da manhã", "Pr. Hilário José", "Congresso dos Jovens"],
@@ -89,11 +95,10 @@ Por outro lado, igrejas precisam ser despertadas para a manutenção dos campos 
       ["Portaria/Recepção", "Bernardo Silva", "Congresso dos Jovens"],
     ]);
     x.escala.porteiros = porteiros(["Pb. Ricardo R.", "Mauro Dino", "Pb. Vagner Fortes", "Maicon Lima", "Pedro Ivo", "Dc. Aurélio M."]);
-    x.escala.semanaColunas[0]!.dia = "Quarta-Feira (19h30)";
-    x.escala.semanaLinhas = [
-      ["Preletor/Pregador", "Pr. Aluízio Lourenço", "-"], ["Dirigente da Oração", "Daiane Tolentino", "-"],
-      ["Dirigente do Louvor", "Min. Louvor", "-"], ["Operador de Som/Mult.", "Por escala", "-"],
-    ].map(([funcao, ...valores]) => ({ id: id("sl"), funcao: funcao!, valores }));
+    x.semana.linhas = semanaLinhas([
+      ["Preletor/Pregador", "Pr. Aluízio Lourenço", "—"], ["Dirigente da Oração", "Daiane Tolentino", "—"],
+      ["Dirigente do Louvor", "Min. Louvor", "—"], ["Operador de Som/Mult.", "Por escala", "—"],
+    ]);
     x.agenda.grupos = [
       { id: id("g"), titulo: "NOVEMBRO", itens: itensAgenda([
         ["16 (seg)", "9h", "Início da Assembleia Geral Extraordinária (UIECB)"], ["20 (sex)", "20h", "Reunião de Oração – Casais (última do ano)"],
@@ -143,10 +148,10 @@ Num tempo em que tanto se pergunta como somos vistos pelos outros, o exemplo de 
       ["Confraternização", "Confirme com o Pb. Jorge Bonacorso a participação de sua família. Ocorrerá no dia 4 de dezembro, uma sexta-feira, a partir das 19h, em um restaurante desta cidade."],
       ["Assembleia", "Aos membros, na próxima quinta-feira, 19h, por videoconferência. Esta será a última do ano. Não esqueçamos nossos relatórios."],
       ["Florianópolis-SC", "Lá estão o Pr. Hilário José e a Liliane Graça, para o culto de aniversário daquela igreja. Também, aproveitaram para visitar os irmãos José e Dulcinéia Alves, em Balneário Camboriú-SC. Retornam amanhã, debaixo das orações dos irmãos."],
-      ["IEC de Brasília – 54 anos", IEC_54],
-      ["Jovens", "Nos dias 21 e 22 de novembro, convidamos toda a igreja para o 4º Congresso da Juventude, com o tema “Mente blindada, coração guardado” (Provérbios 4.23).\n\nNo sábado, às 19h, teremos o culto de abertura com Cláudio Brito, capelão da Força Aérea, e a participação do Ministério de Louvor da Igreja de Cristo.\n\nNo domingo, a missionária Raquel Guerreiro (MPC) pregará nos cultos das 9h e das 19h. Às 10h20, teremos classe única da EBD com a psicóloga Sol Yoshimura e, às 12h, feijoada na Cantina dos Jovens. **Participe e traga convidados!**"],
+      ["IEC de Brasília · 54 anos", IEC_54, "destaque"],
+      ["Jovens", "Nos dias 21 e 22 de novembro, convidamos toda a igreja para o 4º Congresso da Juventude, com o tema “Mente blindada, coração guardado” (Provérbios 4.23).\n\nNo sábado, às 19h, teremos o culto de abertura com Cláudio Brito, capelão da Força Aérea, e a participação do Ministério de Louvor da Igreja de Cristo.\n\nNo domingo, a missionária Raquel Guerreiro (MPC) pregará nos cultos das 9h e das 19h. Às 10h20, teremos classe única da EBD com a psicóloga Sol Yoshimura e, às 12h, feijoada na Cantina dos Jovens. **Participe e traga convidados!**", "destaque"],
       ["Gideões Internacionais", "Uma representação desse ministério estará conosco no culto vespertino, onde terá breve oportunidade para expor suas atividades. Desejando saber como tornar-se um Gideão, fale com um deles nesta oportunidade."],
-      ["Motivos de oração", "Pela saúde da irmã Tereza Pereira, mãe da Dca. Ozanilda. Por Ilza, irmã da nossa Isabel Santos, internada por causa de um infarto e AVC. Pelo irmão Dc. José Alves, internado em clínica de atenção permanente."],
+      ["Motivos de oração", "Pela saúde da irmã Tereza Pereira, mãe da Dca. Ozanilda. Por Ilza, irmã da nossa Isabel Santos, internada por causa de um infarto e AVC. Pelo irmão Dc. José Alves, internado em clínica de atenção permanente.", "caixa"],
     ]);
     x.escala.linhas = linhasEscala([
       ["Pregador(a) da manhã", "Pr. Aluízio Lourenço", "Pr. Hilário José"],
@@ -158,11 +163,11 @@ Num tempo em que tanto se pergunta como somos vistos pelos outros, o exemplo de 
       ["Portaria/Recepção", "Bianca Pessoa", "Bernardo Silva"],
     ]);
     x.escala.porteiros = porteiros(["Dandara Basílio", "Dani Morais", "Dina Bonacorso", "Sem. Isabel Santos", "Lina Gusmão", "Dca. Rafa Amorim"]);
-    x.escala.semanaColunas[0]!.dia = "Quarta-Feira (19h)";
-    x.escala.semanaLinhas = [
-      ["Preletor/Pregador", "Pr. Hilário José", "-"], ["Dirigente da Oração", "Sem. Renan Bona", "-"],
-      ["Dirigente do Louvor", "Min. Louvor", "-"], ["Operador de Som/Mult.", "Escala", "-"],
-    ].map(([funcao, ...valores]) => ({ id: id("sl"), funcao: funcao!, valores }));
+    x.semana.cabecalho[1] = "Quarta-feira (19h) · Estudo Bíblico";
+    x.semana.linhas = semanaLinhas([
+      ["Preletor/Pregador", "Pr. Hilário José", "—"], ["Dirigente da Oração", "Sem. Renan Bona", "—"],
+      ["Dirigente do Louvor", "Min. Louvor", "—"], ["Operador de Som/Mult.", "Escala", "—"],
+    ]);
     x.agenda.grupos = [
       { id: id("g"), titulo: "NOVEMBRO", itens: itensAgenda([
         ["8 (dom)", "8h", "Manhã de Consagração (Direção: UAF)"], ["8 (dom)", "-", "Dia de Missões Mundiais - Data Denominacional"], ["8 (dom)", "19h", "Visita dos Gideões Internacionais"],

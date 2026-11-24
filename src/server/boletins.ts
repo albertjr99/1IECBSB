@@ -22,7 +22,7 @@ export async function indice(): Promise<ResumoBoletim[]> {
  * modelo novo (publicados). Cada data entra uma vez só: se a igreja apagar ou
  * já tiver um boletim naquela data, nada é sobrescrito.
  */
-const SEMENTES = "boletins:sementes";
+const SEMENTES = "boletins:sementes:v2";
 let semeado: Promise<ResumoBoletim[]> | null = null;
 let pronto = false;
 async function semear(l: ResumoBoletim[]): Promise<ResumoBoletim[]> {
@@ -35,9 +35,13 @@ async function semear(l: ResumoBoletim[]): Promise<ResumoBoletim[]> {
     let lista = l;
     for (const b of novos) {
       feitos.add(b.data);
-      if (lista.some((x) => x.data === b.data)) continue;
+      const existente = lista.find((x) => x.data === b.data);
+      // só substitui a carga anterior se ninguém a editou depois
+      const intocado = existente && existente.atualizadoPor === "Secretaria" && existente.atualizadoEm === existente.publicadoEm;
+      if (existente && !intocado) continue;
+      if (existente) b.id = existente.id;
       await gravar(chave(b.id), b);
-      lista = [resumir(b), ...lista];
+      lista = [resumir(b), ...lista.filter((x) => x.id !== b.id)];
     }
     await gravar(INDICE, lista);
     await gravar(SEMENTES, [...feitos]);

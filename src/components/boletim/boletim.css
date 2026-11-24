@@ -56,115 +56,121 @@
 .bol-l-inteira { width: 100%; }
 .bol-l-dois-tercos { width: calc(66.8% - 14pt); }
 .bol-l-um-terco { width: 33.2%; }
-.bol-l-larga { width: calc(63% - 7pt); }
-.bol-l-estreita { width: calc(37% - 7pt); }
-.bol-pagina.bol-pg-tabelas { padding-top: 22pt; }
-.bol-pg-tabelas .bol-blocos { column-gap: 8pt; row-gap: 7pt; }
-.bol-pg-tabelas .bol-l-larga { width: calc(63% - 4pt); }
-.bol-pg-tabelas .bol-l-estreita { width: calc(37% - 4pt); }
+.bol-l-larga { width: calc(58% - 7pt); }
+.bol-l-estreita { width: calc(42% - 7pt); }
+/* blocos largos e estreitos seguidos: duas pilhas independentes */
+.bol-pilhas { width: 100%; display: flex; align-items: flex-start; gap: 12pt; }
+.bol-pilha { display: flex; flex-direction: column; gap: 8pt; min-width: 0; }
+.bol-pilha-esq { flex: 0 0 calc(57% - 6pt); }
+.bol-pilha-dir { flex: 1; }
+.bol-pilha > * { width: 100% !important; }
+.bol-pg-tabelas .bol-blocos { row-gap: 8pt; }
+.bol-pagina.bol-com-faixa { padding-bottom: 104pt; }
 
-/* ─── Capa (faixa azul no topo da primeira página) ─── */
-.bol-capa { position: relative; isolation: isolate; flex: none; margin: -26pt -34pt 16pt; padding: 22pt 34pt 18pt; background: var(--azul); color: #fff; overflow: hidden; }
-.bol-capa::before { content: ""; position: absolute; inset: 0; z-index: -1; background: url("/marca/grafismo-monte-transparente-branco.svg") right -150pt bottom -90pt / 520pt auto no-repeat; opacity: 0.12; }
-.bol-capa-topo { display: flex; align-items: center; justify-content: space-between; gap: 18pt; }
-.bol-capa-topo img { display: block; width: 200pt; height: auto; }
-.bol-capa-data { text-align: right; }
-.bol-capa-data span { display: block; font-size: 6.6pt; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: rgba(255, 255, 255, 0.78); }
-.bol-capa-data strong { display: block; margin-top: 3pt; font-size: 15pt; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; }
-.bol-capa-verso { display: flex; gap: 14pt; align-items: baseline; margin-top: 14pt; padding-top: 11pt; border-top: 0.6pt solid rgba(255, 255, 255, 0.22); }
-.bol-capa-rotulo { flex: none; display: inline-flex; align-items: center; gap: 5pt; font-size: 6.4pt; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255, 255, 255, 0.78); }
-.bol-capa-rotulo::before { content: ""; width: 4.6pt; height: 8.4pt; background: var(--cruz) center / contain no-repeat; }
-.bol-capa-verso blockquote { margin: 0; flex: 1; font-family: "BolLora", Lora, serif; font-style: italic; font-size: 11pt; line-height: 1.4; }
-.bol-capa-verso cite { display: block; font-family: "BolMontserrat", Montserrat, sans-serif; margin-top: 3pt; font-style: normal; font-size: 6.4pt; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); }
-.bol-capa .bol-ed:focus { background: rgba(255, 255, 255, 0.14); box-shadow: 0 0 0 1.5px #fff; }
-.bol-capa .bol-ed[data-vazio]::before { color: rgba(255, 255, 255, 0.55); }
+/* ─── Topo da primeira página ─── */
+.bol-capa { position: relative; isolation: isolate; flex: none; display: flex; align-items: flex-end; justify-content: space-between; gap: 16pt; margin: -26pt -34pt 14pt; padding: 26pt 34pt 9pt; border-bottom: 2.2pt solid var(--azul); box-shadow: 0 2.4pt 0 #fff, 0 3pt 0 var(--ceu); overflow: hidden; }
+.bol-capa::before { content: ""; position: absolute; inset: 0; z-index: -1; background: url("/marca/grafismo-monte-transparente-azul.svg") right -120pt top -40pt / 560pt auto no-repeat; opacity: 0.16; }
+.bol-capa-marca img { display: block; width: 236pt; height: auto; }
+.bol-capa-marca small { display: block; margin-top: 4pt; font-size: 5.6pt; color: var(--medio); letter-spacing: 0.01em; }
+.bol-capa-data { text-align: right; padding-bottom: 1pt; }
+.bol-capa-data span { display: block; font-size: 6.4pt; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: var(--medio); }
+.bol-capa-data strong { display: block; margin-top: 2pt; font-size: 16pt; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; color: var(--azul); }
 
-/* ─── Cabeçalho e rodapé das páginas internas ─── */
-.bol-cabecalho { flex: none; display: flex; align-items: center; justify-content: space-between; margin-bottom: 14pt; padding-bottom: 7pt; border-bottom: 0.6pt solid var(--ceu); font-size: 6.6pt; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--medio); }
-.bol-cabecalho .bol-cab-marca { display: inline-flex; align-items: center; gap: 7pt; color: var(--azul); }
-.bol-cabecalho img { width: 22pt; height: auto; }
-.bol-pg-tabelas .bol-cabecalho { margin-bottom: 9pt; }
-.bol-rodape { position: absolute; left: 34pt; right: 34pt; bottom: 13pt; display: flex; align-items: center; justify-content: space-between; font-size: 6.2pt; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--medio); }
-.bol-rodape::before { content: ""; position: absolute; left: 0; top: -6pt; width: 16pt; height: 1.4pt; background: var(--vermelho); }
-.bol-rodape .bol-num { color: var(--azul); font-weight: 800; letter-spacing: 0.08em; font-size: 7pt; }
+/* ─── Cabeçalho e rodapé ─── */
+.bol-cabecalho { flex: none; display: flex; align-items: center; justify-content: space-between; margin-bottom: 14pt; padding-bottom: 6pt; border-bottom: 1.2pt solid var(--azul); font-size: 6.8pt; color: var(--medio); }
+.bol-cabecalho .bol-cab-marca { display: inline-flex; align-items: center; gap: 5pt; }
+.bol-cabecalho .bol-cab-marca strong { color: var(--azul); font-weight: 700; margin-left: 4pt; }
+.bol-cabecalho img { width: 26pt; height: auto; }
+.bol-cabecalho .bol-num { font-weight: 700; color: var(--azul); font-size: 7.5pt; }
+.bol-pg-tabelas .bol-cabecalho { margin-bottom: 10pt; }
+.bol-rodape { position: absolute; left: 34pt; right: 34pt; bottom: 13pt; display: flex; align-items: center; justify-content: space-between; padding-top: 5pt; border-top: 0.5pt solid var(--ceu); font-size: 5.6pt; color: var(--medio); }
 
 /* ─── Sobretítulo do manual (cruzinha + maiúsculas espaçadas) ─── */
 .bol-sobre, .bol-artigo .bol-rotulo { display: flex; align-items: center; gap: 0.75em; font-size: 0.66em; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--azul); line-height: 1.3; }
-.bol-sobre::before, .bol-artigo .bol-rotulo::before { content: ""; flex: none; width: 0.62em; height: 1.12em; background: var(--cruz) center / contain no-repeat; }
+.bol-sobre::before, .bol-artigo .bol-rotulo::before { content: ""; flex: none; width: 0.66em; height: 1.2em; background: var(--cruz) center / contain no-repeat; }
 
 /* ─── Pastoral / artigo ─── */
-.bol-artigo { text-align: justify; }
-/* pastoral de página inteira: letra maior e mais ar, leitura confortável */
-.bol-artigo:not(.bol-2col) { font-size: 11.4pt; line-height: 1.6; }
-.bol-artigo .bol-rotulo { margin-bottom: 7pt; }
-.bol-artigo h2 { font-size: 2em; font-weight: 700; line-height: 1.12; letter-spacing: -0.025em; color: var(--azul); text-align: left; margin: 0 0 0.55em; hyphens: manual; }
-.bol-artigo p { margin-bottom: 0.62em; }
-.bol-artigo .bol-texto > p:not(.bol-assinatura):first-of-type::first-letter,
-.bol-artigo .bol-texto > .bol-ed > p:first-child::first-letter,
-.bol-artigo.bol-2col > .bol-col:first-child > p:not(.bol-assinatura):first-of-type::first-letter { float: left; font-size: 3.35em; line-height: 0.82; font-weight: 700; color: var(--azul); margin: 0.07em 0.09em 0 0; }
-.bol-artigo .bol-assinatura { margin-top: 1.1em; text-align: right; font-weight: 700; color: var(--azul); letter-spacing: 0.01em; }
-.bol-artigo .bol-assinatura::before { content: ""; display: block; width: 18pt; height: 1.6pt; margin: 0 0 5pt auto; background: var(--vermelho); }
-.bol-artigo.bol-2col h2 { font-size: 1.85em; }
-.bol-fluxo.bol-artigo > .bol-col + .bol-col, .bol-fluxo.bol-avisos > .bol-col + .bol-col { position: relative; }
-.bol-fluxo > .bol-col + .bol-col::before { content: ""; position: absolute; top: 2pt; bottom: 2pt; left: -7pt; width: 0.6pt; background: var(--ceu); }
+.bol-artigo { text-align: left; font-size: 10.6pt; line-height: 1.6; }
+.bol-artigo .bol-rotulo { margin-bottom: 3pt; }
+.bol-artigo h2 { font-size: 2.35em; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: var(--azul); text-align: left; margin: 0 0 0.45em; hyphens: manual; }
+.bol-artigo p { margin-bottom: 0.7em; }
+.bol-artigo .bol-assinatura { display: flex; align-items: center; justify-content: flex-end; gap: 7pt; margin-top: 0.6em; font-weight: 700; color: var(--azul); }
+.bol-artigo .bol-assinatura::before { content: ""; width: 18pt; height: 1pt; background: var(--vermelho); }
+.bol-fluxo .bol-corte { text-align-last: auto; }
+
+/* ─── Martelando a Palavra ─── */
+.bol-verso { background: var(--azul); color: #fff; padding: 10pt 14pt 9pt; margin-bottom: 2pt; }
+.bol-verso-rotulo { display: block; font-size: 5.8pt; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ceu); }
+.bol-verso blockquote { margin: 4pt 0 0; font-family: "BolLora", Lora, serif; font-style: italic; font-size: 12.4pt; line-height: 1.45; }
+.bol-verso cite { display: flex; align-items: center; gap: 4pt; margin-top: 5pt; font-style: normal; font-size: 5.8pt; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; }
+.bol-verso cite::before { content: ""; width: 4pt; height: 7.2pt; background: var(--cruz) center / contain no-repeat; }
+.bol-verso .bol-ed:focus { background: rgba(255, 255, 255, 0.14); box-shadow: 0 0 0 1.5px #fff; }
+.bol-verso .bol-ed[data-vazio]::before { color: rgba(255, 255, 255, 0.55); }
 
 /* ─── Avisos ─── */
-.bol-avisos { text-align: justify; }
-.bol-avisos h3 { position: relative; font-size: 1.16em; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--azul); margin: 0.95em 0 0.3em; padding-top: 0.85em; border-top: 0.6pt solid var(--ceu); text-align: left; hyphens: manual; }
-.bol-avisos > .bol-col > h3:first-child, .bol-avisos > h3:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
-.bol-avisos p { margin-bottom: 0.4em; }
+.bol-avisos { text-align: left; font-size: 9.2pt; line-height: 1.5; }
+.bol-avisos h3 { font-size: 1.08em; font-weight: 700; color: var(--azul); margin: 0.9em 0 0.2em; }
+.bol-avisos > h3:first-child { margin-top: 0; }
+.bol-avisos-grade { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12pt; row-gap: 0; font-size: 8.8pt; line-height: 1.5; }
+.bol-avisos-grade::before { content: "Avisos"; grid-column: 1 / -1; display: flex; align-items: center; gap: 0.75em; margin: 2pt 0 8pt; font-size: 0.72em; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--azul); padding-left: 1.4em; background: var(--cruz) left center / 0.7em 1.25em no-repeat; }
+.bol-aviso { padding: 6pt 0 8pt; border-bottom: 0.5pt solid var(--ceu); }
+.bol-aviso h3 { font-size: 1.12em; font-weight: 700; line-height: 1.25; color: var(--azul); margin: 0 0 2pt; hyphens: manual; }
+.bol-aviso p + p { margin-top: 0.35em; }
+.bol-aviso strong { color: var(--azul); }
+.bol-aviso-destaque { background: var(--nevoa); border-top: 2pt solid var(--azul); border-bottom: 0; padding: 7pt 9pt 9pt; margin-bottom: 8pt; }
+.bol-aviso-caixa { grid-column: 1 / -1; border: 0.6pt solid var(--ceu); padding: 8pt 10pt; margin-top: 8pt; }
+.bol-aviso-caixa h3 { display: flex; align-items: center; gap: 5pt; }
+.bol-aviso-caixa h3::before { content: ""; width: 0.62em; height: 1.1em; background: var(--cruz) center / contain no-repeat; }
 
-/* ─── Tabelas ─── */
-.bol-tab { width: 100%; border-collapse: collapse; font-size: 1em; line-height: 1.22; }
-.bol-tab td, .bol-tab th { border: 0; border-bottom: 0.5pt solid var(--ceu); padding: 1.1pt 3.5pt; vertical-align: middle; }
-.bol-tab tr:last-child td { border-bottom: 0; }
-.bol-tab .bol-tit-escuro, .bol-tab .bol-tit-agenda { background: var(--azul); color: #fff; font-weight: 700; font-size: 0.95em; letter-spacing: 0.18em; text-transform: uppercase; text-align: center; padding: 2.6pt 4pt; border: 0; }
-.bol-tab .bol-sub-escuro { background: var(--noite); color: #fff; font-weight: 700; font-size: 0.86em; letter-spacing: 0.14em; text-transform: uppercase; text-align: center; padding: 1.6pt 4pt; border: 0; }
-.bol-tab .bol-sub-medio { background: var(--nevoa); color: var(--azul); font-weight: 700; font-size: 0.86em; letter-spacing: 0.06em; text-align: center; border-bottom: 0.6pt solid var(--azul); }
-.bol-tab .bol-tit-cinza { background: none; color: var(--azul); font-weight: 800; font-size: 7.2pt; letter-spacing: 0.2em; text-transform: uppercase; text-align: left; padding: 0 0 2pt; border-bottom: 1pt solid var(--azul); }
-.bol-tab .bol-sub-claro { background: var(--nevoa); color: var(--azul); font-weight: 700; text-align: center; }
-.bol-tab .bol-rot { font-weight: 600; text-align: left; color: var(--grafite); }
-.bol-tab .bol-c { text-align: center; }
-.bol-escala { font-size: 6.9pt; }
-.bol-escala tr:nth-child(even) td:not([class*="bol-tit"]):not([class*="bol-sub"]) { background: var(--nevoa); }
-.bol-escala .bol-rot { color: var(--azul); }
+/* ─── Tabelas e quadros (página 4) ─── */
+.bol-tab { width: 100%; border-collapse: collapse; font-size: 1em; line-height: 1.25; }
+.bol-tab td, .bol-tab th { border: 0; padding: 1.1pt 4pt; vertical-align: top; text-align: left; }
+.bol-tit-escuro, .bol-tab .bol-tit-escuro { background: var(--azul); color: #fff; font-weight: 700; font-size: 5.8pt; letter-spacing: 0.2em; text-transform: uppercase; text-align: left; padding: 2.6pt 5pt; }
+.bol-tab .bol-cab td { font-size: 5.2pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--medio); padding-top: 2.4pt; padding-bottom: 1.4pt; border-bottom: 0.5pt solid var(--ceu); }
+.bol-tab .bol-rot { font-weight: 700; color: var(--azul); }
+.bol-tab tbody tr:nth-child(2n+3):not(.bol-cab) td:not(.bol-tit-escuro):not(.bol-mes) { background: var(--nevoa); }
+.bol-escala { font-size: 6.3pt; display: flex; flex-direction: column; gap: 6pt; }
+.bol-porteiros-grade { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8pt; }
+.bol-porteiros-grade > div { padding: 1.6pt 4pt; border-bottom: 0.5pt solid var(--ceu); line-height: 1.25; }
+.bol-porteiros-grade small { display: block; font-size: 0.84em; color: var(--medio); }
 
-.bol-aniv-bloco { font-size: 6.7pt; }
-.bol-aniv td { padding: 0.9pt 3.5pt; line-height: 1.2; vertical-align: top; }
-.bol-aniv tr:nth-child(odd) td:not(.bol-tit-escuro) { background: var(--nevoa); }
-.bol-aniv td.bol-dia { width: 20pt; text-align: right; font-weight: 800; color: var(--azul); }
-.bol-versiculo { margin-top: 5pt; text-align: center; font-family: "BolLora", Lora, serif; font-style: italic; font-size: 1.32em; line-height: 1.35; color: var(--azul); }
-.bol-versiculo small { display: block; margin-top: 3pt; font-family: "BolMontserrat", Montserrat, sans-serif; font-style: normal; font-size: 0.6em; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--medio); }
+.bol-aniv-bloco { font-size: 6.2pt; }
+.bol-aniv td.bol-dia { width: 14pt; font-weight: 700; color: var(--azul); }
+.bol-versiculo { margin-top: 5pt; font-size: 1.05em; line-height: 1.35; color: var(--azul); }
+.bol-versiculo em { font-size: 1.12em; }
+.bol-versiculo small { font-size: 0.8em; font-weight: 700; letter-spacing: 0.2em; color: var(--medio); }
 
-.bol-oficios { border-collapse: separate; border-spacing: 4pt 0; margin: 0 -4pt; width: calc(100% + 8pt); }
-.bol-oficios td { width: 25%; text-align: center; vertical-align: top; font-size: 6.6pt; line-height: 1.25; padding: 3pt 3pt; background: var(--nevoa); border: 0; border-top: 1.6pt solid var(--azul); }
-.bol-oficios .bol-tit-cinza { background: none; border-top: 0; padding: 0 4pt 3pt; }
-.bol-oficios td strong { color: var(--azul); }
-.bol-oficios td strong em { font-family: "BolMontserrat", Montserrat, sans-serif; font-style: normal; font-size: 0.92em; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
-.bol-trabalhos td { width: 50%; text-align: center; font-size: 6.3pt; line-height: 1.22; vertical-align: top; }
-.bol-trabalhos td.bol-sub-claro { font-size: 6.6pt; letter-spacing: 0.02em; vertical-align: middle; }
-.bol-trabalhos td + td { border-left: 0.5pt solid var(--ceu); }
-.bol-parcerias td { width: 50%; font-size: 5.7pt; line-height: 1.22; vertical-align: top; text-align: left; padding: 0.8pt 3.5pt; }
-.bol-parcerias td strong { color: var(--azul); }
-.bol-parcerias td + td { border-left: 0.5pt solid var(--ceu); }
+.bol-quadro { font-size: 6pt; line-height: 1.3; }
+.bol-oficios-grade { display: grid; grid-template-columns: 1fr 1fr; gap: 5pt 10pt; padding: 4pt 4pt 2pt; }
+.bol-oficios-grade strong { color: var(--azul); }
+.bol-trabalhos-grade { display: grid; gap: 8pt; padding: 4pt 4pt 2pt; font-size: 5.6pt; }
+.bol-trabalhos-grade strong { display: block; color: var(--azul); }
+.bol-trabalhos-grade span { color: var(--medio); }
+.bol-parcerias-grade { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14pt; padding: 2pt 4pt 0; font-size: 5.5pt; }
+.bol-parcerias-grade > div { padding: 1.1pt 0; border-bottom: 0.5pt solid var(--ceu); color: var(--medio); }
+.bol-parcerias-grade strong { color: var(--azul); }
 
-.bol-agenda td { font-size: 6.4pt; line-height: 1.22; }
-.bol-agenda .bol-tit-agenda { font-size: 6.6pt; }
-.bol-agenda .bol-mes { background: var(--nevoa); color: var(--azul); font-weight: 800; font-size: 6.2pt; letter-spacing: 0.24em; text-align: left; padding: 1.4pt 6pt; border-bottom: 0.6pt solid var(--azul); }
-.bol-agenda td.bol-data { width: 44pt; text-align: left; padding-left: 6pt; font-weight: 700; color: var(--azul); }
-.bol-agenda td.bol-hora { width: 30pt; text-align: center; color: var(--medio); font-weight: 600; }
+.bol-agenda { font-size: 6.2pt; }
+.bol-agenda .bol-mes { font-size: 5.4pt; font-weight: 800; letter-spacing: 0.18em; color: var(--azul); padding-top: 4pt; border-bottom: 0.8pt solid var(--azul); background: none; }
+.bol-agenda td.bol-data { font-weight: 700; color: var(--azul); white-space: nowrap; }
+.bol-agenda td.bol-hora { color: var(--medio); }
+.bol-tabela { font-size: 6.2pt; }
 
-/* ─── Expediente: o "verso" em azul-noite ─── */
-.bol-expediente { height: 100%; padding: 9pt 8pt; background: var(--noite); color: rgba(255, 255, 255, 0.82); text-align: center; font-size: 5.9pt; line-height: 1.32; position: relative; isolation: isolate; overflow: hidden; }
-.bol-expediente::before { content: ""; position: absolute; inset: 0; z-index: -1; background: url("/marca/grafismo-monte-transparente-branco.svg") center bottom -40pt / 300pt auto no-repeat; opacity: 0.1; }
-.bol-expediente img { width: 44pt; height: auto; display: block; margin: 0 auto 6pt; }
-.bol-expediente .bol-exp-nome { color: #fff; font-weight: 700; font-size: 7pt; line-height: 1.25; margin-bottom: 4pt; }
-.bol-expediente .bol-exp-tit { margin-top: 5pt; margin-bottom: 1pt; color: #fff; font-weight: 700; font-size: 6pt; letter-spacing: 0.22em; text-transform: uppercase; }
+/* ─── Expediente: faixa azul no pé da última página ─── */
+.bol-faixa { position: absolute; left: 0; right: 0; bottom: 0; }
+.bol-faixa > [data-bloco] { width: 100%; }
+.bol-expediente { display: grid; grid-template-columns: 1.35fr 1fr 1fr 1.15fr; gap: 14pt; padding: 16pt 34pt 18pt; background: var(--azul); color: rgba(255, 255, 255, 0.82); font-size: 5.6pt; line-height: 1.4; }
+.bol-faixa .bol-expediente { min-height: 92pt; }
+.bol-exp-marca img { display: block; width: 150pt; height: auto; }
+.bol-exp-marca small { display: block; margin-top: 5pt; font-size: 5pt; color: rgba(255, 255, 255, 0.6); }
+.bol-expediente .bol-exp-tit { margin-bottom: 3pt; color: #fff; font-weight: 700; font-size: 5.6pt; letter-spacing: 0.22em; text-transform: uppercase; }
+/* expediente estreito (fora da faixa): empilha */
+.bol-l-estreita .bol-expediente, .bol-l-um-terco .bol-expediente, .bol-pilha .bol-expediente { grid-template-columns: 1fr; padding: 10pt; }
 
 /* ─── Texto livre ─── */
-.bol-texto-livre { text-align: justify; }
-.bol-texto-livre h3 { font-size: 1.5em; font-weight: 700; line-height: 1.15; color: var(--azul); margin: 0 0 0.35em; hyphens: manual; }
-.bol-texto-livre.bol-caixa { background: var(--nevoa); border-left: 2.4pt solid var(--azul); padding: 9pt 12pt; }
+.bol-texto-livre { text-align: left; font-size: 9.4pt; line-height: 1.55; }
+.bol-texto-livre h3 { font-size: 1.4em; font-weight: 700; line-height: 1.15; color: var(--azul); margin: 0 0 0.35em; hyphens: manual; }
+.bol-texto-livre.bol-caixa { background: var(--nevoa); border-top: 2pt solid var(--azul); padding: 9pt 11pt; }
 .bol-texto-livre p + p { margin-top: 0.5em; }
 
 /* Aviso de transbordo (só na tela) */
@@ -185,8 +191,8 @@
 .bol-fluxo > .bol-col > :first-child { margin-top: 0 !important; }
 .bol-fluxo .bol-corte { text-align-last: justify; }
 .bol-fluxo .bol-cont { text-indent: 0 !important; }
-.bol-fluxo .bol-cont::first-letter { all: unset; }
 .bol-avulso .bol-capa, .bol-avulso .bol-rodape { display: none; }
+.bol-avulso .bol-faixa { position: static; }
 
 /* ─── Editor do painel: escrever direto na folha ─────────────────────────── */
 .bol-selecionavel { position: relative; cursor: default; border-radius: 1px; }
@@ -198,7 +204,7 @@ span.bol-ed { display: inline-block; min-width: 0.6em; }
 .bol-tab span.bol-ed { display: inline; }
 .bol-ed:hover { background: rgba(0, 67, 111, 0.06); }
 .bol-ed:focus { background: rgba(217, 230, 239, 0.55); box-shadow: 0 0 0 1.5px rgba(0, 67, 111, 0.55); }
-.bol-tit-escuro .bol-ed:focus, .bol-sub-escuro .bol-ed:focus, .bol-tit-agenda .bol-ed:focus, .bol-expediente .bol-ed:focus { background: rgba(255, 255, 255, 0.18); box-shadow: 0 0 0 1.5px #fff; }
+.bol-tit-escuro .bol-ed:focus, .bol-verso .bol-ed:focus, .bol-expediente .bol-ed:focus { background: rgba(255, 255, 255, 0.18); box-shadow: 0 0 0 1.5px #fff; }
 .bol-ed[data-vazio]::before { content: attr(data-dica); color: #8aa0b2; font-style: italic; font-weight: 400; pointer-events: none; }
 .bol-ed[data-modo="paragrafos"][data-vazio] > p:first-child::before { content: attr(data-dica); color: #8aa0b2; font-style: italic; }
 .bol-ed[data-modo="paragrafos"][data-vazio]::before { content: none; }
