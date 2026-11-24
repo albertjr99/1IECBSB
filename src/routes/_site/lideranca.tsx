@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { UmaLinha } from "@/components/site/UmaLinha";
 import { useConteudo } from "@/lib/contexto";
 import { CapaPagina } from "@/components/site/Layout";
 
@@ -26,7 +27,7 @@ function Lideranca() {
                     <div className="grid aspect-[4/4.2] place-items-center bg-papel text-4xl font-bold tracking-[0.04em] text-marca/30">{iniciais(m.nome)}</div>
                   )}
                   <div className="p-6">
-                    <h3 className="filete text-[1.1rem] font-bold leading-snug text-marca">{m.nome}</h3>
+                    <h3 className="filete text-[1.1rem] font-bold leading-snug text-marca"><UmaLinha>{m.nome}</UmaLinha></h3>
                     <p className="mt-1 text-[11.5px] font-bold uppercase tracking-[0.18em] text-tinta-suave">{m.cargo}</p>
                     {m.bio && <p className="texto-justificado mt-3 text-[15px] leading-relaxed text-tinta">{m.bio}</p>}
                   </div>
