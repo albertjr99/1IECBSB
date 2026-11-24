@@ -215,3 +215,8 @@ span.bol-ed { display: inline-block; min-width: 0.6em; }
 .bol-avulso { width: 210mm; }
 .bol-selecionado { position: relative; }
 .bol-foco .bol-blocos > :not(.bol-selecionado) { opacity: 0.4; transition: opacity .2s; }
+
+/* Editor simples (painel): caixa de texto grande, sem as molduras da folha */
+.editor-facil-texto.bol-ed, .editor-facil-texto.bol-ed:hover, .editor-facil-texto.bol-ed:focus { background: transparent; box-shadow: none; border-radius: 0; }
+.editor-facil-texto strong { font-weight: 700; }
+.editor-facil-texto em { font-style: italic; }

@@ -71,10 +71,28 @@ export async function obterPorData(data: string): Promise<Boletim | null> {
   return r ? obter(r.id) : null;
 }
 
-export async function salvar(b: Boletim) {
+export class ConflitoBoletim extends Error {}
+
+/**
+ * Grava o boletim. Com `baseEm`, recusa se outra pessoa salvou depois que
+ * este editor abriu (evita que dois pastores apaguem o trabalho um do outro).
+ */
+export async function salvar(b: Boletim, opcoes: { baseEm?: string; versao?: string } = {}) {
   const l = await indice();
   if (l.some((x) => x.data === b.data && x.id !== b.id)) {
     throw new Error("Já existe um boletim com esta data. Mude a data ou abra o boletim existente.");
+  }
+  const atual = l.find((x) => x.id === b.id);
+  if (opcoes.baseEm && atual && atual.atualizadoEm !== opcoes.baseEm) {
+    throw new ConflitoBoletim(
+      atual.atualizadoPor === b.atualizadoPor
+        ? "Este boletim foi alterado em outra janela ou aparelho com o seu usuário."
+        : `${atual.atualizadoPor || "Outra pessoa"} alterou este boletim enquanto você editava.`,
+    );
+  }
+  if (atual) {
+    const anterior = await ler<Boletim>(chave(b.id));
+    if (anterior) await guardarVersao(anterior, opcoes.versao);
   }
   await gravar(chave(b.id), b);
   await gravar(INDICE, [resumir(b), ...l.filter((x) => x.id !== b.id)]);
@@ -82,7 +100,36 @@ export async function salvar(b: Boletim) {
 
 export async function excluir(id: string) {
   await apagar(chave(id));
+  await apagar(chaveVersoes(id));
   await gravar(INDICE, (await indice()).filter((x) => x.id !== id));
+}
+
+// ─── Versões anteriores (para "voltar atrás") ───────────────────────────────
+
+export type Versao = { em: string; por: string; motivo: string; boletim: Boletim };
+const chaveVersoes = (id: string) => `boletim-versoes:${id}`;
+const MAX_VERSOES = 25;
+const INTERVALO = 10 * 60_000;
+
+/** Guarda o estado anterior: no máximo um a cada 10 minutos, ou sempre que houver um motivo (publicar, restaurar…). */
+async function guardarVersao(anterior: Boletim, motivo?: string) {
+  const l = (await ler<Versao[]>(chaveVersoes(anterior.id))) ?? [];
+  const ultima = l[0];
+  if (!motivo && ultima && Date.parse(anterior.atualizadoEm) - Date.parse(ultima.em) < INTERVALO) return;
+  l.unshift({ em: anterior.atualizadoEm, por: anterior.atualizadoPor, motivo: motivo ?? "Edição", boletim: anterior });
+  await gravar(chaveVersoes(anterior.id), l.slice(0, MAX_VERSOES));
+}
+
+export async function versoes(id: string) {
+  const l = (await ler<Versao[]>(chaveVersoes(id))) ?? [];
+  return l.map(({ boletim, ...v }) => {
+    const pastoral = boletim.paginas.flatMap((p) => p.blocos).find((x) => x.tipo === "artigo");
+    return { ...v, pastoral: pastoral && pastoral.tipo === "artigo" ? pastoral.titulo : "" };
+  });
+}
+
+export async function versao(id: string, em: string) {
+  return ((await ler<Versao[]>(chaveVersoes(id))) ?? []).find((v) => v.em === em)?.boletim ?? null;
 }
 
 // Link assinado para o gerador de PDF abrir um boletim ainda não publicado.

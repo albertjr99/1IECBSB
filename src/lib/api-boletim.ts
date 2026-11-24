@@ -20,19 +20,75 @@ export const obterBoletimPainel = createServerFn({ method: "GET" })
   });
 
 export const salvarBoletim = createServerFn({ method: "POST" })
-  .validator((d: { boletim: Boletim; acao?: string }) => {
+  .validator((d: { boletim: Boletim; acao?: string; baseEm?: string }) => {
     if (!d?.boletim?.id || !/^\d{4}-\d{2}-\d{2}$/.test(d.boletim.data)) throw new Error("Informe a data do boletim.");
     return d;
   })
   .handler(async ({ data }) => {
     const { exigirSessao } = await import("../server/auth");
-    const { salvar } = await import("../server/boletins");
+    const { salvar, ConflitoBoletim } = await import("../server/boletins");
     const { registrar } = await import("../server/armazem");
     const s = exigirSessao();
     const b: Boletim = { ...data.boletim, atualizadoEm: new Date().toISOString(), atualizadoPor: s.nome };
-    await salvar(b);
+    try {
+      await salvar(b, { ...(data.baseEm ? { baseEm: data.baseEm } : {}), ...(data.acao ? { versao: data.acao } : {}) });
+    } catch (e) {
+      if (e instanceof ConflitoBoletim) return { conflito: e.message, atualizadoEm: "" };
+      throw e;
+    }
     if (data.acao) await registrar(s.nome, data.acao, `Boletim de ${b.data.split("-").reverse().join("/")}`);
-    return { atualizadoEm: b.atualizadoEm };
+    return { atualizadoEm: b.atualizadoEm, conflito: "" };
+  });
+
+/** Cria o boletim do domingo seguinte a partir do mais recente (ou do modelo, se ainda não houver nenhum). */
+export const criarBoletimDaSemana = createServerFn({ method: "POST" }).handler(async () => {
+  const { exigirSessao } = await import("../server/auth");
+  const { indice, obter, salvar } = await import("../server/boletins");
+  const { registrar } = await import("../server/armazem");
+  const { boletimModelo } = await import("./boletim");
+  const { domingoDaVez, prepararProximo } = await import("./boletim-facil");
+  const s = exigirSessao();
+  const l = await indice();
+  const base = l[0] ? await obter(l[0].id) : null;
+  let novo: Boletim;
+  let lembretes: string[] = [];
+  if (base) {
+    ({ boletim: novo, lembretes } = prepararProximo(base, l.map((x) => x.data), domingoDaVez()));
+  } else {
+    novo = boletimModelo();
+    novo.data = domingoDaVez();
+  }
+  novo.atualizadoEm = new Date().toISOString();
+  novo.atualizadoPor = s.nome;
+  await salvar(novo);
+  await registrar(s.nome, "Criou boletim", novo.data.split("-").reverse().join("/"));
+  return { id: novo.id, lembretes };
+});
+
+export const listarVersoesBoletim = createServerFn({ method: "GET" })
+  .validator((d: { id: string }) => d)
+  .handler(async ({ data }) => {
+    const { exigirSessao } = await import("../server/auth");
+    const { versoes } = await import("../server/boletins");
+    exigirSessao();
+    return versoes(data.id);
+  });
+
+export const restaurarVersaoBoletim = createServerFn({ method: "POST" })
+  .validator((d: { id: string; em: string }) => d)
+  .handler(async ({ data }) => {
+    const { exigirSessao } = await import("../server/auth");
+    const { obter, salvar, versao } = await import("../server/boletins");
+    const { registrar } = await import("../server/armazem");
+    const s = exigirSessao();
+    const antiga = await versao(data.id, data.em);
+    const atual = await obter(data.id);
+    if (!antiga || !atual) throw new Error("Versão não encontrada.");
+    // volta o conteúdo, mas mantém a situação no site (publicado ou não)
+    const b: Boletim = { ...antiga, publicado: atual.publicado, ...(atual.publicadoEm ? { publicadoEm: atual.publicadoEm } : {}), atualizadoEm: new Date().toISOString(), atualizadoPor: s.nome };
+    await salvar(b, { versao: "Antes de restaurar" });
+    await registrar(s.nome, "Restaurou versão do boletim", b.data.split("-").reverse().join("/"));
+    return b;
   });
 
 export const publicarBoletim = createServerFn({ method: "POST" })
@@ -48,9 +104,9 @@ export const publicarBoletim = createServerFn({ method: "POST" })
     if (data.publicar) b.publicadoEm = new Date().toISOString();
     b.atualizadoEm = new Date().toISOString();
     b.atualizadoPor = s.nome;
-    await salvar(b);
+    await salvar(b, { versao: data.publicar ? "Publicado" : "Retirado do site" });
     await registrar(s.nome, data.publicar ? "Publicou boletim" : "Retirou boletim do site", b.data.split("-").reverse().join("/"));
-    return { ok: true, publicadoEm: b.publicadoEm };
+    return { ok: true, publicadoEm: b.publicadoEm, atualizadoEm: b.atualizadoEm };
   });
 
 export const excluirBoletim = createServerFn({ method: "POST" })
