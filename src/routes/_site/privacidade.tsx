@@ -33,6 +33,12 @@ function Privacidade() {
           <p>O site não pede cadastro de visitantes. Quando você entra em contato pelo WhatsApp, telefone ou e-mail, usamos as informações que você enviar apenas para responder. As votações online da igreja usam um link individual enviado ao membro, e o voto secreto não fica ligado ao nome de quem votou.</p>
           <p>A empresa de hospedagem registra informações técnicas de acesso (como endereço IP e navegador) por segurança e para o site funcionar.</p>
         </Bloco>
+        <Bloco titulo="Aplicativo dos membros">
+          <p>O aplicativo “1ª IEC Brasília” (Google Play, App Store e versão web) é só para membros, com cadastro aprovado pela secretaria. Guardamos o nome, o celular, o e-mail, a data de nascimento e, se você quiser, uma foto. Também ficam na sua conta as preferências de leitura, os versículos e hinos guardados e a última leitura da Bíblia.</p>
+          <p>As contribuições por Pix são feitas no app do seu banco: o aplicativo não recebe dados bancários nem de cartão. Quando você informa que fez um Pix, registramos o tipo, o valor e a data para a tesouraria conferir.</p>
+          <p>Se você permitir notificações, o aparelho recebe um código de notificação para avisos da igreja (boletim, votações e reuniões). Nas reuniões online, a sala é do serviço Jitsi Meet e registramos a sua presença.</p>
+          <p>Os dados não são vendidos nem usados para publicidade. Você pode excluir a conta a qualquer momento no próprio aplicativo (Mais → Excluir minha conta); os registros de contribuições permanecem com a tesouraria, como exige a contabilidade da igreja.</p>
+        </Bloco>
         <Bloco titulo="Cookies e armazenamento no navegador">
           <ul>
             <li><strong>Essenciais</strong> — guardam sua escolha sobre cookies e mantêm a sessão da equipe na área administrativa. Não podem ser desligados.</li>

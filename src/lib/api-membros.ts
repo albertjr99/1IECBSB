@@ -208,6 +208,11 @@ export const salvarReuniaoPainel = createServerFn({ method: "POST" })
     else l.push({ id: novoId("r"), titulo: data.titulo.trim(), descricao: data.descricao.trim(), inicio: data.inicio, duracaoMin: Math.max(15, data.duracaoMin || 90), sala: `IECB-${randomBytes(9).toString("base64url")}`, criadaPor: s.nome, criadaEm: new Date().toISOString(), presencas: [] });
     await gravarReunioes(l);
     await registrar(s.nome, existente ? "Alterou reunião online" : "Agendou reunião online", data.titulo);
+    if (!existente) {
+      const { enviarPush } = await import("../server/push");
+      const quando = new Date(data.inicio).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+      await enviarPush("todos", { titulo: "Reunião online", texto: `${data.titulo.trim()} — ${quando}.`, dados: { tela: "inicio" } });
+    }
     return { ok: true };
   });
 
@@ -224,3 +229,29 @@ export const cancelarReuniaoPainel = createServerFn({ method: "POST" })
     await registrar(s.nome, "Cancelou reunião online", r?.titulo ?? "");
     return { ok: true };
   });
+
+/** Aviso no celular de todos os membros (ou de alguns). */
+export const enviarNotificacaoPainel = createServerFn({ method: "POST" })
+  .validator((d: { titulo: string; texto: string; membros?: string[] }) => {
+    if (!d.titulo?.trim() || !d.texto?.trim()) throw new Error("Escreva o título e a mensagem.");
+    if (d.titulo.length > 60 || d.texto.length > 240) throw new Error("Mensagem longa demais para notificação.");
+    return d;
+  })
+  .handler(async ({ data }) => {
+    const { exigirAcesso } = await import("../server/auth");
+    const { registrar } = await import("../server/armazem");
+    const { enviarPush } = await import("../server/push");
+    const s = await exigirAcesso("membros");
+    const r = await enviarPush(data.membros?.length ? data.membros : "todos", { titulo: data.titulo.trim(), texto: data.texto.trim(), dados: { tela: "inicio" } });
+    await registrar(s.nome, "Enviou notificação aos membros", data.titulo);
+    return r;
+  });
+
+/** Quantos membros já têm o app das lojas com notificações ligadas. */
+export const resumoAparelhosPainel = createServerFn({ method: "GET" }).handler(async () => {
+  const { exigirAcesso } = await import("../server/auth");
+  const { lerMembros } = await import("../server/membros");
+  await exigirAcesso("membros");
+  const l = (await lerMembros()).filter((m) => m.situacao === "ativo");
+  return { ativos: l.length, comApp: l.filter((m) => m.aparelhos?.length).length };
+});

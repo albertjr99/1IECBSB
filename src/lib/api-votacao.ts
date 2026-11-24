@@ -121,6 +121,11 @@ export const salvarVotacao = createServerFn({ method: "POST" })
     };
     await salvarVotacoes([v, ...todas.filter((x) => x.id !== v.id)]);
     await registrar(s.nome, existente ? "Alterou votação" : "Criou votação", v.titulo);
+    const doApp = v.eleitores.flatMap((e) => (e.membroId ? [e.membroId] : []));
+    if (!v.rascunho && doApp.length) {
+      const { avisarUmaVez } = await import("../server/push");
+      await avisarUmaVez(`votacao:${v.id}`, doApp, { titulo: "Nova votação", texto: `${v.titulo}. Abra o aplicativo para votar.`, dados: { tela: "votacao" } });
+    }
     return { id: v.id };
   });
 
@@ -166,50 +171,55 @@ export const acaoVotacao = createServerFn({ method: "POST" })
 
 // ─── Cédula (link individual) ───────────────────────────────────────────────
 
+/** Cédula pelo token individual (site e app). */
+export async function cedulaPorToken(token: string) {
+  const { acharPorToken, jaVotou } = await import("../server/votacao");
+  const r = await acharPorToken(token);
+  if (!r) return { encontrada: false as const };
+  const { v, e } = r;
+  const situacao = situacaoDa(v);
+  return {
+    encontrada: true as const,
+    titulo: v.titulo,
+    descricao: v.descricao,
+    sigilo: v.sigilo,
+    inicio: v.inicio,
+    fim: v.encerradaEm ?? v.fim,
+    situacao,
+    eleitor: e.nome,
+    opcoes: opcoesDa(v),
+    jaVotou: await jaVotou(v.id, e.id),
+    resultado: situacao === "encerrada" ? await resultadoDe(v).then(({ nominal: _n, presenca: _p, ...r }) => r) : null,
+  };
+}
+
+export async function votarPorToken(token: string, opcao: string) {
+  const { acharPorToken, registrarVoto } = await import("../server/votacao");
+  const r = await acharPorToken(token);
+  if (!r) return { ok: false as const, erro: "Link inválido." };
+  const { v, e } = r;
+  const sit = situacaoDa(v);
+  if (sit === "agendada") return { ok: false as const, erro: "A votação ainda não começou." };
+  if (sit !== "em_andamento") return { ok: false as const, erro: "Esta votação está encerrada." };
+  if (!opcoesDa(v).some((o) => o.id === opcao)) return { ok: false as const, erro: "Opção inválida." };
+  const res = await registrarVoto(v, e.id, opcao);
+  if (res.ok) await talvezEncerrar(v);
+  return res;
+}
+
 export const abrirCedula = createServerFn({ method: "GET" })
   .validator((d: { token: string }) => {
     if (!d?.token || d.token.length < 10 || d.token.length > 80) throw new Error("Link inválido.");
     return d;
   })
-  .handler(async ({ data }) => {
-    const { acharPorToken, jaVotou } = await import("../server/votacao");
-    const r = await acharPorToken(data.token);
-    if (!r) return { encontrada: false as const };
-    const { v, e } = r;
-    const situacao = situacaoDa(v);
-    return {
-      encontrada: true as const,
-      titulo: v.titulo,
-      descricao: v.descricao,
-      sigilo: v.sigilo,
-      inicio: v.inicio,
-      fim: v.encerradaEm ?? v.fim,
-      situacao,
-      eleitor: e.nome,
-      opcoes: opcoesDa(v),
-      jaVotou: await jaVotou(v.id, e.id),
-      resultado: situacao === "encerrada" ? await resultadoDe(v).then(({ nominal: _n, presenca: _p, ...r }) => r) : null,
-    };
-  });
+  .handler(({ data }) => cedulaPorToken(data.token));
 
 export const votar = createServerFn({ method: "POST" })
   .validator((d: { token: string; opcao: string }) => {
     if (!d?.token || !d.opcao) throw new Error("Escolha uma opção.");
     return d;
   })
-  .handler(async ({ data }) => {
-    const { acharPorToken, registrarVoto } = await import("../server/votacao");
-    const r = await acharPorToken(data.token);
-    if (!r) return { ok: false as const, erro: "Link inválido." };
-    const { v, e } = r;
-    const sit = situacaoDa(v);
-    if (sit === "agendada") return { ok: false as const, erro: "A votação ainda não começou." };
-    if (sit !== "em_andamento") return { ok: false as const, erro: "Esta votação está encerrada." };
-    if (!opcoesDa(v).some((o) => o.id === data.opcao)) return { ok: false as const, erro: "Opção inválida." };
-    const res = await registrarVoto(v, e.id, data.opcao);
-    if (res.ok) await talvezEncerrar(v);
-    return res;
-  });
+  .handler(({ data }) => votarPorToken(data.token, data.opcao));
 
 /** Membros ativos do app, para incluir como votantes (votam logados, pelo app). */
 export const membrosParaVotar = createServerFn({ method: "GET" }).handler(async () => {

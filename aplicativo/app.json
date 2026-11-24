@@ -1,0 +1,96 @@
+{
+  "expo": {
+    "name": "1ª IEC Brasília",
+    "slug": "iecb-membros",
+    "scheme": "iecb",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#00436F",
+    "primaryColor": "#00436F",
+    "description": "Aplicativo dos membros da Primeira Igreja Evangélica Congregacional de Brasília.",
+    "ios": {
+      "bundleIdentifier": "br.org.iecbrasilia.membros",
+      "buildNumber": "1",
+      "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Para escolher a sua foto de perfil no aplicativo da igreja.",
+        "NSCameraUsageDescription": "Para tirar a sua foto de perfil no aplicativo da igreja."
+      }
+    },
+    "android": {
+      "package": "br.org.iecbrasilia.membros",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#00436F",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#00436F"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#00436F",
+          "defaultChannel": "avisos"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Para escolher a sua foto de perfil no aplicativo da igreja.",
+          "cameraPermission": "Para tirar a sua foto de perfil no aplicativo da igreja.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24
+          }
+        }
+      ],
+      "./plugins/assinatura-android"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    },
+    "extra": {
+      "apiUrl": "https://1iecbsb.vercel.app",
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}

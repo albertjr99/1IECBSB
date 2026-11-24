@@ -1,0 +1,100 @@
+/**
+ * Bíblia: índice e livros vêm do site da igreja e ficam guardados no aparelho
+ * (depois da primeira leitura, funciona sem internet). Dá para baixar tudo.
+ */
+import { Platform } from "react-native";
+import { API } from "./api";
+import { gravarCache, lerCache } from "./cache";
+
+export type Livro = { id: string; nome: string; testamento: "AT" | "NT" };
+export type Versao = { id: string; nome: string; sigla: string; credito: string; capitulos: Record<string, number>; somenteNT?: boolean };
+export type Indice = { livros: Livro[]; versoes: Versao[] };
+
+let indiceMem: Indice | null = null;
+const livrosMem = new Map<string, string[][]>();
+
+async function arquivo(nome: string) {
+  if (Platform.OS === "web") return null;
+  const { File, Directory, Paths } = await import("expo-file-system");
+  const dir = new Directory(Paths.document, "biblia");
+  if (!dir.exists) dir.create({ intermediates: true });
+  return new File(dir, nome);
+}
+
+async function lerLocal<T>(nome: string): Promise<T | null> {
+  try {
+    const f = await arquivo(nome);
+    if (f) return f.exists ? (JSON.parse(await f.text()) as T) : null;
+    return lerCache<T>(`biblia:${nome}`);
+  } catch { return null; }
+}
+async function gravarLocal(nome: string, texto: string) {
+  try {
+    const f = await arquivo(nome);
+    if (f) { if (f.exists) f.delete(); f.create(); f.write(texto); }
+    else await gravarCache(`biblia:${nome}`, JSON.parse(texto));
+  } catch { /* segue sem guardar */ }
+}
+
+export async function obterIndice(): Promise<Indice> {
+  if (indiceMem) return indiceMem;
+  const local = await lerLocal<Indice>("indice.json");
+  const buscar = fetch(`${API}/biblia/indice.json`).then(async (r) => {
+    if (!r.ok) throw new Error();
+    const t = await r.text();
+    await gravarLocal("indice.json", t);
+    indiceMem = JSON.parse(t) as Indice;
+    return indiceMem;
+  });
+  if (local) { indiceMem = local; buscar.catch(() => {}); return local; }
+  return buscar.catch(() => { throw new Error("Conecte-se à internet para abrir a Bíblia pela primeira vez."); });
+}
+
+export async function obterLivro(versao: string, livro: string): Promise<string[][]> {
+  const k = `${versao}/${livro}`;
+  const mem = livrosMem.get(k);
+  if (mem) return mem;
+  const nome = `${versao}-${livro}.json`;
+  const local = await lerLocal<string[][]>(nome);
+  if (local) { livrosMem.set(k, local); return local; }
+  const r = await fetch(`${API}/biblia/${versao}/${livro}.json`).catch(() => null);
+  if (!r?.ok) throw new Error("Sem internet: este livro ainda não foi baixado.");
+  const t = await r.text();
+  await gravarLocal(nome, t);
+  const l = JSON.parse(t) as string[][];
+  livrosMem.set(k, l);
+  return l;
+}
+
+/** Baixa a versão inteira para ler sem internet. */
+export async function baixarVersao(v: Versao, progresso: (feitos: number, total: number) => void) {
+  const ids = Object.keys(v.capitulos);
+  let feitos = 0;
+  for (let i = 0; i < ids.length; i += 6) {
+    await Promise.all(ids.slice(i, i + 6).map((id) => obterLivro(v.id, id).catch(() => null).then(() => progresso(++feitos, ids.length))));
+  }
+}
+
+/** "jo 3:16", "1co 13", "salmos 23" → livro e capítulo/versículo. */
+const ABREV: Record<string, string> = {
+  gn: "GEN", ex: "EXO", lv: "LEV", nm: "NUM", dt: "DEU", js: "JOS", jz: "JDG", rt: "RUT", "1sm": "1SA", "2sm": "2SA", "1rs": "1KI", "2rs": "2KI",
+  "1cr": "1CH", "2cr": "2CH", ed: "EZR", ne: "NEH", et: "EST", "jó": "JOB", sl: "PSA", pv: "PRO", ec: "ECC", ct: "SNG", is: "ISA", jr: "JER",
+  lm: "LAM", ez: "EZK", dn: "DAN", os: "HOS", jl: "JOL", am: "AMO", ob: "OBA", jn: "JON", mq: "MIC", na: "NAM", hc: "HAB", sf: "ZEP", ag: "HAG",
+  zc: "ZEC", ml: "MAL", mt: "MAT", mc: "MRK", lc: "LUK", jo: "JHN", at: "ACT", rm: "ROM", "1co": "1CO", "2co": "2CO", gl: "GAL", ef: "EPH",
+  fp: "PHP", cl: "COL", "1ts": "1TH", "2ts": "2TH", "1tm": "1TI", "2tm": "2TI", tt: "TIT", fm: "PHM", hb: "HEB", tg: "JAS", "1pe": "1PE",
+  "2pe": "2PE", "1jo": "1JN", "2jo": "2JN", "3jo": "3JN", jd: "JUD", ap: "REV",
+};
+const semAcento = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+export function interpretar(busca: string, livros: Livro[]): { livro: string; capitulo: number; versiculo?: number } | null {
+  const m = busca.trim().toLowerCase().replace(/\s+/g, " ").match(/^(\d?\s?[\p{L}]+\.?)\s*(\d+)?(?:[:.,\s](\d+))?/u);
+  if (!m) return null;
+  const nome = m[1]!.replace(/\s|\./g, "");
+  let id: string | undefined = ABREV[nome];
+  if (!id) {
+    const alvo = semAcento(nome);
+    id = livros.find((l) => semAcento(l.nome.toLowerCase().replace(/\s/g, "")).startsWith(alvo))?.id;
+  }
+  if (!id) return null;
+  return { livro: id, capitulo: Number(m[2] ?? 1), versiculo: m[3] ? Number(m[3]) : undefined };
+}

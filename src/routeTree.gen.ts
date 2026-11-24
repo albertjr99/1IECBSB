@@ -24,6 +24,7 @@ import { Route as SiteProgramacaoRouteImport } from './routes/_site/programacao'
 import { Route as SiteSobreRouteImport } from './routes/_site/sobre'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminEntrarRouteImport } from './routes/admin/entrar'
+import { Route as ApiMRouteImport } from './routes/api/m'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppBibliaRouteImport } from './routes/app/biblia'
 import { Route as AppHinarioRouteImport } from './routes/app/hinario'
@@ -112,6 +113,11 @@ const AdminEntrarRoute = AdminEntrarRouteImport.update({
   path: '/admin/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMRoute = ApiMRouteImport.update({
+  id: '/api/m',
+  path: '/api/m',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/programacao': typeof SiteProgramacaoRoute
   '/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
+  '/api/m': typeof ApiMRoute
   '/app/biblia': typeof AppBibliaRoute
   '/app/hinario': typeof AppHinarioRoute
   '/app/mais': typeof AppMaisRoute
@@ -219,6 +226,7 @@ export interface FileRoutesByTo {
   '/programacao': typeof SiteProgramacaoRoute
   '/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
+  '/api/m': typeof ApiMRoute
   '/app/biblia': typeof AppBibliaRoute
   '/app/hinario': typeof AppHinarioRoute
   '/app/mais': typeof AppMaisRoute
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/_site/programacao': typeof SiteProgramacaoRoute
   '/_site/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
+  '/api/m': typeof ApiMRoute
   '/app/biblia': typeof AppBibliaRoute
   '/app/hinario': typeof AppHinarioRoute
   '/app/mais': typeof AppMaisRoute
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/sobre'
     | '/admin/entrar'
+    | '/api/m'
     | '/app/biblia'
     | '/app/hinario'
     | '/app/mais'
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/sobre'
     | '/admin/entrar'
+    | '/api/m'
     | '/app/biblia'
     | '/app/hinario'
     | '/app/mais'
@@ -339,6 +350,7 @@ export interface FileRouteTypes {
     | '/_site/programacao'
     | '/_site/sobre'
     | '/admin/entrar'
+    | '/api/m'
     | '/app/biblia'
     | '/app/hinario'
     | '/app/mais'
@@ -360,6 +372,7 @@ export interface RootRouteChildren {
   SiteRoute: typeof SiteRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
   AdminEntrarRoute: typeof AdminEntrarRoute
+  ApiMRoute: typeof ApiMRoute
   VotarTokenRoute: typeof VotarTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ApiHubRetornoRoute: typeof ApiHubRetornoRoute
@@ -473,6 +486,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/entrar'
       fullPath: '/admin/entrar'
       preLoaderRoute: typeof AdminEntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/m': {
+      id: '/api/m'
+      path: '/api/m'
+      fullPath: '/api/m'
+      preLoaderRoute: typeof ApiMRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -627,6 +647,7 @@ const rootRouteChildren: RootRouteChildren = {
   SiteRoute: SiteRouteWithChildren,
   AppRoute: AppRouteWithChildren,
   AdminEntrarRoute: AdminEntrarRoute,
+  ApiMRoute: ApiMRoute,
   VotarTokenRoute: VotarTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
   ApiHubRetornoRoute: ApiHubRetornoRoute,

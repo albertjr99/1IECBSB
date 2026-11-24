@@ -3,11 +3,11 @@
  * Reuniões online. Tudo o que é decidido aqui aparece no app na hora.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, Download, KeyRound, Loader2, Music, Pencil, Plus, Search, Smartphone, Trash2, UserCheck, UserX, Users, Video, X } from "lucide-react";
+import { Bell, Check, Copy, Download, KeyRound, Loader2, Music, Pencil, Plus, Search, Send, Smartphone, Trash2, UserCheck, UserX, Users, Video, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   confirmarContribuicaoPainel, importarHinosPainel, listarContribuicoesPainel, listarHinosPainel, listarMembrosPainel, listarReunioesPainel,
-  cancelarReuniaoPainel, removerHinoPainel, removerMembroPainel, salvarHinoPainel, salvarMembroPainel, salvarReuniaoPainel, senhaProvisoriaMembro, situacaoMembroPainel,
+  cancelarReuniaoPainel, enviarNotificacaoPainel, removerHinoPainel, removerMembroPainel, resumoAparelhosPainel, salvarHinoPainel, salvarMembroPainel, salvarReuniaoPainel, senhaProvisoriaMembro, situacaoMembroPainel,
 } from "@/lib/api-membros";
 import { SITUACAO_MEMBRO_ROTULO, TIPO_CONTRIBUICAO, linkDaSala, reais, salaAberta, soDigitos, type Hino, type MembroPublico, type SituacaoMembro } from "@/lib/membros";
 import { cn, linkWhatsapp } from "@/lib/utils";
@@ -72,6 +72,8 @@ export function ModuloMembros() {
           <a href="/app" target="_blank" rel="noopener" className="ef-btn ef-btn-sec"><Smartphone size={15} /> Abrir o app</a>
         </div>
       </section>
+
+      <EnviarAviso />
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-p-borda pb-3">
         <div className="ef-chaves">
@@ -414,3 +416,46 @@ export function ModuloReunioes() {
   );
 }
 
+
+/** Notificação no celular dos membros que usam o app das lojas. */
+function EnviarAviso() {
+  const [resumo, setResumo] = useState<{ ativos: number; comApp: number } | null>(null);
+  const [aberto, setAberto] = useState(false);
+  const [titulo, setTitulo] = useState("");
+  const [texto, setTexto] = useState("");
+  const [indo, setIndo] = useState(false);
+  useEffect(() => { resumoAparelhosPainel().then(setResumo).catch(() => {}); }, []);
+  const enviar = async () => {
+    setIndo(true);
+    try {
+      const r = await enviarNotificacaoPainel({ data: { titulo, texto } });
+      toast.success(r.aparelhos ? `Aviso enviado para ${r.membros} membro(s).` : "Nenhum membro com notificações ligadas ainda.");
+      setTitulo(""); setTexto(""); setAberto(false);
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+    finally { setIndo(false); }
+  };
+  return (
+    <section className="ef-peca grid gap-4 px-6 py-5">
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+        <div>
+          <p className="ef-h2 flex items-center gap-2"><Bell size={17} /> Avisar no celular</p>
+          <p className="mt-1.5 text-[14px] text-p-suave">
+            Manda uma notificação para quem usa o aplicativo das lojas{resumo ? ` (${resumo.comApp} de ${resumo.ativos} membros ativos com notificações ligadas)` : ""}.
+            O boletim publicado, as votações e as reuniões novas já avisam sozinhos.
+          </p>
+        </div>
+        {!aberto && <button onClick={() => setAberto(true)} className="ef-btn ef-btn-sec"><Send size={15} /> Escrever aviso</button>}
+      </div>
+      {aberto && (
+        <div className="grid gap-3">
+          <Campo rotulo="Título" valor={titulo} onChange={setTitulo} dica={`${titulo.length}/60`} />
+          <Campo rotulo="Mensagem" valor={texto} onChange={setTexto} multilinha dica={`${texto.length}/240`} />
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setAberto(false)} className="ef-btn ef-btn-fantasma">Cancelar</button>
+            <button disabled={indo || !titulo.trim() || !texto.trim() || titulo.length > 60 || texto.length > 240} onClick={enviar} className="ef-btn ef-btn-pri">{indo ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Enviar para todos</button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}

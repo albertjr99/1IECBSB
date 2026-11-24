@@ -27,9 +27,11 @@ export type Membro = {
   /** versículos ("JHN.3.16") e hinos (número) guardados */
   favoritos: { versos: string[]; hinos: number[] };
   ultimaLeitura?: { versao: string; livro: string; capitulo: number };
+  /** aparelhos com o app das lojas (Expo push token) */
+  aparelhos?: { token: string; plataforma: string; em: string }[];
 };
 
-export type MembroPublico = Omit<Membro, "hash">;
+export type MembroPublico = Omit<Membro, "hash" | "aparelhos">;
 
 export const PREFS_PADRAO: Preferencias = { versao: "blivre", letra: 3, tema: "sistema" };
 

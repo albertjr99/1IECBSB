@@ -94,7 +94,7 @@ function Biblia() {
   const v = indice?.versoes.find((x) => x.id === versao);
   const l = indice?.livros.find((x) => x.id === livro);
   const total = v?.capitulos[livro] ?? 1;
-  const ordem = indice?.livros ?? [];
+  const ordem = (indice?.livros ?? []).filter((x) => !v || v.capitulos[x.id]);
   const passo = (d: 1 | -1) => {
     if (!indice) return;
     if (d === 1 && cap < total) return setCap(cap + 1);
@@ -121,6 +121,8 @@ function Biblia() {
   };
   const trocarVersao = (id: string) => {
     setVersao(id);
+    const nova = indice?.versoes.find((x) => x.id === id);
+    if (nova && !nova.capitulos[livro]) { setLivro("MAT"); setCap(1); } // versão só com o Novo Testamento
     atualizar({ ...membro, prefs: { ...membro.prefs, versao: id } });
     appAtualizarPerfil({ data: { prefs: { versao: id } } }).catch(() => {});
   };
@@ -213,7 +215,7 @@ function Biblia() {
             </div>
             {seletor === "livro" ? (
               <ul className="grid grid-cols-2 gap-px bg-[var(--a-borda)] p-px">
-                {indice.livros.filter((x) => x.testamento === testamento).map((x) => (
+                {indice.livros.filter((x) => x.testamento === testamento && (!v || v.capitulos[x.id])).map((x) => (
                   <li key={x.id}><button onClick={() => { setLivro(x.id); setCap(1); setSeletor("capitulo"); }} className={cn("w-full bg-[var(--a-sup)] px-4 py-3.5 text-left text-[15px] font-semibold", x.id === livro && "text-[var(--a-azul)]")}>{x.nome}</button></li>
                 ))}
               </ul>

@@ -3,7 +3,7 @@
  * dados que o app usa. Senha com o mesmo cuidado do painel (scrypt com sal).
  */
 import { timingSafeEqual } from "node:crypto";
-import { deleteCookie, getCookie, setCookie } from "@tanstack/react-start/server";
+import { deleteCookie, getCookie, getRequestHeader, setCookie } from "@tanstack/react-start/server";
 import { gravar, ler } from "./armazem";
 import { assinar, conferirSenha } from "./auth";
 import { PREFS_PADRAO, soDigitos, type Contribuicao, type Hino, type Membro, type MembroPublico, type Reuniao } from "@/lib/membros";
@@ -19,7 +19,7 @@ export async function lerMembros(): Promise<Membro[]> {
 }
 export async function gravarMembros(l: Membro[]) { await gravar("membros", l); }
 
-export const publico = ({ hash: _h, ...m }: Membro): MembroPublico => m;
+export const publico = ({ hash: _h, aparelhos: _a, ...m }: Membro): MembroPublico => m;
 
 /** Acha pelo celular (só dígitos, com ou sem DDD/55) ou e-mail. */
 export function acharPorLogin(l: Membro[], login: string) {
@@ -34,14 +34,20 @@ export function autenticarMembro(m: Membro | undefined, senha: string) {
   return !!m && !!m.hash && conferirSenha(senha, m.hash);
 }
 
+/** Credencial assinada do membro (cookie no site; "Bearer" no app das lojas). */
+export function tokenDoMembro(m: Pick<Membro, "id">, duracaoMs = DURACAO_MS) {
+  const dados = Buffer.from(JSON.stringify({ id: m.id, exp: Date.now() + duracaoMs })).toString("base64url");
+  return `${dados}.${assinar(`membro.${dados}`)}`;
+}
+
 export function abrirSessaoMembro(m: Membro) {
-  const dados = Buffer.from(JSON.stringify({ id: m.id, exp: Date.now() + DURACAO_MS })).toString("base64url");
-  setCookie(COOKIE, `${dados}.${assinar(`membro.${dados}`)}`, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: DURACAO_MS / 1000 });
+  setCookie(COOKIE, tokenDoMembro(m), { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: DURACAO_MS / 1000 });
 }
 export function encerrarSessaoMembro() { deleteCookie(COOKIE, { path: "/" }); }
 
 function idDaSessao(): string | null {
-  const bruto = getCookie(COOKIE);
+  const auth = getRequestHeader("authorization");
+  const bruto = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : getCookie(COOKIE);
   if (!bruto) return null;
   const [dados, sig] = bruto.split(".");
   if (!dados || !sig) return null;
