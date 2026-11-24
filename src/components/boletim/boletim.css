@@ -147,3 +147,25 @@
 .bol-fluxo .bol-cont { text-indent: 0 !important; }
 .bol-avisos h3 { font-size: 18pt; font-weight: 700; line-height: 1.2; margin: 12pt 0 0; text-align: left; }
 .bol-avisos > .bol-col > h3:first-child, .bol-avisos > h3:first-child { margin-top: 0; }
+
+/* ─── Editor do painel: escrever direto na folha ─────────────────────────── */
+.bol-selecionavel { position: relative; cursor: default; border-radius: 1px; }
+.bol-selecionavel::after { content: ""; position: absolute; inset: -3pt; border: 1px solid transparent; pointer-events: none; transition: border-color .12s; }
+.bol-selecionavel:hover::after { border-color: rgba(0, 67, 111, 0.28); }
+.bol-selecionado::after, .bol-selecionado:hover::after { border: 1.5px solid #00436f; box-shadow: 0 0 0 3px rgba(0, 67, 111, 0.12); }
+.bol-ed { outline: none; border-radius: 1px; cursor: text; transition: background-color .12s, box-shadow .12s; caret-color: #00436f; }
+span.bol-ed { display: inline-block; min-width: 0.6em; }
+.bol-tab span.bol-ed { display: inline; }
+.bol-ed:hover { background: rgba(0, 67, 111, 0.06); }
+.bol-ed:focus { background: rgba(217, 230, 239, 0.55); box-shadow: 0 0 0 1.5px rgba(0, 67, 111, 0.55); }
+.bol-tit-escuro .bol-ed:focus, .bol-sub-escuro .bol-ed:focus, .bol-sub-medio .bol-ed:focus, .bol-tit-agenda .bol-ed:focus { background: rgba(255, 255, 255, 0.18); box-shadow: 0 0 0 1.5px #fff; }
+.bol-ed[data-vazio]::before { content: attr(data-dica); color: #8aa0b2; font-style: italic; font-weight: 400; pointer-events: none; }
+.bol-ed[data-modo="paragrafos"][data-vazio] > p:first-child::before { content: attr(data-dica); color: #8aa0b2; font-style: italic; }
+.bol-ed[data-modo="paragrafos"][data-vazio]::before { content: none; }
+.bol-ed ::selection { background: rgba(0, 67, 111, 0.22); }
+.bol-vazia { position: absolute; inset: 64pt 24pt 24pt; display: grid; place-content: center; gap: 4pt; border: 1.5px dashed #b8c8d6; border-radius: 6pt; background: #f8fafc; color: #00436f; font: 600 15pt/1.2 Montserrat, system-ui, sans-serif; cursor: pointer; transition: background .15s, border-color .15s; }
+.bol-vazia small { font: 500 10pt/1.2 Montserrat, system-ui, sans-serif; color: #5b7f99; }
+.bol-vazia:hover { background: #eef4f8; border-color: #00436f; }
+.bol-avulso { width: 210mm; }
+.bol-selecionado { position: relative; }
+.bol-foco .bol-blocos > :not(.bol-selecionado) { opacity: 0.4; transition: opacity .2s; }

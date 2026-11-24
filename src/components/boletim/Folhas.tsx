@@ -2,8 +2,12 @@
  * Desenho das páginas do boletim — o mesmo para a prévia do painel, a página
  * no site e o PDF.
  */
-import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import "./boletim.css";
+import { EdicaoCtx, Editavel } from "./Editavel";
+import { escapar, marcadoHtml, paragrafos, type ModoTexto } from "./marcacao";
+
+export { marcadoHtml };
 import type { Bloco, Boletim, Pagina } from "@/lib/boletim";
 import { dataPorExtenso } from "@/lib/boletim";
 import { ARCO_D } from "./arco";
@@ -28,21 +32,6 @@ export function Marcado({ texto }: { texto: string }) {
 function Linhas({ texto }: { texto: string }) {
   const l = texto.split("\n");
   return <>{l.map((x, i) => <Fragment key={i}>{i > 0 && <br />}<Marcado texto={x} /></Fragment>)}</>;
-}
-
-const paragrafos = (t: string) => t.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-
-// ─── Fluxo em duas colunas de larguras diferentes ──────────────────────────
-
-const escapar = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-/** Mesma marcação do <Marcado>, em HTML (para medir e para o fluxo). */
-export function marcadoHtml(texto: string) {
-  return escapar(texto)
-    .replace(/\*\*\*([^*]+)\*\*\*/g, "<strong><em>$1</em></strong>")
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*\n]+)\*/g, "<em>$1</em>")
-    .replace(/\n/g, "<br>");
 }
 
 /** Uma peça do texto: títulos não se dividem; parágrafos se dividem por palavra. */
@@ -254,9 +243,29 @@ function Banner() {
 
 // ─── Blocos ─────────────────────────────────────────────────────────────────
 
-function BlocoView({ b }: { b: Bloco }) {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type Setter = (x: any, v: string) => void;
+
+/**
+ * Desenha um bloco. No editor do painel (EdicaoCtx presente), cada texto vira
+ * um campo editável no lugar; campos opcionais vazios aparecem só no bloco
+ * selecionado, para não mudar a página.
+ */
+function BlocoView({ b, ativo = false }: { b: Bloco; ativo?: boolean }) {
+  const ed = useContext(EdicaoCtx);
   const escala = (b.ajuste || 100) / 100;
   const estilo = escala !== 1 ? { fontSize: `${16 * escala}pt` } : undefined;
+
+  /** Texto do bloco: editável no painel, marcado no site/PDF. */
+  const T = (valor: string, set: Setter, modo: ModoTexto = "linha", dica?: string, como: "span" | "div" = modo === "paragrafos" ? "div" : "span") => {
+    if (!ed) return modo === "linha" ? <Marcado texto={valor} /> : <Linhas texto={valor} />;
+    return <Editavel valor={valor} modo={modo} dica={dica} como={como} aoMudar={(v) => ed.mudar(b.id, (x) => set(x, v))} />;
+  };
+  /** Campo opcional: some quando vazio, exceto no bloco selecionado do editor. */
+  const mostra = (valor: string) => Boolean(valor) || (Boolean(ed) && ativo);
+  const paras = (texto: string, set: Setter, dica = "Escreva o texto…") =>
+    ed ? T(texto, set, "paragrafos", dica) : paragrafos(texto).map((p, i) => <p key={i}><Linhas texto={p} /></p>);
+
   switch (b.tipo) {
     case "artigo": {
       if (b.colunas === 2) {
@@ -271,10 +280,10 @@ function BlocoView({ b }: { b: Bloco }) {
       return (
         <div className="bol-artigo" style={estilo}>
           <div className="bol-texto">
-            {b.rotulo && <div className={`bol-rotulo ${b.rotuloLado === "direita" ? "bol-dir" : ""}`}>{b.rotulo}</div>}
-            {b.titulo && <h2>{b.titulo}</h2>}
-            {paragrafos(b.texto).map((p, i) => <p key={i}><Linhas texto={p} /></p>)}
-            {b.autor && <p className="bol-assinatura">{b.autor}</p>}
+            {mostra(b.rotulo) && <div className={`bol-rotulo ${b.rotuloLado === "direita" ? "bol-dir" : ""}`}>{T(b.rotulo, (x, v) => { x.rotulo = v; }, "linha", "Rótulo (ex.: Pastoral)")}</div>}
+            {mostra(b.titulo) && <h2>{T(b.titulo, (x, v) => { x.titulo = v; }, "linha", "Título")}</h2>}
+            {paras(b.texto, (x, v) => { x.texto = v; })}
+            {mostra(b.autor) && <p className="bol-assinatura">{T(b.autor, (x, v) => { x.autor = v; }, "linha", "Assinatura")}</p>}
           </div>
         </div>
       );
@@ -289,10 +298,10 @@ function BlocoView({ b }: { b: Bloco }) {
       }
       return (
         <div className="bol-avisos" style={estilo}>
-          {b.itens.map((a) => (
+          {b.itens.map((a, i) => (
             <Fragment key={a.id}>
-              {a.titulo && <h3>{a.titulo}</h3>}
-              {paragrafos(a.texto).map((p, i) => <p key={i}><Linhas texto={p} /></p>)}
+              {mostra(a.titulo) && <h3>{T(a.titulo, (x, v) => { x.itens[i].titulo = v; }, "linha", "Título do aviso")}</h3>}
+              {paras(a.texto, (x, v) => { x.itens[i].texto = v; }, "Texto do aviso…")}
             </Fragment>
           ))}
         </div>
@@ -302,19 +311,24 @@ function BlocoView({ b }: { b: Bloco }) {
       const porteiros = b.porteiros;
       const metade = Math.ceil(porteiros.length / 2);
       const fonte = escala !== 1 ? { fontSize: `${10 * escala}pt` } : undefined;
+      const porteiro = (k: number) => {
+        const x = porteiros[k];
+        if (!x) return null;
+        return <><strong>{T(x.horario, (y, v) => { y.porteiros[k].horario = v; }, "linha", "Horário")}</strong>{(x.horario || ed) && ": "}{T(x.nome, (y, v) => { y.porteiros[k].nome = v; }, "linha", "Nome")}</>;
+      };
       // Três tabelas encostadas, como no Word: cada parte tem suas colunas.
       return (
         <div className="bol-escala" style={fonte}>
           <table className="bol-tab" style={fonte}>
             <colgroup><col style={{ width: "36%" }} /><col style={{ width: "32%" }} /><col style={{ width: "32%" }} /></colgroup>
             <tbody>
-              <tr><td colSpan={3} className="bol-tit-escuro">{b.titulo}</td></tr>
-              <tr>{b.cabecalho.map((c, i) => <td key={i} className="bol-sub-medio">{c}</td>)}</tr>
-              {b.linhas.map((l) => (
+              <tr><td colSpan={3} className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
+              <tr>{b.cabecalho.map((c, i) => <td key={i} className="bol-sub-medio">{T(c, (x, v) => { x.cabecalho[i] = v; })}</td>)}</tr>
+              {b.linhas.map((l, li) => (
                 <tr key={l.id}>
-                  <td className="bol-rot">{l.celulas[0]}</td>
-                  <td className="bol-c">{l.celulas[1]}</td>
-                  <td className="bol-c">{l.celulas[2]}</td>
+                  <td className="bol-rot">{T(l.celulas[0], (x, v) => { x.linhas[li].celulas[0] = v; }, "linha", "Função")}</td>
+                  <td className="bol-c">{T(l.celulas[1], (x, v) => { x.linhas[li].celulas[1] = v; })}</td>
+                  <td className="bol-c">{T(l.celulas[2], (x, v) => { x.linhas[li].celulas[2] = v; })}</td>
                 </tr>
               ))}
             </tbody>
@@ -322,17 +336,13 @@ function BlocoView({ b }: { b: Bloco }) {
           {porteiros.length > 0 && (
             <table className="bol-tab" style={{ ...fonte, marginTop: "-0.5pt" }}>
               <tbody>
-                <tr><td colSpan={2} className="bol-sub-escuro">{b.porteirosTitulo}</td></tr>
-                {Array.from({ length: metade }).map((_, i) => {
-                  const x = porteiros[i];
-                  const y = porteiros[i + metade];
-                  return (
-                    <tr key={i}>
-                      <td style={{ width: "50%" }}>{x && <><strong>{x.horario}</strong>{x.horario && ": "}{x.nome}</>}</td>
-                      <td>{y && <><strong>{y.horario}</strong>{y.horario && ": "}{y.nome}</>}</td>
-                    </tr>
-                  );
-                })}
+                <tr><td colSpan={2} className="bol-sub-escuro">{T(b.porteirosTitulo, (x, v) => { x.porteirosTitulo = v; })}</td></tr>
+                {Array.from({ length: metade }).map((_, i) => (
+                  <tr key={i}>
+                    <td style={{ width: "50%" }}>{porteiro(i)}</td>
+                    <td>{porteiro(i + metade)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}
@@ -340,13 +350,13 @@ function BlocoView({ b }: { b: Bloco }) {
             <table className="bol-tab" style={{ ...fonte, marginTop: "-0.5pt" }}>
               <colgroup><col style={{ width: "36%" }} />{b.semanaColunas.map((c) => <col key={c.id} />)}</colgroup>
               <tbody>
-                <tr><td colSpan={1 + b.semanaColunas.length} className="bol-sub-escuro">{b.semanaTitulo}</td></tr>
-                <tr><td className="bol-sub-medio" rowSpan={2} />{b.semanaColunas.map((c) => <td key={c.id} className="bol-sub-medio">{c.dia}</td>)}</tr>
-                <tr>{b.semanaColunas.map((c) => <td key={c.id} className="bol-sub-medio">{c.atividade}</td>)}</tr>
-                {b.semanaLinhas.map((l) => (
+                <tr><td colSpan={1 + b.semanaColunas.length} className="bol-sub-escuro">{T(b.semanaTitulo, (x, v) => { x.semanaTitulo = v; })}</td></tr>
+                <tr><td className="bol-sub-medio" rowSpan={2} />{b.semanaColunas.map((c, ci) => <td key={c.id} className="bol-sub-medio">{T(c.dia, (x, v) => { x.semanaColunas[ci].dia = v; }, "linha", "Dia")}</td>)}</tr>
+                <tr>{b.semanaColunas.map((c, ci) => <td key={c.id} className="bol-sub-medio">{T(c.atividade, (x, v) => { x.semanaColunas[ci].atividade = v; }, "linha", "Atividade")}</td>)}</tr>
+                {b.semanaLinhas.map((l, li) => (
                   <tr key={l.id}>
-                    <td className="bol-rot">{l.funcao}</td>
-                    {b.semanaColunas.map((c, i) => <td key={c.id} className="bol-c">{l.valores[i] ?? ""}</td>)}
+                    <td className="bol-rot">{T(l.funcao, (x, v) => { x.semanaLinhas[li].funcao = v; }, "linha", "Função")}</td>
+                    {b.semanaColunas.map((c, i) => <td key={c.id} className="bol-c">{T(l.valores[i] ?? "", (x, v) => { x.semanaLinhas[li].valores[i] = v; })}</td>)}
                   </tr>
                 ))}
               </tbody>
@@ -360,35 +370,40 @@ function BlocoView({ b }: { b: Bloco }) {
         <div style={escala !== 1 ? { fontSize: `${9 * escala}pt` } : undefined}>
           <table className="bol-tab bol-aniv">
             <tbody>
-              <tr><td colSpan={2} className="bol-tit-escuro">{b.titulo}</td></tr>
-              {b.linhas.map((l) => (
-                <tr key={l.id}><td className="bol-dia">{l.dia}</td><td><Linhas texto={l.nomes} /></td></tr>
+              <tr><td colSpan={2} className="bol-tit-escuro">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
+              {b.linhas.map((l, li) => (
+                <tr key={l.id}><td className="bol-dia">{T(l.dia, (x, v) => { x.linhas[li].dia = v; }, "linha", "Dia")}</td><td>{T(l.nomes, (x, v) => { x.linhas[li].nomes = v; }, "linhas", "Nomes")}</td></tr>
               ))}
             </tbody>
           </table>
-          {b.versiculo && <p className="bol-versiculo">{b.versiculo}{b.referencia && <small>{b.referencia}</small>}</p>}
+          {mostra(b.versiculo) && (
+            <p className="bol-versiculo">
+              {T(b.versiculo, (x, v) => { x.versiculo = v; }, "linhas", "Versículo")}
+              {mostra(b.referencia) && <small>{T(b.referencia, (x, v) => { x.referencia = v; }, "linha", "Referência")}</small>}
+            </p>
+          )}
         </div>
       );
     case "oficios":
       return (
         <table className="bol-tab bol-oficios">
           <tbody>
-            <tr><td colSpan={b.colunas.length} className="bol-tit-cinza">{b.titulo}</td></tr>
-            <tr>{b.colunas.map((c) => <td key={c.id} style={{ width: `${100 / b.colunas.length}%` }}><Linhas texto={c.texto} /></td>)}</tr>
+            <tr><td colSpan={b.colunas.length} className="bol-tit-cinza">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
+            <tr>{b.colunas.map((c, ci) => <td key={c.id} style={{ width: `${100 / b.colunas.length}%` }}>{T(c.texto, (x, v) => { x.colunas[ci].texto = v; }, "linhas")}</td>)}</tr>
           </tbody>
         </table>
       );
     case "trabalhos": {
-      const pares: (typeof b.itens)[] = [];
-      for (let i = 0; i < b.itens.length; i += 2) pares.push(b.itens.slice(i, i + 2));
+      const pares: number[][] = [];
+      for (let i = 0; i < b.itens.length; i += 2) pares.push(i + 1 < b.itens.length ? [i, i + 1] : [i]);
       return (
         <table className="bol-tab bol-trabalhos">
           <tbody>
-            <tr><td colSpan={2} className="bol-tit-cinza">{b.titulo}</td></tr>
+            <tr><td colSpan={2} className="bol-tit-cinza">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
             {pares.map((par, i) => (
               <Fragment key={i}>
-                <tr>{par.map((x) => <td key={x.id} className="bol-sub-claro" colSpan={par.length === 1 ? 2 : 1}>{x.titulo}</td>)}</tr>
-                <tr>{par.map((x) => <td key={x.id} colSpan={par.length === 1 ? 2 : 1}><Linhas texto={x.texto} /></td>)}</tr>
+                <tr>{par.map((k) => <td key={b.itens[k]!.id} className="bol-sub-claro" colSpan={par.length === 1 ? 2 : 1}>{T(b.itens[k]!.titulo, (x, v) => { x.itens[k].titulo = v; }, "linha", "Título")}</td>)}</tr>
+                <tr>{par.map((k) => <td key={b.itens[k]!.id} colSpan={par.length === 1 ? 2 : 1}>{T(b.itens[k]!.texto, (x, v) => { x.itens[k].texto = v; }, "linhas", "Endereço, contato…")}</td>)}</tr>
               </Fragment>
             ))}
           </tbody>
@@ -396,17 +411,19 @@ function BlocoView({ b }: { b: Bloco }) {
       );
     }
     case "parcerias": {
-      const pares: (typeof b.itens)[] = [];
-      for (let i = 0; i < b.itens.length; i += 2) pares.push(b.itens.slice(i, i + 2));
+      const pares: number[][] = [];
+      for (let i = 0; i < b.itens.length; i += 2) pares.push([i, i + 1]);
       return (
         <table className="bol-tab bol-parcerias">
           <tbody>
-            <tr><td colSpan={2} className="bol-tit-cinza">{b.titulo}</td></tr>
+            <tr><td colSpan={2} className="bol-tit-cinza">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
             {pares.map((par, i) => (
               <tr key={i}>
-                {[0, 1].map((k) => {
-                  const x = par[k];
-                  return <td key={k}>{x && (x.nome || x.texto) ? <><strong>{x.nome}</strong>{x.nome && x.texto && " – "}<Marcado texto={x.texto} /></> : null}</td>;
+                {par.map((k) => {
+                  const x = b.itens[k];
+                  if (!x) return <td key={k} />;
+                  if (ed) return <td key={k}><strong>{T(x.nome, (y, v) => { y.itens[k].nome = v; }, "linha", "Nome")}</strong>{" – "}{T(x.texto, (y, v) => { y.itens[k].texto = v; }, "linha", "Descrição")}</td>;
+                  return <td key={k}>{x.nome || x.texto ? <><strong>{x.nome}</strong>{x.nome && x.texto && " – "}<Marcado texto={x.texto} /></> : null}</td>;
                 })}
               </tr>
             ))}
@@ -418,23 +435,23 @@ function BlocoView({ b }: { b: Bloco }) {
       return (
         <table className="bol-tab bol-agenda">
           <tbody>
-            <tr><td colSpan={3} className="bol-tit-agenda">{b.titulo}</td></tr>
-            {b.grupos.map((g) => {
+            <tr><td colSpan={3} className="bol-tit-agenda">{T(b.titulo, (x, v) => { x.titulo = v; })}</td></tr>
+            {b.grupos.map((g, gi) => {
               // agrupa linhas seguidas com a mesma data (como as células mescladas do Word)
-              const grupos: { data: string; itens: typeof g.itens }[] = [];
-              for (const it of g.itens) {
+              const grupos: { data: string; ks: number[] }[] = [];
+              g.itens.forEach((it, k) => {
                 const ult = grupos[grupos.length - 1];
-                if (ult && it.data && ult.data === it.data) ult.itens.push(it);
-                else grupos.push({ data: it.data, itens: [it] });
-              }
+                if (ult && it.data && ult.data === it.data) ult.ks.push(k);
+                else grupos.push({ data: it.data, ks: [k] });
+              });
               return (
                 <Fragment key={g.id}>
-                  <tr><td colSpan={3} className="bol-mes">{g.titulo}</td></tr>
-                  {grupos.map((gr, i) => (
-                    <tr key={i}>
-                      <td className="bol-data">{gr.data}</td>
-                      <td className="bol-hora">{gr.itens.map((x, j) => <Fragment key={x.id}>{j > 0 && <br />}{x.hora}</Fragment>)}</td>
-                      <td>{gr.itens.map((x, j) => <Fragment key={x.id}>{j > 0 && <br />}<Marcado texto={x.texto} /></Fragment>)}</td>
+                  <tr><td colSpan={3} className="bol-mes">{T(g.titulo, (x, v) => { x.grupos[gi].titulo = v; }, "linha", "Mês")}</td></tr>
+                  {grupos.map((gr) => (
+                    <tr key={g.itens[gr.ks[0]!]!.id}>
+                      <td className="bol-data">{T(gr.data, (x, v) => { for (const k of gr.ks) x.grupos[gi].itens[k].data = v; }, "linha", "Data")}</td>
+                      <td className="bol-hora">{gr.ks.map((k, j) => <Fragment key={k}>{j > 0 && <br />}{T(g.itens[k]!.hora, (x, v) => { x.grupos[gi].itens[k].hora = v; }, "linha", "–")}</Fragment>)}</td>
+                      <td>{gr.ks.map((k, j) => <Fragment key={k}>{j > 0 && <br />}{T(g.itens[k]!.texto, (x, v) => { x.grupos[gi].itens[k].texto = v; }, "linha", "Evento")}</Fragment>)}</td>
                     </tr>
                   ))}
                 </Fragment>
@@ -447,32 +464,43 @@ function BlocoView({ b }: { b: Bloco }) {
       return (
         <div className="bol-expediente">
           <img src="/simbolo.svg" alt="" />
-          <div className="bol-exp-nome"><Linhas texto={b.nome} /></div>
-          <div><Linhas texto={b.texto} /></div>
-          {b.pastores && <><div className="bol-exp-tit">{b.pastoresTitulo}</div><div><Linhas texto={b.pastores} /></div></>}
-          {b.diretoria && <><div className="bol-exp-tit">{b.diretoriaTitulo}</div><div><Linhas texto={b.diretoria} /></div></>}
+          <div className="bol-exp-nome">{T(b.nome, (x, v) => { x.nome = v; }, "linhas", "", "div")}</div>
+          <div>{T(b.texto, (x, v) => { x.texto = v; }, "linhas", "", "div")}</div>
+          {mostra(b.pastores) && <><div className="bol-exp-tit">{T(b.pastoresTitulo, (x, v) => { x.pastoresTitulo = v; })}</div><div>{T(b.pastores, (x, v) => { x.pastores = v; }, "linhas", "Pastores", "div")}</div></>}
+          {mostra(b.diretoria) && <><div className="bol-exp-tit">{T(b.diretoriaTitulo, (x, v) => { x.diretoriaTitulo = v; })}</div><div>{T(b.diretoria, (x, v) => { x.diretoria = v; }, "linhas", "Diretoria", "div")}</div></>}
         </div>
       );
     case "texto":
       return (
         <div className={`bol-texto-livre ${b.caixa ? "bol-caixa" : ""}`} style={estilo}>
-          {b.titulo && <h3>{b.titulo}</h3>}
-          {paragrafos(b.texto).map((p, i) => <p key={i}><Linhas texto={p} /></p>)}
+          {mostra(b.titulo) && <h3>{T(b.titulo, (x, v) => { x.titulo = v; }, "linha", "Título")}</h3>}
+          {paras(b.texto, (x, v) => { x.texto = v; })}
         </div>
       );
     case "tabela":
       return (
         <table className="bol-tab">
           <tbody>
-            {b.titulo && <tr><td colSpan={Math.max(b.cabecalho.length, 1)} className="bol-tit-cinza">{b.titulo}</td></tr>}
-            {b.cabecalho.some(Boolean) && <tr>{b.cabecalho.map((c, i) => <td key={i} className="bol-sub-claro">{c}</td>)}</tr>}
-            {b.linhas.map((l) => (
-              <tr key={l.id}>{b.cabecalho.map((_, i) => <td key={i} className={i === 0 ? "bol-rot" : "bol-c"}><Linhas texto={l.celulas[i] ?? ""} /></td>)}</tr>
+            {mostra(b.titulo) && <tr><td colSpan={Math.max(b.cabecalho.length, 1)} className="bol-tit-cinza">{T(b.titulo, (x, v) => { x.titulo = v; }, "linha", "Título da tabela")}</td></tr>}
+            {(b.cabecalho.some(Boolean) || ed) && <tr>{b.cabecalho.map((c, i) => <td key={i} className="bol-sub-claro">{T(c, (x, v) => { x.cabecalho[i] = v; }, "linha", "Coluna")}</td>)}</tr>}
+            {b.linhas.map((l, li) => (
+              <tr key={l.id}>{b.cabecalho.map((_, i) => <td key={i} className={i === 0 ? "bol-rot" : "bol-c"}>{T(l.celulas[i] ?? "", (x, v) => { x.linhas[li].celulas[i] = v; }, "linhas")}</td>)}</tr>
             ))}
           </tbody>
         </table>
       );
   }
+}
+
+/** Um bloco solto, em miniatura (catálogo de seções do editor). */
+export function BlocoAvulso({ b }: { b: Bloco }) {
+  return (
+    <div className="bol-folhas">
+      <section className="bol-pagina bol-avulso" style={{ height: "auto" }}>
+        <div className="bol-blocos"><div className={`bol-l-${b.largura === "inteira" ? "inteira" : "inteira"}`}><BlocoView b={b} /></div></div>
+      </section>
+    </div>
+  );
 }
 
 // ─── Página ─────────────────────────────────────────────────────────────────
@@ -481,29 +509,49 @@ function ehPaginaDeTabelas(p: Pagina) {
   return p.blocos.some((b) => ["escala", "aniversariantes", "oficios", "agenda", "parcerias", "trabalhos"].includes(b.tipo));
 }
 
-function PaginaView({ boletim, pagina, n, marcarTransbordo, aoSelecionar, selecionado }: {
-  boletim: Boletim; pagina: Pagina; n: number; marcarTransbordo: boolean;
-  aoSelecionar?: (blocoId: string) => void; selecionado?: string | null;
+type Interacao = {
+  marcarTransbordo?: boolean;
+  aoSelecionar?: (blocoId: string) => void;
+  /** duplo clique num bloco (abre a janela de edição) */
+  aoAbrir?: (blocoId: string) => void;
+  /** quanto da altura útil a página ocupa (100 = cheia) */
+  aoOcupacao?: (paginaId: string, porcento: number) => void;
+  selecionado?: string | null;
+};
+
+function PaginaView({ boletim, pagina, n, marcarTransbordo = false, aoSelecionar, aoAbrir, aoOcupacao, selecionado }: Interacao & {
+  boletim: Boletim; pagina: Pagina; n: number;
 }) {
+  const ed = useContext(EdicaoCtx);
   const corpo = useRef<HTMLDivElement>(null);
   const [transborda, setTransborda] = useState(false);
+  const ocupacaoRef = useRef(aoOcupacao);
+  ocupacaoRef.current = aoOcupacao;
 
   useEffect(() => {
-    if (!marcarTransbordo) return;
+    if (!marcarTransbordo && !aoOcupacao) return;
     const el = corpo.current;
     if (!el) return;
-    const medir = () => setTransborda(el.scrollHeight > el.clientHeight + 2);
+    const medir = () => {
+      const blocos = el.querySelector<HTMLElement>(".bol-blocos");
+      // altura real do conteúdo (offsetHeight ignora molduras de seleção do editor)
+      const usado = blocos ? blocos.offsetTop + blocos.offsetHeight : el.scrollHeight;
+      const pct = el.clientHeight ? (usado / el.clientHeight) * 100 : 0;
+      setTransborda(Math.round(pct) > 100);
+      ocupacaoRef.current?.(pagina.id, Math.round(pct));
+    };
     medir();
     const ro = new ResizeObserver(medir);
     ro.observe(el);
     Array.from(el.querySelectorAll(".bol-blocos > *")).forEach((c) => ro.observe(c));
     document.fonts?.ready.then(medir);
-    return () => ro.disconnect();
+    const t = setTimeout(medir, 120);
+    return () => { ro.disconnect(); clearTimeout(t); };
   });
 
   const dataTxt = `${boletim.titulo} – ${dataPorExtenso(boletim.data)}`;
   return (
-    <section className={`bol-pagina ${ehPaginaDeTabelas(pagina) ? "bol-pg-tabelas" : ""}`} data-pagina={n}>
+    <section className={`bol-pagina ${ehPaginaDeTabelas(pagina) ? "bol-pg-tabelas" : ""}`} data-pagina={n} data-pagina-id={pagina.id}>
       <div className="bol-corpo" ref={corpo} style={{ overflow: "hidden" }}>
         {n === 1 ? (
           <>
@@ -517,30 +565,36 @@ function PaginaView({ boletim, pagina, n, marcarTransbordo, aoSelecionar, seleci
           {pagina.blocos.map((b) => (
             <div
               key={b.id}
-              className={`bol-l-${b.largura}`}
+              className={`bol-l-${b.largura} ${aoSelecionar ? "bol-selecionavel" : ""} ${selecionado === b.id ? "bol-selecionado" : ""}`}
               data-bloco={b.id}
               data-tipo={b.tipo}
               onClick={aoSelecionar ? (e) => { e.stopPropagation(); aoSelecionar(b.id); } : undefined}
-              style={aoSelecionar ? { cursor: "pointer", outline: selecionado === b.id ? "2px solid #2563eb" : undefined, outlineOffset: 2 } : undefined}
+              onDoubleClick={aoAbrir ? (e) => { if ((e.target as HTMLElement).closest(".bol-ed")) return; e.stopPropagation(); aoAbrir(b.id); } : undefined}
             >
-              <BlocoView b={b} />
+              <BlocoView b={b} ativo={selecionado === b.id} />
             </div>
           ))}
         </div>
+        {ed && pagina.blocos.length === 0 && (
+          <button type="button" className="bol-vazia" onClick={(e) => { e.stopPropagation(); ed.adicionar?.(pagina.id); }}>
+            <span>Página em branco</span>
+            <small>Clique para adicionar uma seção</small>
+          </button>
+        )}
       </div>
-      {marcarTransbordo && transborda && <div className="bol-transbordo">O conteúdo passou do fim desta página — reduza o texto, ajuste o tamanho ou mova um bloco para outra página.</div>}
+      {marcarTransbordo && transborda && <div className="bol-transbordo">O conteúdo passou do fim desta página — use “Encaixar na página”, reduza o texto ou mova uma seção.</div>}
     </section>
   );
 }
 
-export function Folhas({ boletim, marcarTransbordo = false, aoSelecionar, selecionado, children }: {
-  boletim: Boletim; marcarTransbordo?: boolean; aoSelecionar?: (blocoId: string) => void; selecionado?: string | null; children?: ReactNode;
+export function Folhas({ boletim, somentePagina, children, ...interacao }: Interacao & {
+  boletim: Boletim; somentePagina?: string; children?: ReactNode;
 }) {
   return (
     <div className="bol-folhas">
-      {boletim.paginas.map((p, i) => (
-        <PaginaView key={p.id} boletim={boletim} pagina={p} n={i + 1} marcarTransbordo={marcarTransbordo} aoSelecionar={aoSelecionar} selecionado={selecionado} />
-      ))}
+      {boletim.paginas.map((p, i) => (somentePagina && p.id !== somentePagina ? null : (
+        <PaginaView key={p.id} boletim={boletim} pagina={p} n={i + 1} {...interacao} />
+      )))}
       {children}
     </div>
   );
@@ -570,7 +624,7 @@ export function FolhasEscaladas(props: Parameters<typeof Folhas>[0] & { espaco?:
     const ro = new ResizeObserver(ajustar);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [props.boletim.paginas.length]);
+  }, [props.boletim.paginas.length, props.somentePagina]);
 
   return (
     <div ref={caixa} style={{ width: "100%", height: altura, overflow: "hidden" }}>
