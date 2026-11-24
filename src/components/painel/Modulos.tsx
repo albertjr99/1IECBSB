@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { ArrowRight, Repeat, Video, Vote, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ModuloVotacao } from "./votacao/ModuloVotacao";
-import { ModuloReunioes, PainelContribuicoes } from "./ModulosApp";
+import { ModuloReunioes } from "./ModulosApp";
 
 /** Página de algo que ainda está sendo preparado: sóbria, com situação real e próximos passos. */
 export function EmBreve({ sobre = "Igreja", titulo, texto, situacao, itens, passos }: {
