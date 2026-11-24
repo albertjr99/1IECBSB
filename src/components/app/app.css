@@ -1,0 +1,74 @@
+/* Aplicativo dos membros — identidade da 1ª IEC Brasília, pensado para o celular. */
+.app {
+  --a-fundo: #f3f6f9;
+  --a-sup: #ffffff;
+  --a-borda: #d9e6ef;
+  --a-texto: #1d2b36;
+  --a-suave: #5b7f99;
+  --a-azul: #00436f;
+  --a-noite: #002a47;
+  --a-realce: #e8f0f6;
+  --a-vermelho: #cc2127;
+  --a-letra: 1;
+  min-height: 100dvh;
+  background: var(--a-fundo);
+  color: var(--a-texto);
+  font-family: "Montserrat", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+.app[data-tema="escuro"] {
+  --a-fundo: #0b1219;
+  --a-sup: #121c26;
+  --a-borda: #22313f;
+  --a-texto: #e6edf3;
+  --a-suave: #8aa3b8;
+  --a-azul: #8fb6d3;
+  --a-realce: #16283a;
+  color-scheme: dark;
+}
+.app * { -webkit-user-select: auto; }
+.app button { cursor: pointer; }
+
+.a-sobre { display: inline-flex; align-items: center; gap: .7em; font-size: 10.5px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--a-azul); }
+.a-sobre::before { content: ""; width: .62em; height: 1.1em; background: var(--cruz) center / contain no-repeat; flex: none; }
+.a-titulo { font-size: 24px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; color: var(--a-azul); }
+.app[data-tema="escuro"] .a-titulo { color: var(--a-texto); }
+.a-cartao { background: var(--a-sup); border: 1px solid var(--a-borda); box-shadow: 0 1px 2px rgba(0,42,71,.05), 0 14px 30px -24px rgba(0,42,71,.4); }
+.a-filete { border-top: 3px solid #00436f; }
+.app[data-tema="escuro"] .a-filete { border-top-color: var(--a-azul); }
+.a-campo { width: 100%; height: 50px; padding: 0 14px; font: 500 16px/1 "Montserrat", sans-serif; color: var(--a-texto); background: var(--a-sup); border: 1px solid var(--a-borda); border-radius: 2px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.a-campo:focus { border-color: var(--a-azul); box-shadow: 0 0 0 3px color-mix(in srgb, var(--a-azul) 18%, transparent); }
+.a-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; padding: 0 20px; font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; border-radius: 2px; transition: transform .15s, background-color .15s, opacity .15s; }
+.a-btn:active { transform: scale(.98); }
+.a-btn:disabled { opacity: .5; }
+.a-btn-pri { color: #fff; background: linear-gradient(180deg, #0a5384, #00436f); box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 10px 22px -12px rgba(0,67,111,.8); }
+.a-btn-sec { color: var(--a-azul); background: var(--a-sup); border: 1px solid var(--a-borda); }
+.a-btn-branco { color: #002a47; background: #fff; box-shadow: 0 12px 26px -12px rgba(0,0,0,.5); }
+
+/* topo azul com o Monte */
+.a-topo { position: relative; isolation: isolate; overflow: hidden; color: #fff; background: #002a47; padding: calc(env(safe-area-inset-top) + 18px) 20px 22px; }
+.a-topo::before { content: ""; position: absolute; inset: 0; z-index: -1; background: url("/marca/grafismo-monte-transparente-branco.svg") right -220px bottom -120px / 720px auto no-repeat; opacity: .12; }
+.a-topo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #00436f; }
+
+/* barra de abas (vidro) */
+.a-abas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px 6px calc(env(safe-area-inset-bottom) + 6px); background: color-mix(in srgb, var(--a-sup) 95%, transparent); border-top: 1px solid var(--a-borda); box-shadow: 0 -10px 30px -20px rgba(0,42,71,.35); backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(170%); }
+.a-aba { position: relative; display: grid; justify-items: center; gap: 3px; padding: 7px 0 4px; font-size: 10.5px; font-weight: 600; color: var(--a-suave); }
+.a-aba[aria-current="page"] { color: var(--a-azul); font-weight: 700; }
+.a-aba[aria-current="page"]::before { content: ""; position: absolute; top: -6px; width: 26px; height: 3px; background: var(--a-azul); }
+.a-conteudo { padding-bottom: calc(env(safe-area-inset-bottom) + 84px); }
+
+/* leitura (Bíblia e hinário) */
+.a-leitura { font-family: "Lora", Georgia, serif; font-size: calc(18px * var(--a-letra)); line-height: 1.75; color: var(--a-texto); }
+.a-leitura sup { font-family: "Montserrat", sans-serif; font-size: .55em; font-weight: 700; color: var(--a-azul); margin-right: .35em; vertical-align: .55em; }
+.a-verso { border-radius: 2px; transition: background-color .15s; }
+.a-verso[data-sel="1"] { background: color-mix(in srgb, var(--a-azul) 16%, transparent); box-shadow: 0 2px 0 var(--a-azul); }
+.a-verso[data-fav="1"] { background: color-mix(in srgb, #f5c542 26%, transparent); }
+.a-folha { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; max-height: 86dvh; overflow-y: auto; background: var(--a-sup); border-top: 3px solid #00436f; box-shadow: 0 -24px 50px -20px rgba(0,0,0,.45); padding-bottom: env(safe-area-inset-bottom); animation: a-sobe .32s cubic-bezier(.2,.8,.2,1) both; }
+.a-veu { position: fixed; inset: 0; z-index: 55; background: rgba(0,29,51,.45); backdrop-filter: blur(4px); animation: a-aparece .2s both; }
+@keyframes a-sobe { from { transform: translateY(40px); opacity: 0; } }
+@keyframes a-aparece { from { opacity: 0; } }
+.a-entra > * { animation: a-entra .45s cubic-bezier(.2,.8,.2,1) both; }
+.a-entra > :nth-child(2) { animation-delay: .05s; } .a-entra > :nth-child(3) { animation-delay: .1s; } .a-entra > :nth-child(n+4) { animation-delay: .15s; }
+@keyframes a-entra { from { opacity: 0; translate: 0 10px; } }
+@media (prefers-reduced-motion: reduce) { .a-entra > *, .a-folha, .a-veu { animation: none; } }

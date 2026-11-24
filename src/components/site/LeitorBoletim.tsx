@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, FileDown, Loader2, Share2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
 import { FolhasEscaladas } from "@/components/boletim/Folhas";
+import { LeituraCelular } from "@/components/boletim/LeituraCelular";
 import { obterBoletimPublico } from "@/lib/api-boletim";
 import { dataPorExtenso, type Boletim } from "@/lib/boletim";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,8 @@ export function LeitorBoletim({ item, aoFechar }: { item: ItemBoletim; aoFechar:
   const [i, setI] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
   const [zoom, setZoom] = useState(false);
+  // no celular, abre direto no modo leitura (texto corrido, letra confortável)
+  const [leitura, setLeitura] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
   const par = usePar() && !zoom;
   const toque = useRef<number | null>(null);
   const palco = useRef<HTMLDivElement>(null);
@@ -112,13 +115,19 @@ export function LeitorBoletim({ item, aoFechar }: { item: ItemBoletim; aoFechar:
           {total ? (visiveis.length > 1 ? `Páginas ${visiveis[0]! + 1}–${visiveis[1]! + 1} de ${total}` : `Página ${visiveis[0]! + 1} de ${total}`) : ""}
         </span>
         <div className="flex items-center gap-1">
-          <button type="button" onClick={() => setZoom((z) => !z)} className="leitor-botao" title={zoom ? "Ver páginas inteiras" : "Ampliar para ler"}>{zoom ? <ZoomOut size={17} /> : <ZoomIn size={17} />}</button>
+          <button type="button" onClick={() => setLeitura((l) => !l)} className={cn("leitor-botao !w-auto gap-2 px-3 text-[11.5px] font-bold uppercase tracking-[0.12em]", leitura && "!bg-white !text-[#002a47]")} title={leitura ? "Ver as folhas do boletim" : "Modo leitura (ideal no celular)"}>{leitura ? "Folhas" : "Leitura"}</button>
+          {!leitura && <button type="button" onClick={() => setZoom((z) => !z)} className="leitor-botao" title={zoom ? "Ver páginas inteiras" : "Ampliar para ler"}>{zoom ? <ZoomOut size={17} /> : <ZoomIn size={17} />}</button>}
           <button type="button" onClick={compartilhar} className="leitor-botao" title="Compartilhar"><Share2 size={17} /></button>
           <a href={item.pdf} download className="leitor-botao !w-auto gap-2 px-3 text-[12px] font-bold uppercase tracking-[0.12em]" title="Baixar PDF"><FileDown size={17} /><span className="hidden sm:inline">Baixar</span></a>
           <button type="button" onClick={aoFechar} className="leitor-botao ml-1 !bg-white !text-[#002a47]" title="Fechar (Esc)"><X size={18} /></button>
         </div>
       </header>
 
+      {leitura && editor ? (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-[680px] bg-white shadow-2xl"><LeituraCelular boletim={editor} /></div>
+        </div>
+      ) : <>
       {/* páginas */}
       <div
         className={cn("relative min-h-0 flex-1", zoom ? "overflow-y-auto" : "overflow-hidden")}
@@ -163,6 +172,7 @@ export function LeitorBoletim({ item, aoFechar }: { item: ItemBoletim; aoFechar:
           ))}
         </footer>
       )}
+      </>}
     </div>
   );
 }

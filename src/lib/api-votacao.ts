@@ -3,7 +3,7 @@ import { opcoesDa, situacaoDa, type Resultado, type Votacao } from "./votacao";
 
 type Entrada = Omit<Votacao, "id" | "criadaPor" | "criadaEm" | "historico" | "eleitores" | "encerradaEm" | "encerradaPor"> & {
   id?: string;
-  eleitores: { id?: string; nome: string; contato: string }[];
+  eleitores: { id?: string; nome: string; contato: string; membroId?: string }[];
 };
 
 function validar(v: Entrada) {
@@ -98,7 +98,8 @@ export const salvarVotacao = createServerFn({ method: "POST" })
       .filter((e) => e.nome.trim())
       .map((e) => {
         const antigo = existente?.eleitores.find((x) => x.id === e.id);
-        return { id: antigo?.id ?? `e${Math.random().toString(36).slice(2, 10)}`, nome: e.nome.trim(), contato: e.contato.trim(), token: antigo?.token ?? novoToken() };
+        const membroId = e.membroId ?? antigo?.membroId;
+        return { id: antigo?.id ?? `e${Math.random().toString(36).slice(2, 10)}`, nome: e.nome.trim(), contato: e.contato.trim(), token: antigo?.token ?? novoToken(), ...(membroId ? { membroId } : {}) };
       });
     const v: Votacao = {
       id: existente?.id ?? `vt${Date.now().toString(36)}`,
@@ -209,3 +210,11 @@ export const votar = createServerFn({ method: "POST" })
     if (res.ok) await talvezEncerrar(v);
     return res;
   });
+
+/** Membros ativos do app, para incluir como votantes (votam logados, pelo app). */
+export const membrosParaVotar = createServerFn({ method: "GET" }).handler(async () => {
+  const { exigirAcesso } = await import("../server/auth");
+  const { lerMembros } = await import("../server/membros");
+  await exigirAcesso("deliberacao");
+  return (await lerMembros()).filter((m) => m.situacao === "ativo").map((m) => ({ id: m.id, nome: m.nome, celular: m.celular })).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+});

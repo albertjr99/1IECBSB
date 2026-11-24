@@ -150,7 +150,7 @@ export async function autenticar(usuarioBruto: string, senha: string): Promise<U
   return u;
 }
 
-function assinar(dados: string) {
+export function assinar(dados: string) {
   return createHmac("sha256", segredo()).update(dados).digest("base64url");
 }
 

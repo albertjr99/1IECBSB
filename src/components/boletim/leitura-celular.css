@@ -1,0 +1,45 @@
+/* Boletim em modo leitura (celular) — identidade da igreja, texto confortável. */
+.bl { --bl-fundo: #fff; --bl-texto: #1d2b36; --bl-suave: #5b7f99; --bl-azul: #00436f; --bl-linha: #d9e6ef; --bl-nevoa: #f3f6f9; --bl-letra: var(--a-letra, 1);
+  background: var(--bl-fundo); color: var(--bl-texto); font-family: "Montserrat", sans-serif; padding: 0 0 24px; }
+.app[data-tema="escuro"] .bl { --bl-fundo: #121c26; --bl-texto: #e6edf3; --bl-suave: #8aa3b8; --bl-azul: #8fb6d3; --bl-linha: #22313f; --bl-nevoa: #16283a; }
+.bl-capa { padding: 22px 20px 16px; border-bottom: 3px solid #00436f; box-shadow: 0 2px 0 var(--bl-fundo), 0 3px 0 var(--bl-linha); }
+.app[data-tema="escuro"] .bl-logo { filter: brightness(0) invert(1); }
+.bl-logo { height: 34px; width: auto; }
+.bl-capa .bl-rotulo { margin-top: 16px; }
+.bl-data { margin-top: 4px; font-size: 22px; font-weight: 700; letter-spacing: -.02em; color: var(--bl-azul); }
+.bl-rotulo { display: flex; align-items: center; gap: .7em; font-size: 10.5px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--bl-azul); }
+.bl-rotulo::before { content: ""; width: .62em; height: 1.1em; background: var(--cruz) center / contain no-repeat; flex: none; }
+.bl-verso { margin: 20px 16px 0; padding: 18px 18px 16px; background: #00436f; color: #fff; }
+.bl-verso figcaption { font-size: 10px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: #d9e6ef; }
+.bl-verso blockquote { margin-top: 8px; font-family: "Lora", serif; font-style: italic; font-size: calc(19px * var(--bl-letra)); line-height: 1.5; }
+.bl-verso cite { display: block; margin-top: 10px; font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+.bl-parte { padding: 26px 20px 0; }
+.bl-parte + .bl-parte { margin-top: 6px; border-top: 1px solid var(--bl-linha); }
+.bl-titulo { margin-top: 8px; font-size: calc(24px * var(--bl-letra)); font-weight: 700; line-height: 1.15; letter-spacing: -.02em; color: var(--bl-azul); }
+.bl-texto { margin-top: 14px; font-size: calc(16.5px * var(--bl-letra)); line-height: 1.7; }
+.bl-texto p + p { margin-top: .9em; }
+.bl-autor { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 14px; font-weight: 700; color: var(--bl-azul); }
+.bl-autor::before { content: ""; width: 22px; height: 2px; background: #cc2127; }
+.bl-avisos { display: grid; gap: 12px; margin-top: 14px; }
+.bl-aviso { padding: 0 0 12px; border-bottom: 1px solid var(--bl-linha); font-size: calc(15px * var(--bl-letra)); line-height: 1.6; }
+.bl-aviso:last-child { border-bottom: 0; }
+.bl-aviso h3 { font-size: calc(16px * var(--bl-letra)); font-weight: 700; color: var(--bl-azul); margin-bottom: 4px; }
+.bl-aviso p + p { margin-top: .5em; }
+.bl-aviso-destaque { padding: 14px 14px 16px; background: var(--bl-nevoa); border-top: 3px solid #00436f; border-bottom: 0; }
+.bl-tabela { margin-top: 12px; display: grid; gap: 0; }
+.bl-linha { padding: 10px 0; border-bottom: 1px solid var(--bl-linha); }
+.bl-linha-tit { font-size: 13px; font-weight: 700; color: var(--bl-azul); }
+.bl-linha dl { display: grid; gap: 4px; margin-top: 4px; }
+.bl-linha dl div { display: flex; justify-content: space-between; gap: 12px; font-size: calc(14.5px * var(--bl-letra)); }
+.bl-linha dt { color: var(--bl-suave); font-size: 12.5px; }
+.bl-linha dd { font-weight: 600; text-align: right; }
+.bl-lista { margin-top: 10px; }
+.bl-lista li { display: flex; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--bl-linha); font-size: calc(14.5px * var(--bl-letra)); line-height: 1.4; }
+.bl-lista li span { flex: none; min-width: 64px; font-weight: 700; color: var(--bl-azul); font-variant-numeric: tabular-nums; }
+.bl-lista li strong { font-weight: 500; }
+.bl-mes { margin-top: 14px; font-size: 11px; font-weight: 800; letter-spacing: .2em; color: var(--bl-azul); border-bottom: 2px solid #00436f; padding-bottom: 4px; }
+.bl-versiculo { margin-top: 14px; font-family: "Lora", serif; font-style: italic; color: var(--bl-azul); }
+.bl-versiculo span { font-family: "Montserrat", sans-serif; font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--bl-suave); }
+.bl-oficios { display: grid; gap: 12px; margin-top: 12px; font-size: calc(14.5px * var(--bl-letra)); }
+.bl-oficios p span { display: block; }
+.bl-oficios strong { color: var(--bl-azul); }

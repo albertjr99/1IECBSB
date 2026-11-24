@@ -11,6 +11,8 @@ export type Eleitor = {
   contato: string;
   /** Link individual de voto: quem tem o link vota uma única vez. */
   token: string;
+  /** membro do aplicativo (vota logado, pelo app) */
+  membroId?: string;
 };
 
 export type Votacao = {

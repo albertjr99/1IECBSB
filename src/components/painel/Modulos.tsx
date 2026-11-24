@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { ArrowRight, Repeat, Video, Vote, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ModuloVotacao } from "./votacao/ModuloVotacao";
+import { ModuloReunioes, PainelContribuicoes } from "./ModulosApp";
 
 /** Página de algo que ainda está sendo preparado: sóbria, com situação real e próximos passos. */
 export function EmBreve({ sobre = "Igreja", titulo, texto, situacao, itens, passos }: {
@@ -116,8 +117,8 @@ const OPCOES: { id: Escolha; titulo: string; texto: string; exemplo: string; Ico
     exemplo: "Ex.: eleição de oficiais, aprovação de contas, decisões de assembleia.",
   },
   {
-    id: "assembleia", titulo: "Assembleia Online", Icone: Video, breve: true,
-    texto: "Reunião por chamada de áudio e vídeo, direto do site: da assembleia da igreja a pequenas reuniões de liderança.",
+    id: "assembleia", titulo: "Assembleia Online", Icone: Video,
+    texto: "Reunião por vídeo para os membros do aplicativo, com sala própria e lista de presença automática.",
     exemplo: "Ex.: assembleia geral, reunião do conselho, encontro de departamento.",
   },
 ];
@@ -182,14 +183,7 @@ export function ModuloDeliberacao() {
         </div>
       )}
       {escolha === "votacao" && <ModuloVotacao />}
-      {escolha === "assembleia" && (
-        <EmBreve
-          sobre="Deliberação"
-          titulo="Assembleia Online"
-          texto="Reuniões por áudio e vídeo pelo próprio site, das assembleias da igreja às reuniões de liderança."
-          itens={["Sala com link de convite para cada membro.", "Áudio, vídeo e compartilhamento de tela.", "Lista de presença feita sozinha, para o quórum.", "Votações durante a reunião, ligadas à Votação Online.", "Ata com presença e resultados ao final.", "Funciona no celular, sem instalar nada."]}
-        />
-      )}
+      {escolha === "assembleia" && <ModuloReunioes />}
       {(!escolha || trocando) && <JanelaEscolha onEscolher={(e) => { setEscolha(e); setTrocando(false); }} {...(trocando ? { onFechar: () => setTrocando(false) } : {})} />}
     </div>
   );
@@ -197,24 +191,14 @@ export function ModuloDeliberacao() {
 
 export function ModuloFinancas() {
   return (
-    <EmBreve
-      sobre="Igreja"
-      titulo="Finanças"
-      texto="Controle financeiro da igreja dentro do painel, com acesso só para a tesouraria e a administração."
-      situacao="Em planejamento com a tesouraria"
-      itens={[
-        "Lançamento de dízimos e ofertas por culto, com conferência em dupla.",
-        "Caixa e contas bancárias, com saldo do dia.",
-        "Receitas e despesas por categoria e por departamento.",
-        "Comprovantes anexados a cada lançamento.",
-        "Balancete mensal em PDF para a assembleia e o conselho fiscal.",
-      ]}
-      passos={[
-        { texto: "Reunião com a tesouraria para definir as categorias de receita e despesa" },
-        { texto: "Modelo do balancete usado hoje pela igreja" },
-        { texto: "Perfil de acesso da tesouraria no painel" },
-      ]}
-    />
+    <div className="grid gap-10">
+      <header className="max-w-[68ch]">
+        <p className="ef-sobre">Igreja</p>
+        <h1 className="ef-titulo mt-2.5">Finanças</h1>
+        <p className="ef-sub mt-1.5">Dízimos e ofertas informados pelos membros no aplicativo. O controle financeiro completo (caixa, despesas e balancete) está em planejamento com a tesouraria.</p>
+      </header>
+      <PainelContribuicoes />
+    </div>
   );
 }
 

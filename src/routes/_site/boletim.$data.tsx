@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, FileDown, Printer, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { obterBoletimPublico } from "@/lib/api-boletim";
 import { dataPorExtenso } from "@/lib/boletim";
 import { FolhasEscaladas } from "@/components/boletim/Folhas";
+import { LeituraCelular } from "@/components/boletim/LeituraCelular";
 import { IconeWhatsapp } from "@/components/site/Icones";
 
 export const Route = createFileRoute("/_site/boletim/$data")({
@@ -28,6 +30,9 @@ function BoletimPagina() {
   const b = Route.useLoaderData();
   const titulo = `${b.titulo} – ${dataPorExtenso(b.data)}`;
   const pdf = `/api/boletim/${b.data}/pdf?v=${encodeURIComponent(b.atualizadoEm)}`;
+  // no celular, o boletim abre em modo leitura (texto corrido); no computador, nas folhas
+  const [modo, setModo] = useState<"leitura" | "folhas">("folhas");
+  useEffect(() => { if (window.innerWidth < 640) setModo("leitura"); }, []);
 
   const compartilhar = async () => {
     const url = window.location.href;
@@ -51,8 +56,15 @@ function BoletimPagina() {
             <a href={`/impressao/boletim/${b.data}?imprimir=1`} target="_blank" rel="noopener" className="btn-contorno !hidden !px-4 !py-2.5 lg:!inline-flex"><Printer size={16} /> Imprimir</a>
           </div>
         </div>
-        <div className="mx-auto max-w-[860px]">
-          <FolhasEscaladas boletim={b} espaco={20} />
+        <div className="mb-4 flex justify-center">
+          <div className="flex border border-linha bg-white">
+            {(["leitura", "folhas"] as const).map((m) => (
+              <button key={m} onClick={() => setModo(m)} className={`px-5 py-2.5 text-[11.5px] font-bold uppercase tracking-[0.14em] transition ${modo === m ? "bg-marca text-white" : "text-tinta-suave hover:text-marca"}`}>{m === "leitura" ? "Leitura" : "Folhas"}</button>
+            ))}
+          </div>
+        </div>
+        <div className={modo === "leitura" ? "mx-auto max-w-[680px] shadow-[0_20px_50px_-30px_rgba(0,42,71,0.5)]" : "mx-auto max-w-[860px]"}>
+          {modo === "leitura" ? <LeituraCelular boletim={b} /> : <FolhasEscaladas boletim={b} espaco={20} />}
         </div>
       </div>
     </section>

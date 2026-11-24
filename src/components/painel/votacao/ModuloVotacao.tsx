@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  Smartphone,
   ArrowLeft, CalendarClock, Check, ClipboardCopy, Clock, Loader2, Lock, Pencil, Play, Plus, Printer, RefreshCw, Square, Trash2, Users, Vote,
 } from "lucide-react";
 import { toast } from "sonner";
-import { acaoVotacao, listarVotacoesPainel, obterVotacaoPainel, salvarVotacao } from "@/lib/api-votacao";
+import { acaoVotacao, listarVotacoesPainel, membrosParaVotar, obterVotacaoPainel, salvarVotacao } from "@/lib/api-votacao";
 import {
   opcoesDa, SIGILO_DESC, SIGILO_ROTULO, situacaoDa, SITUACAO_ROTULO, TIPO_ROTULO,
   type Resultado, type Sigilo, type Situacao, type TipoVotacao, type Votacao,
@@ -83,7 +84,7 @@ const paraLocal = (iso: string) => {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 };
 
-type FormEleitor = { id?: string; nome: string; contato: string };
+type FormEleitor = { id?: string; nome: string; contato: string; membroId?: string };
 
 function FormVotacao({ id, aoSair }: { id?: string; aoSair: (id?: string) => void }) {
   const agora = new Date();
@@ -104,7 +105,7 @@ function FormVotacao({ id, aoSair }: { id?: string; aoSair: (id?: string) => voi
         titulo: v.titulo, descricao: v.descricao, tipo: v.tipo, opcoes: v.opcoes.length ? v.opcoes : [{ id: "o1", texto: "" }, { id: "o2", texto: "" }],
         sigilo: v.sigilo, inicio: paraLocal(v.inicio), fim: paraLocal(v.fim), quorum: v.quorum, encerrarQuandoTodosVotarem: v.encerrarQuandoTodosVotarem,
       });
-      setEleitores(v.eleitores.map((e) => ({ id: e.id, nome: e.nome, contato: e.contato })));
+      setEleitores(v.eleitores.map((e) => ({ id: e.id, nome: e.nome, contato: e.contato, ...(e.membroId ? { membroId: e.membroId } : {}) })));
       setCarregando(false);
     }).catch((e) => { toast.error(e.message); aoSair(); });
   }, [id]);
@@ -181,13 +182,29 @@ function FormVotacao({ id, aoSair }: { id?: string; aoSair: (id?: string) => voi
       <Secao titulo={`Votantes (${eleitores.length})`} descricao="Quem pode votar. Cada pessoa recebe um link próprio. O contato (WhatsApp) é opcional e serve para enviar o link.">
         <div className="grid gap-2">
           <textarea value={colar} onChange={(e) => setColar(e.target.value)} rows={4} placeholder={"Cole uma lista, uma pessoa por linha:\nMaria da Silva; (61) 99999-0000\nJoão Pereira"} className="rounded-md border border-p-borda-forte px-3.5 py-2.5 text-[14px] outline-none focus:border-p-acento" />
-          <button disabled={!colar.trim()} onClick={incluirColados} className="ef-btn ef-btn-sec justify-self-start !py-2"><Users size={15} /> Incluir lista</button>
+          <div className="flex flex-wrap gap-2">
+            <button disabled={!colar.trim()} onClick={incluirColados} className="ef-btn ef-btn-sec !py-2"><Users size={15} /> Incluir lista</button>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const ms = await membrosParaVotar();
+                  const ja = new Set(eleitores.map((e) => e.membroId).filter(Boolean));
+                  const novos = ms.filter((m) => !ja.has(m.id)).map((m) => ({ nome: m.nome, contato: m.celular, membroId: m.id }));
+                  setEleitores([...eleitores, ...novos]);
+                  toast.success(novos.length ? `${novos.length} membro(s) do aplicativo incluídos. Eles votam pelo app, já identificados.` : "Todos os membros do aplicativo já estão na lista.");
+                } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+              }}
+              className="ef-btn ef-btn-sec !py-2"
+            ><Smartphone size={15} /> Incluir membros do aplicativo</button>
+          </div>
         </div>
         {eleitores.length > 0 && (
           <div className="grid gap-1.5">
             {eleitores.map((e, i) => (
               <div key={e.id ?? i} className="flex gap-2">
                 <input value={e.nome} onChange={(x) => setEleitores(eleitores.map((y, j) => (j === i ? { ...y, nome: x.target.value } : y)))} className="flex-1 rounded-lg border border-p-borda-forte px-3 py-2 text-[14px]" />
+                {e.membroId && <span className="hidden items-center gap-1 self-center whitespace-nowrap text-[11px] font-bold uppercase tracking-[0.1em] text-p-acento sm:inline-flex" title="Vota pelo aplicativo"><Smartphone size={12} /> App</span>}
                 <input value={e.contato} placeholder="WhatsApp" onChange={(x) => setEleitores(eleitores.map((y, j) => (j === i ? { ...y, contato: x.target.value } : y)))} className="w-44 rounded-lg border border-p-borda-forte px-3 py-2 text-[14px]" />
                 <button onClick={() => setEleitores(eleitores.filter((_, j) => j !== i))} className="rounded-lg px-2 text-p-suave hover:text-red-600 dark:text-red-400"><Trash2 size={16} /></button>
               </div>

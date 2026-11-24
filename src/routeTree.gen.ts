@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SiteRouteImport } from './routes/_site'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as SiteIndexRouteImport } from './routes/_site/index'
 import { Route as SiteAoVivoRouteImport } from './routes/_site/ao-vivo'
 import { Route as SiteBoletinsRouteImport } from './routes/_site/boletins'
@@ -23,16 +24,27 @@ import { Route as SiteProgramacaoRouteImport } from './routes/_site/programacao'
 import { Route as SiteSobreRouteImport } from './routes/_site/sobre'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminEntrarRouteImport } from './routes/admin/entrar'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppBibliaRouteImport } from './routes/app/biblia'
+import { Route as AppHinarioRouteImport } from './routes/app/hinario'
+import { Route as AppMaisRouteImport } from './routes/app/mais'
+import { Route as AppOfertarRouteImport } from './routes/app/ofertar'
 import { Route as VotarTokenRouteImport } from './routes/votar.$token'
 import { Route as SiteBoletimDataRouteImport } from './routes/_site/boletim.$data'
 import { Route as SiteMinisteriosIdRouteImport } from './routes/_site/ministerios_.$id'
 import { Route as ApiHubRetornoRouteImport } from './routes/api/hub.retorno'
 import { Route as ApiHubSincronizarRouteImport } from './routes/api/hub.sincronizar'
+import { Route as AppBoletimDataRouteImport } from './routes/app/boletim.$data'
 import { Route as ImpressaoBoletimIdRouteImport } from './routes/impressao.boletim.$id'
 import { Route as ApiBoletimIdPdfRouteImport } from './routes/api/boletim.$id.pdf'
 
 const SiteRoute = SiteRouteImport.update({
   id: '/_site',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SiteIndexRoute = SiteIndexRouteImport.update({
@@ -100,6 +112,31 @@ const AdminEntrarRoute = AdminEntrarRouteImport.update({
   path: '/admin/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBibliaRoute = AppBibliaRouteImport.update({
+  id: '/biblia',
+  path: '/biblia',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHinarioRoute = AppHinarioRouteImport.update({
+  id: '/hinario',
+  path: '/hinario',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMaisRoute = AppMaisRouteImport.update({
+  id: '/mais',
+  path: '/mais',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOfertarRoute = AppOfertarRouteImport.update({
+  id: '/ofertar',
+  path: '/ofertar',
+  getParentRoute: () => AppRoute,
+} as any)
 const VotarTokenRoute = VotarTokenRouteImport.update({
   id: '/votar/$token',
   path: '/votar/$token',
@@ -125,6 +162,11 @@ const ApiHubSincronizarRoute = ApiHubSincronizarRouteImport.update({
   path: '/api/hub/sincronizar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppBoletimDataRoute = AppBoletimDataRouteImport.update({
+  id: '/boletim/$data',
+  path: '/boletim/$data',
+  getParentRoute: () => AppRoute,
+} as any)
 const ImpressaoBoletimIdRoute = ImpressaoBoletimIdRouteImport.update({
   id: '/impressao/boletim/$id',
   path: '/impressao/boletim/$id',
@@ -138,6 +180,7 @@ const ApiBoletimIdPdfRoute = ApiBoletimIdPdfRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof SiteIndexRoute
+  '/app': typeof AppRouteWithChildren
   '/ao-vivo': typeof SiteAoVivoRoute
   '/boletins': typeof SiteBoletinsRoute
   '/contato': typeof SiteContatoRoute
@@ -149,12 +192,18 @@ export interface FileRoutesByFullPath {
   '/programacao': typeof SiteProgramacaoRoute
   '/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
+  '/app/biblia': typeof AppBibliaRoute
+  '/app/hinario': typeof AppHinarioRoute
+  '/app/mais': typeof AppMaisRoute
+  '/app/ofertar': typeof AppOfertarRoute
   '/votar/$token': typeof VotarTokenRoute
   '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
   '/boletim/$data': typeof SiteBoletimDataRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
+  '/app/boletim/$data': typeof AppBoletimDataRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
@@ -170,19 +219,26 @@ export interface FileRoutesByTo {
   '/programacao': typeof SiteProgramacaoRoute
   '/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
+  '/app/biblia': typeof AppBibliaRoute
+  '/app/hinario': typeof AppHinarioRoute
+  '/app/mais': typeof AppMaisRoute
+  '/app/ofertar': typeof AppOfertarRoute
   '/votar/$token': typeof VotarTokenRoute
   '/': typeof SiteIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/app': typeof AppIndexRoute
   '/boletim/$data': typeof SiteBoletimDataRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
+  '/app/boletim/$data': typeof AppBoletimDataRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_site': typeof SiteRouteWithChildren
+  '/app': typeof AppRouteWithChildren
   '/_site/ao-vivo': typeof SiteAoVivoRoute
   '/_site/boletins': typeof SiteBoletinsRoute
   '/_site/contato': typeof SiteContatoRoute
@@ -194,13 +250,19 @@ export interface FileRoutesById {
   '/_site/programacao': typeof SiteProgramacaoRoute
   '/_site/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
+  '/app/biblia': typeof AppBibliaRoute
+  '/app/hinario': typeof AppHinarioRoute
+  '/app/mais': typeof AppMaisRoute
+  '/app/ofertar': typeof AppOfertarRoute
   '/votar/$token': typeof VotarTokenRoute
   '/_site/': typeof SiteIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
   '/_site/boletim/$data': typeof SiteBoletimDataRoute
   '/_site/ministerios_/$id': typeof SiteMinisteriosIdRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
+  '/app/boletim/$data': typeof AppBoletimDataRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
@@ -208,6 +270,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app'
     | '/ao-vivo'
     | '/boletins'
     | '/contato'
@@ -219,12 +282,18 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/sobre'
     | '/admin/entrar'
+    | '/app/biblia'
+    | '/app/hinario'
+    | '/app/mais'
+    | '/app/ofertar'
     | '/votar/$token'
     | '/admin/'
+    | '/app/'
     | '/boletim/$data'
     | '/ministerios/$id'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
+    | '/app/boletim/$data'
     | '/impressao/boletim/$id'
     | '/api/boletim/$id/pdf'
   fileRoutesByTo: FileRoutesByTo
@@ -240,18 +309,25 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/sobre'
     | '/admin/entrar'
+    | '/app/biblia'
+    | '/app/hinario'
+    | '/app/mais'
+    | '/app/ofertar'
     | '/votar/$token'
     | '/'
     | '/admin'
+    | '/app'
     | '/boletim/$data'
     | '/ministerios/$id'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
+    | '/app/boletim/$data'
     | '/impressao/boletim/$id'
     | '/api/boletim/$id/pdf'
   id:
     | '__root__'
     | '/_site'
+    | '/app'
     | '/_site/ao-vivo'
     | '/_site/boletins'
     | '/_site/contato'
@@ -263,19 +339,26 @@ export interface FileRouteTypes {
     | '/_site/programacao'
     | '/_site/sobre'
     | '/admin/entrar'
+    | '/app/biblia'
+    | '/app/hinario'
+    | '/app/mais'
+    | '/app/ofertar'
     | '/votar/$token'
     | '/_site/'
     | '/admin/'
+    | '/app/'
     | '/_site/boletim/$data'
     | '/_site/ministerios_/$id'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
+    | '/app/boletim/$data'
     | '/impressao/boletim/$id'
     | '/api/boletim/$id/pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   SiteRoute: typeof SiteRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
   AdminEntrarRoute: typeof AdminEntrarRoute
   VotarTokenRoute: typeof VotarTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -292,6 +375,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof SiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_site/': {
@@ -385,6 +475,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/biblia': {
+      id: '/app/biblia'
+      path: '/biblia'
+      fullPath: '/app/biblia'
+      preLoaderRoute: typeof AppBibliaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/hinario': {
+      id: '/app/hinario'
+      path: '/hinario'
+      fullPath: '/app/hinario'
+      preLoaderRoute: typeof AppHinarioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/mais': {
+      id: '/app/mais'
+      path: '/mais'
+      fullPath: '/app/mais'
+      preLoaderRoute: typeof AppMaisRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/ofertar': {
+      id: '/app/ofertar'
+      path: '/ofertar'
+      fullPath: '/app/ofertar'
+      preLoaderRoute: typeof AppOfertarRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/votar/$token': {
       id: '/votar/$token'
       path: '/votar/$token'
@@ -419,6 +544,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/hub/sincronizar'
       preLoaderRoute: typeof ApiHubSincronizarRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/boletim/$data': {
+      id: '/app/boletim/$data'
+      path: '/boletim/$data'
+      fullPath: '/app/boletim/$data'
+      preLoaderRoute: typeof AppBoletimDataRouteImport
+      parentRoute: typeof AppRoute
     }
     '/impressao/boletim/$id': {
       id: '/impressao/boletim/$id'
@@ -471,8 +603,29 @@ const SiteRouteChildren: SiteRouteChildren = {
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)
 
+interface AppRouteChildren {
+  AppBibliaRoute: typeof AppBibliaRoute
+  AppHinarioRoute: typeof AppHinarioRoute
+  AppMaisRoute: typeof AppMaisRoute
+  AppOfertarRoute: typeof AppOfertarRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppBoletimDataRoute: typeof AppBoletimDataRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppBibliaRoute: AppBibliaRoute,
+  AppHinarioRoute: AppHinarioRoute,
+  AppMaisRoute: AppMaisRoute,
+  AppOfertarRoute: AppOfertarRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppBoletimDataRoute: AppBoletimDataRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   SiteRoute: SiteRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
   AdminEntrarRoute: AdminEntrarRoute,
   VotarTokenRoute: VotarTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
