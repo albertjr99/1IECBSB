@@ -222,6 +222,7 @@ export const CONTEUDO_PADRAO: Conteudo = {
     { id: "programacao", rotulo: "Programação", para: "/programacao", visivel: true },
     { id: "mensagens", rotulo: "Mensagens", para: "/mensagens", visivel: true },
     { id: "boletim", rotulo: "Boletim", para: "/boletins", visivel: true },
+    { id: "hinario", rotulo: "Hinário", para: "/hinario", visivel: true },
     { id: "contato", rotulo: "Contato", para: "/contato", visivel: true },
     { id: "contribua", rotulo: "Contribua", para: "/contribua", visivel: true },
   ],
@@ -412,6 +413,11 @@ export function completarConteudo(salvo: unknown): Conteudo {
   // fotos novas da liderança entram mesmo em conteúdo já salvo (se ainda sem foto)
   for (const g of c.lideranca.grupos) for (const m of g.membros) {
     if (!m.foto && /Hil[aá]rio Jos[eé]/.test(m.nome)) m.foto = "/fotos/pr-hilario-jose.jpg";
+  }
+  // hinário no site (nov/2026): entra no menu já salvo, depois do boletim (dá para ocultar no painel)
+  if (!c.menu.some((m) => m.id === "hinario" || m.para === "/hinario")) {
+    const i = c.menu.findIndex((m) => m.para === "/boletins");
+    c.menu.splice(i >= 0 ? i + 1 : c.menu.length, 0, { id: "hinario", rotulo: "Hinário", para: "/hinario", visivel: true });
   }
   return c;
 }

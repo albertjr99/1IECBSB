@@ -1,7 +1,7 @@
 /** Início: saudação, o que é para hoje, votações, reuniões, versículo e avisos. */
 import { router, useFocusEffect } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { CalendarDays, ChevronRight, Church, FileText, Gift, Video, Vote } from "lucide-react-native";
+import { BookOpen, CalendarDays, ChevronRight, Church, FileText, Gift, Video, Vote } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import { Avatar, Cartao, Marcado, Sobre, T, Tela, Titulo } from "@/componentes/ui";
@@ -11,6 +11,10 @@ import { useMembro } from "@/lib/sessao";
 import { AZUL, F, NOITE, useTema } from "@/lib/tema";
 import type { Inicio } from "@/lib/tipos";
 import { dataPorExtenso, primeiroNome, quando, salaAberta, saudacao } from "@/lib/util";
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const LIVROS = (require("../../dados/indice-biblia.json") as { livros: { id: string; nome: string }[] }).livros;
+const nomeLivro = (id: string) => LIVROS.find((l) => l.id === id)?.nome ?? id;
 
 export default function TelaInicio() {
   const { membro } = useMembro();
@@ -100,6 +104,17 @@ export default function TelaInicio() {
           <T s={19 * letra} f={F.verso} cor="#fff" style={{ lineHeight: 29 * letra }}>“{d.boletim.versiculo}”</T>
           <T s={11} f={F.negrito} cor="#fff" style={{ letterSpacing: 2, textTransform: "uppercase" }}>{d.boletim.referencia}</T>
         </Pressable>
+      ) : null}
+
+      {membro.ultimaLeitura ? (
+        <Cartao onPress={() => router.push("/biblia")} style={{ padding: 16, flexDirection: "row", alignItems: "center", gap: 14 }}>
+          <BookOpen color={c.azul} size={24} />
+          <View style={{ flex: 1 }}>
+            <T s={11} f={F.negrito} cor={c.suave} style={{ letterSpacing: 1.6, textTransform: "uppercase" }}>Continuar leitura</T>
+            <T s={16} f={F.negrito}>{nomeLivro(membro.ultimaLeitura.livro)} {membro.ultimaLeitura.capitulo}</T>
+          </View>
+          <ChevronRight color={c.suave} size={20} />
+        </Cartao>
       ) : null}
 
       <View style={{ flexDirection: "row", gap: 10 }}>

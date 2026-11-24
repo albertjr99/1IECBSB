@@ -47,6 +47,15 @@ const ACOES: Record<string, Acao> = {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d?.data ?? "")) throw new Error("Data inválida.");
     return obterPorData(d.data);
   },
+  /** Um livro da Bíblia (ARA ou NVI). */
+  async biblia(d: { versao: string; livro: string }) {
+    const { exigirMembro } = await import("@/server/membros");
+    const { lerLivroBiblia } = await import("@/server/biblia");
+    await exigirMembro();
+    const l = await lerLivroBiblia(d?.versao ?? "", d?.livro ?? "");
+    if (!l) throw new Error("Este livro ainda não foi carregado no aplicativo.");
+    return l;
+  },
   /** Informações da igreja: contatos, endereço, redes, programação e eventos. */
   async igreja() {
     const { exigirMembro } = await import("@/server/membros");

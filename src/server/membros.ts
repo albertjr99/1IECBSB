@@ -6,7 +6,7 @@ import { timingSafeEqual } from "node:crypto";
 import { deleteCookie, getCookie, getRequestHeader, setCookie } from "@tanstack/react-start/server";
 import { gravar, ler } from "./armazem";
 import { assinar, conferirSenha } from "./auth";
-import { PREFS_PADRAO, soDigitos, type Contribuicao, type Hino, type Membro, type MembroPublico, type Reuniao } from "@/lib/membros";
+import { PREFS_PADRAO, soDigitos, type Contribuicao, type Membro, type MembroPublico, type Reuniao } from "@/lib/membros";
 
 const COOKIE = "iecb_membro";
 const DURACAO_MS = 1000 * 60 * 60 * 24 * 120; // 4 meses: no celular ninguém quer entrar toda hora
@@ -88,8 +88,6 @@ export async function alterarMembro(id: string, fn: (m: Membro) => void) {
 
 // ─── Hinário, contribuições, reuniões ───────────────────────────────────────
 
-export async function lerHinos(): Promise<Hino[]> { return ((await ler<Hino[]>("hinario")) ?? []).sort((a, b) => a.numero - b.numero); }
-export async function gravarHinos(l: Hino[]) { await gravar("hinario", l); }
 
 export async function lerContribuicoes(): Promise<Contribuicao[]> { return (await ler<Contribuicao[]>("contribuicoes")) ?? []; }
 export async function gravarContribuicoes(l: Contribuicao[]) { await gravar("contribuicoes", l); }

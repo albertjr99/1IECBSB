@@ -3,15 +3,16 @@
  * (depois da primeira leitura, funciona sem internet). Dá para baixar tudo.
  */
 import { Platform } from "react-native";
-import { API } from "./api";
+import { API, chamar } from "./api";
 import { gravarCache, lerCache } from "./cache";
 
 export type Livro = { id: string; nome: string; testamento: "AT" | "NT" };
-export type Versao = { id: string; nome: string; sigla: string; credito: string; capitulos: Record<string, number>; somenteNT?: boolean };
+export type Versao = { id: string; nome: string; sigla: string; credito: string; capitulos: Record<string, number> };
+export type LivroTexto = { capitulos: string[][]; titulos: Record<string, string> };
 export type Indice = { livros: Livro[]; versoes: Versao[] };
 
 let indiceMem: Indice | null = null;
-const livrosMem = new Map<string, string[][]>();
+const livrosMem = new Map<string, LivroTexto>();
 
 async function arquivo(nome: string) {
   if (Platform.OS === "web") return null;
@@ -38,30 +39,29 @@ async function gravarLocal(nome: string, texto: string) {
 
 export async function obterIndice(): Promise<Indice> {
   if (indiceMem) return indiceMem;
-  const local = await lerLocal<Indice>("indice.json");
-  const buscar = fetch(`${API}/biblia/indice.json`).then(async (r) => {
-    if (!r.ok) throw new Error();
+  // o índice (livros e capítulos) vem junto com o app; atualiza em segundo plano
+  const local = (await lerLocal<Indice>("indice-v2.json")) ?? (require("../dados/indice-biblia.json") as Indice);
+  indiceMem = local;
+  fetch(`${API}/biblia/indice.json`).then(async (r) => {
+    if (!r.ok) return;
     const t = await r.text();
-    await gravarLocal("indice.json", t);
-    indiceMem = JSON.parse(t) as Indice;
-    return indiceMem;
-  });
-  if (local) { indiceMem = local; buscar.catch(() => {}); return local; }
-  return buscar.catch(() => { throw new Error("Conecte-se à internet para abrir a Bíblia pela primeira vez."); });
+    const novo = JSON.parse(t) as Indice;
+    if (novo.versoes?.length) { indiceMem = novo; await gravarLocal("indice-v2.json", t); }
+  }).catch(() => {});
+  return local;
 }
 
-export async function obterLivro(versao: string, livro: string): Promise<string[][]> {
+export async function obterLivro(versao: string, livro: string): Promise<LivroTexto> {
   const k = `${versao}/${livro}`;
   const mem = livrosMem.get(k);
   if (mem) return mem;
-  const nome = `${versao}-${livro}.json`;
-  const local = await lerLocal<string[][]>(nome);
-  if (local) { livrosMem.set(k, local); return local; }
-  const r = await fetch(`${API}/biblia/${versao}/${livro}.json`).catch(() => null);
-  if (!r?.ok) throw new Error("Sem internet: este livro ainda não foi baixado.");
-  const t = await r.text();
-  await gravarLocal(nome, t);
-  const l = JSON.parse(t) as string[][];
+  const nome = `v2-${versao}-${livro}.json`;
+  const local = await lerLocal<LivroTexto>(nome);
+  if (local?.capitulos) { livrosMem.set(k, local); return local; }
+  let l: LivroTexto;
+  try { l = await chamar<LivroTexto>("biblia", { versao, livro }); }
+  catch (e) { throw new Error(e instanceof Error && !/conexão/i.test(e.message) ? e.message : "Sem internet: este livro ainda não foi baixado."); }
+  await gravarLocal(nome, JSON.stringify(l));
   livrosMem.set(k, l);
   return l;
 }

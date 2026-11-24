@@ -3,13 +3,14 @@
  * Reuniões online. Tudo o que é decidido aqui aparece no app na hora.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Check, Copy, Download, KeyRound, Loader2, Music, Pencil, Plus, Search, Send, Smartphone, Trash2, UserCheck, UserX, Users, Video, X } from "lucide-react";
+import { Bell, BookOpen, Check, Copy, Download, KeyRound, Loader2, Music, Pencil, Plus, Search, Send, Smartphone, Trash2, UserCheck, UserX, Users, Video, X } from "lucide-react";
 import { toast } from "sonner";
 import {
-  confirmarContribuicaoPainel, importarHinosPainel, listarContribuicoesPainel, listarHinosPainel, listarMembrosPainel, listarReunioesPainel,
-  cancelarReuniaoPainel, enviarNotificacaoPainel, removerHinoPainel, removerMembroPainel, resumoAparelhosPainel, salvarHinoPainel, salvarMembroPainel, salvarReuniaoPainel, senhaProvisoriaMembro, situacaoMembroPainel,
+  confirmarContribuicaoPainel, listarContribuicoesPainel, listarMembrosPainel, listarReunioesPainel,
+  cancelarReuniaoPainel, enviarNotificacaoPainel, removerMembroPainel, resumoAparelhosPainel, salvarMembroPainel, salvarReuniaoPainel, senhaProvisoriaMembro, situacaoMembroPainel,
 } from "@/lib/api-membros";
-import { SITUACAO_MEMBRO_ROTULO, TIPO_CONTRIBUICAO, linkDaSala, reais, salaAberta, soDigitos, type Hino, type MembroPublico, type SituacaoMembro } from "@/lib/membros";
+import { importarLivroBibliaPainel, situacaoBibliaPainel } from "@/lib/api-biblia";
+import { SITUACAO_MEMBRO_ROTULO, TIPO_CONTRIBUICAO, linkDaSala, reais, salaAberta, soDigitos, type MembroPublico, type SituacaoMembro } from "@/lib/membros";
 import { cn, linkWhatsapp } from "@/lib/utils";
 import { Avatar } from "./Avatar";
 import { Camada } from "./Camada";
@@ -74,6 +75,7 @@ export function ModuloMembros() {
       </section>
 
       <EnviarAviso />
+      <BibliaDoApp />
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-p-borda pb-3">
         <div className="ef-chaves">
@@ -168,100 +170,6 @@ export function ModuloMembros() {
 }
 
 // ═══ Hinário ══════════════════════════════════════════════════════════════
-
-export function ModuloHinario() {
-  const [lista, setLista] = useState<Hino[] | null>(null);
-  const [busca, setBusca] = useState("");
-  const [edicao, setEdicao] = useState<{ hino: Hino; anterior?: number } | null>(null);
-  const [importar, setImportar] = useState<string | null>(null);
-  const carregar = () => listarHinosPainel().then(setLista).catch((e) => toast.error(e.message));
-  useEffect(() => { carregar(); }, []);
-  const norm = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  const visiveis = (lista ?? []).filter((h) => !busca || String(h.numero) === busca.trim() || norm(`${h.titulo} ${h.letra}`).includes(norm(busca)));
-  const proximo = (lista ?? []).reduce((m, h) => Math.max(m, h.numero), 0) + 1;
-
-  return (
-    <div className="mx-auto grid max-w-5xl gap-7 p-4 sm:p-8">
-      <Cabeca
-        sobre="Igreja"
-        titulo="Hinário"
-        texto="Os hinos que aparecem no aplicativo dos membros, com busca por número, título ou trecho da letra."
-        acao={<div className="flex gap-2"><button onClick={() => setImportar("")} className="ef-btn ef-btn-sec !h-12"><Download size={16} /> Importar vários</button><button onClick={() => setEdicao({ hino: { numero: proximo, titulo: "", letra: "" } })} className="ef-btn ef-btn-pri !h-12"><Plus size={17} /> Novo hino</button></div>}
-      />
-      <p className="border-l-[3px] border-amber-400 bg-amber-500/10 px-4 py-3 text-[13.5px] leading-relaxed text-p-texto-2">
-        O hinário <strong>Salmos e Hinos</strong> tem edição com direitos da editora. Antes de cadastrar as letras, vale a igreja confirmar com a União (UIECB) ou a editora a autorização para o uso no aplicativo.
-      </p>
-      <label className="relative max-w-[360px]">
-        <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-p-suave" />
-        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Número, título ou trecho" className="ef-campo !h-11 pl-9" />
-      </label>
-      {!lista ? <Loader2 className="mx-auto animate-spin text-p-suave" /> : visiveis.length === 0 ? (
-        <section className="ef-peca ef-peca-filete px-6 py-10 text-center">
-          <Music className="mx-auto text-p-acento" size={28} strokeWidth={1.6} />
-          <p className="mt-3 text-[16px] font-bold text-p-texto">{lista.length ? "Nenhum hino encontrado." : "O hinário ainda está vazio"}</p>
-          {!lista.length && <p className="mx-auto mt-1 max-w-[52ch] text-[14px] text-p-suave">Cadastre hino por hino, ou use “Importar vários” e cole o texto de muitos hinos de uma vez.</p>}
-        </section>
-      ) : (
-        <ul className="ef-peca">
-          {visiveis.map((h) => (
-            <li key={h.numero} className="flex items-center gap-4 border-b border-p-borda px-4 py-3 last:border-0">
-              <span className="ef-num w-12 shrink-0 text-[18px] font-bold text-p-acento">{h.numero}</span>
-              <button onClick={() => setEdicao({ hino: h, anterior: h.numero })} className="min-w-0 flex-1 text-left">
-                <span className="block truncate text-[14.5px] font-bold text-p-texto">{h.titulo}</span>
-                <span className="block truncate text-[12.5px] text-p-suave">{h.letra.split("\n")[0]}</span>
-              </button>
-              <button onClick={() => setEdicao({ hino: h, anterior: h.numero })} className="ef-btn ef-btn-fantasma !h-9"><Pencil size={15} /></button>
-              <button onClick={async () => { if (!confirm(`Remover o hino ${h.numero}?`)) return; await removerHinoPainel({ data: { numero: h.numero } }); carregar(); }} className="ef-btn ef-btn-perigo"><Trash2 size={15} /></button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {edicao && (
-        <Camada>
-          <div className="ef-janela-fundo fixed inset-0 z-50 grid place-items-center p-4" onClick={() => setEdicao(null)}>
-            <form
-              onClick={(e) => e.stopPropagation()}
-              onSubmit={async (e) => {
-                e.preventDefault();
-                try { await salvarHinoPainel({ data: { hino: edicao.hino, ...(edicao.anterior ? { numeroAnterior: edicao.anterior } : {}) } }); toast.success("Hino salvo."); setEdicao(null); carregar(); }
-                catch (err) { toast.error(err instanceof Error ? err.message : "Erro"); }
-              }}
-              className="ef-janela grid max-h-full w-full max-w-[640px] gap-5 overflow-y-auto p-7"
-            >
-              <div className="flex items-start justify-between"><div><p className="ef-sobre">Hinário</p><h2 className="mt-2.5 text-[21px] font-bold">{edicao.anterior ? `Hino ${edicao.anterior}` : "Novo hino"}</h2></div><button type="button" onClick={() => setEdicao(null)} className="p-1 text-p-suave" aria-label="Fechar"><X size={18} /></button></div>
-              <div className="grid gap-5 sm:grid-cols-[110px_1fr]">
-                <Campo rotulo="Número" tipo="number" valor={String(edicao.hino.numero)} onChange={(v) => setEdicao({ ...edicao, hino: { ...edicao.hino, numero: Number(v) } })} />
-                <Campo rotulo="Título" valor={edicao.hino.titulo} onChange={(v) => setEdicao({ ...edicao, hino: { ...edicao.hino, titulo: v } })} />
-              </div>
-              <Campo rotulo="Letra" multilinha linhas={14} valor={edicao.hino.letra} onChange={(v) => setEdicao({ ...edicao, hino: { ...edicao.hino, letra: v } })} dica="Uma linha em branco entre as estrofes. Para o coro, comece a estrofe com “Coro:”." />
-              <Grade>
-                <Campo rotulo="Autor (opcional)" valor={edicao.hino.autor ?? ""} onChange={(v) => setEdicao({ ...edicao, hino: { ...edicao.hino, autor: v } })} />
-                <Campo rotulo="Seção (opcional)" valor={edicao.hino.secao ?? ""} onChange={(v) => setEdicao({ ...edicao, hino: { ...edicao.hino, secao: v } })} placeholder="Ex.: Adoração, Ceia" />
-              </Grade>
-              <button className="ef-btn ef-btn-pri justify-self-start">Salvar hino</button>
-            </form>
-          </div>
-        </Camada>
-      )}
-
-      {importar !== null && (
-        <Camada>
-          <div className="ef-janela-fundo fixed inset-0 z-50 grid place-items-center p-4" onClick={() => setImportar(null)}>
-            <div onClick={(e) => e.stopPropagation()} className="ef-janela grid w-full max-w-[680px] gap-4 p-7">
-              <div className="flex items-start justify-between"><div><p className="ef-sobre">Hinário</p><h2 className="mt-2.5 text-[21px] font-bold">Importar vários hinos</h2></div><button onClick={() => setImportar(null)} className="p-1 text-p-suave" aria-label="Fechar"><X size={18} /></button></div>
-              <p className="text-[13.5px] text-p-suave">Cole o texto. Cada hino começa com uma linha com o número e o título, por exemplo <strong className="text-p-texto">12 - Título do hino</strong>; as linhas seguintes são a letra. Hinos com o mesmo número são substituídos.</p>
-              <textarea value={importar} onChange={(e) => setImportar(e.target.value)} rows={14} className="ef-campo font-mono !text-[13px]" placeholder={"1 - Título do primeiro hino\nPrimeira estrofe…\n\nCoro: …\n\n2 - Título do segundo hino\n…"} />
-              <button disabled={!importar.trim()} onClick={async () => { try { const r = await importarHinosPainel({ data: { texto: importar } }); toast.success(`${r.importados} hino(s) importado(s).`); setImportar(null); carregar(); } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); } }} className="ef-btn ef-btn-pri justify-self-start">Importar</button>
-            </div>
-          </div>
-        </Camada>
-      )}
-    </div>
-  );
-}
-
-// ═══ Contribuições (Finanças) ═════════════════════════════════════════════
 
 export function PainelContribuicoes() {
   const [lista, setLista] = useState<Awaited<ReturnType<typeof listarContribuicoesPainel>> | null>(null);
@@ -456,6 +364,45 @@ function EnviarAviso() {
           </div>
         </div>
       )}
+    </section>
+  );
+}
+
+/** Carrega no banco os textos da Bíblia (ARA e NVI) usados pelo aplicativo. */
+function BibliaDoApp() {
+  const [sit, setSit] = useState<{ ara: number; nvi: number } | null>(null);
+  const [prog, setProg] = useState<string | null>(null);
+  const carregar = () => situacaoBibliaPainel().then(setSit).catch(() => {});
+  useEffect(() => { carregar(); }, []);
+  const importar = async (arq: File) => {
+    try {
+      setProg("Lendo o arquivo…");
+      const pac = JSON.parse(await arq.text()) as { versao: { id: string; sigla: string }; livros: Record<string, { capitulos: string[][]; titulos: Record<string, string> }> };
+      const ids = Object.keys(pac.livros ?? {});
+      if (!pac.versao?.id || ids.length < 60) throw new Error("Este não é o arquivo da Bíblia do aplicativo.");
+      for (let i = 0; i < ids.length; i++) {
+        setProg(`${pac.versao.sigla}: ${i + 1} de ${ids.length} livros`);
+        await importarLivroBibliaPainel({ data: { versao: pac.versao.id, livro: ids[i]!, dados: pac.livros[ids[i]!]! } });
+      }
+      toast.success(`${pac.versao.sigla} carregada no aplicativo.`);
+      carregar();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível importar."); }
+    finally { setProg(null); }
+  };
+  const ok = (n?: number) => (n ?? 0) >= 66;
+  return (
+    <section className="ef-peca grid gap-3 px-6 py-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+      <div>
+        <p className="ef-h2 flex items-center gap-2"><BookOpen size={17} /> Bíblia do aplicativo</p>
+        <p className="mt-1.5 text-[14px] text-p-suave">
+          {sit ? <>ARA: <strong className={ok(sit.ara) ? "text-emerald-700 dark:text-emerald-400" : ""}>{ok(sit.ara) ? "pronta" : `${sit.ara}/66 livros`}</strong> · NVI: <strong className={ok(sit.nvi) ? "text-emerald-700 dark:text-emerald-400" : ""}>{ok(sit.nvi) ? "pronta" : `${sit.nvi}/66 livros`}</strong>. </> : null}
+          Os textos ficam guardados no banco da igreja e só aparecem para membros logados no aplicativo.
+        </p>
+      </div>
+      <label className={cn("ef-btn ef-btn-sec cursor-pointer", prog && "pointer-events-none opacity-70")}>
+        {prog ? <><Loader2 size={15} className="animate-spin" /> {prog}</> : <><Download size={15} className="rotate-180" /> Importar arquivo da Bíblia</>}
+        <input type="file" accept=".json,application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) importar(f); }} />
+      </label>
     </section>
   );
 }

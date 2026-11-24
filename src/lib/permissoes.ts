@@ -8,14 +8,14 @@
 export type Papel = "admin" | "pastor" | "comunicacao" | "editor";
 
 /** Áreas do painel. "site" = todas as seções de edição do site. */
-export type Area = "site" | "boletim" | "deliberacao" | "financas" | "agentes" | "alteracoes" | "usuarios" | "suporte" | "membros" | "hinario";
+export type Area = "site" | "boletim" | "deliberacao" | "financas" | "agentes" | "alteracoes" | "usuarios" | "suporte" | "membros";
 
 export const PERMISSOES: Record<Papel, readonly Area[]> = {
-  admin: ["site", "boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios", "suporte", "membros", "hinario"],
-  pastor: ["boletim", "deliberacao", "alteracoes", "suporte", "membros", "hinario"],
-  comunicacao: ["site", "agentes", "suporte", "hinario"],
+  admin: ["site", "boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios", "suporte", "membros"],
+  pastor: ["boletim", "deliberacao", "alteracoes", "suporte", "membros"],
+  comunicacao: ["site", "agentes", "suporte"],
   // perfil antigo ("Editor"): equivale à comunicação
-  editor: ["site", "agentes", "suporte", "hinario"],
+  editor: ["site", "agentes", "suporte"],
 };
 
 export const PAPEIS: { valor: Exclude<Papel, "editor">; rotulo: string; descricao: string }[] = [
@@ -34,7 +34,7 @@ export function pode(papel: string | undefined, area: Area) {
 
 /** Área de cada item do menu do painel. */
 export function areaDoItem(id: string): Area {
-  if (["boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios", "suporte", "membros", "hinario"].includes(id)) return id as Area;
+  if (["boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios", "suporte", "membros"].includes(id)) return id as Area;
   return "site";
 }
 

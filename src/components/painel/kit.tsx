@@ -297,6 +297,7 @@ export const PAGINAS_SITE: { valor: string; rotulo: string }[] = [
   { valor: "/mensagens", rotulo: "Mensagens (vídeos)" },
   { valor: "/ao-vivo", rotulo: "Culto ao vivo" },
   { valor: "/boletins", rotulo: "Boletins" },
+  { valor: "/hinario", rotulo: "Hinário (Salmos e Hinos)" },
   { valor: "/contribua", rotulo: "Contribua (dízimos e ofertas)" },
   { valor: "/contato", rotulo: "Contato e localização" },
 ];

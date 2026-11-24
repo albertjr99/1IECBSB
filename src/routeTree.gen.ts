@@ -32,6 +32,8 @@ import { Route as AppMaisRouteImport } from './routes/app/mais'
 import { Route as AppOfertarRouteImport } from './routes/app/ofertar'
 import { Route as VotarTokenRouteImport } from './routes/votar.$token'
 import { Route as SiteBoletimDataRouteImport } from './routes/_site/boletim.$data'
+import { Route as SiteHinarioIndexRouteImport } from './routes/_site/hinario.index'
+import { Route as SiteHinarioNumeroRouteImport } from './routes/_site/hinario.$numero'
 import { Route as SiteMinisteriosIdRouteImport } from './routes/_site/ministerios_.$id'
 import { Route as ApiHubRetornoRouteImport } from './routes/api/hub.retorno'
 import { Route as ApiHubSincronizarRouteImport } from './routes/api/hub.sincronizar'
@@ -153,6 +155,16 @@ const SiteBoletimDataRoute = SiteBoletimDataRouteImport.update({
   path: '/boletim/$data',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteHinarioIndexRoute = SiteHinarioIndexRouteImport.update({
+  id: '/hinario/',
+  path: '/hinario/',
+  getParentRoute: () => SiteRoute,
+} as any)
+const SiteHinarioNumeroRoute = SiteHinarioNumeroRouteImport.update({
+  id: '/hinario/$numero',
+  path: '/hinario/$numero',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteMinisteriosIdRoute = SiteMinisteriosIdRouteImport.update({
   id: '/ministerios_/$id',
   path: '/ministerios/$id',
@@ -207,11 +219,13 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/boletim/$data': typeof SiteBoletimDataRoute
+  '/hinario/$numero': typeof SiteHinarioNumeroRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/app/boletim/$data': typeof AppBoletimDataRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
+  '/hinario/': typeof SiteHinarioIndexRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
 export interface FileRoutesByTo {
@@ -236,11 +250,13 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/boletim/$data': typeof SiteBoletimDataRoute
+  '/hinario/$numero': typeof SiteHinarioNumeroRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/app/boletim/$data': typeof AppBoletimDataRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
+  '/hinario': typeof SiteHinarioIndexRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
 export interface FileRoutesById {
@@ -268,11 +284,13 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/_site/boletim/$data': typeof SiteBoletimDataRoute
+  '/_site/hinario/$numero': typeof SiteHinarioNumeroRoute
   '/_site/ministerios_/$id': typeof SiteMinisteriosIdRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/app/boletim/$data': typeof AppBoletimDataRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
+  '/_site/hinario/': typeof SiteHinarioIndexRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
 export interface FileRouteTypes {
@@ -300,11 +318,13 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/boletim/$data'
+    | '/hinario/$numero'
     | '/ministerios/$id'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
     | '/app/boletim/$data'
     | '/impressao/boletim/$id'
+    | '/hinario/'
     | '/api/boletim/$id/pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -329,11 +349,13 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/boletim/$data'
+    | '/hinario/$numero'
     | '/ministerios/$id'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
     | '/app/boletim/$data'
     | '/impressao/boletim/$id'
+    | '/hinario'
     | '/api/boletim/$id/pdf'
   id:
     | '__root__'
@@ -360,11 +382,13 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/_site/boletim/$data'
+    | '/_site/hinario/$numero'
     | '/_site/ministerios_/$id'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
     | '/app/boletim/$data'
     | '/impressao/boletim/$id'
+    | '/_site/hinario/'
     | '/api/boletim/$id/pdf'
   fileRoutesById: FileRoutesById
 }
@@ -544,6 +568,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteBoletimDataRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/hinario/': {
+      id: '/_site/hinario/'
+      path: '/hinario'
+      fullPath: '/hinario/'
+      preLoaderRoute: typeof SiteHinarioIndexRouteImport
+      parentRoute: typeof SiteRoute
+    }
+    '/_site/hinario/$numero': {
+      id: '/_site/hinario/$numero'
+      path: '/hinario/$numero'
+      fullPath: '/hinario/$numero'
+      preLoaderRoute: typeof SiteHinarioNumeroRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/ministerios_/$id': {
       id: '/_site/ministerios_/$id'
       path: '/ministerios/$id'
@@ -602,7 +640,9 @@ interface SiteRouteChildren {
   SiteSobreRoute: typeof SiteSobreRoute
   SiteIndexRoute: typeof SiteIndexRoute
   SiteBoletimDataRoute: typeof SiteBoletimDataRoute
+  SiteHinarioNumeroRoute: typeof SiteHinarioNumeroRoute
   SiteMinisteriosIdRoute: typeof SiteMinisteriosIdRoute
+  SiteHinarioIndexRoute: typeof SiteHinarioIndexRoute
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
@@ -618,7 +658,9 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteSobreRoute: SiteSobreRoute,
   SiteIndexRoute: SiteIndexRoute,
   SiteBoletimDataRoute: SiteBoletimDataRoute,
+  SiteHinarioNumeroRoute: SiteHinarioNumeroRoute,
   SiteMinisteriosIdRoute: SiteMinisteriosIdRoute,
+  SiteHinarioIndexRoute: SiteHinarioIndexRoute,
 }
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)

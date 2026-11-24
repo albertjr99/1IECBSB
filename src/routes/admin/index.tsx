@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { SECOES } from "@/components/painel/editores";
 import { JanelaPerfil, PainelUsuarios, PainelVersoes } from "@/components/painel/Extras";
 import { ModuloSuporte } from "@/components/painel/ModuloSuporte";
-import { ModuloHinario, ModuloMembros } from "@/components/painel/ModulosApp";
+import { ModuloMembros } from "@/components/painel/ModulosApp";
 import { Avatar } from "@/components/painel/Avatar";
 import { ModuloBoletim } from "@/components/painel/boletim/ModuloBoletim";
 import { Contorno, ModuloAgentes, ModuloDeliberacao, ModuloFinancas } from "@/components/painel/Modulos";
@@ -39,7 +39,6 @@ type ItemNav = { id: string; rotulo: string; Icone: LucideIcon; breve?: boolean;
 const MODULOS: ItemNav[] = [
   { id: "boletim", rotulo: "Boletim", Icone: Newspaper, descricao: "Boletim dominical no modelo da igreja." },
   { id: "membros", rotulo: "Membros do app", Icone: Smartphone, descricao: "Cadastro, aprovação e acesso ao aplicativo dos membros." },
-  { id: "hinario", rotulo: "Hinário", Icone: BookHeart, descricao: "Hinos do aplicativo dos membros." },
   { id: "deliberacao", rotulo: "Deliberação", Icone: Gavel, descricao: "Votação Online e Assembleia Online." },
   { id: "financas", rotulo: "Finanças", Icone: Landmark, descricao: "Dízimos e ofertas pelo aplicativo." },
 ];
@@ -337,7 +336,6 @@ function Painel() {
             <main className="ef-mesa relative min-w-0 flex-1 overflow-y-auto">
               {secao === "agentes" && liberado("agentes") && <ModuloAgentes />}
               {secao === "membros" && liberado("membros") && <ModuloMembros />}
-              {secao === "hinario" && liberado("hinario") && <ModuloHinario />}
               {secao === "suporte" && liberado("suporte") && <ModuloSuporte />}
               {secao === "boletim" && liberado("boletim") && <ModuloBoletim />}
               {secao === "deliberacao" && liberado("deliberacao") && <Contorno><ModuloDeliberacao /></Contorno>}

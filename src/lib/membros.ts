@@ -33,7 +33,7 @@ export type Membro = {
 
 export type MembroPublico = Omit<Membro, "hash" | "aparelhos">;
 
-export const PREFS_PADRAO: Preferencias = { versao: "blivre", letra: 3, tema: "sistema" };
+export const PREFS_PADRAO: Preferencias = { versao: "ara", letra: 3, tema: "sistema" };
 
 export const SITUACAO_MEMBRO_ROTULO: Record<SituacaoMembro, string> = { pendente: "Aguardando aprovação", ativo: "Ativo", inativo: "Inativo" };
 
@@ -60,6 +60,8 @@ export type Hino = {
   autor?: string;
   /** tema/seção do hinário (ex.: Adoração, Ceia) */
   secao?: string;
+  /** estrofes e coro separados (hinário oficial) */
+  partes?: { tipo: "estrofe" | "coro"; n?: number; linhas: string[] }[];
 };
 
 // ─── Contribuições ───────────────────────────────────────────────────────────

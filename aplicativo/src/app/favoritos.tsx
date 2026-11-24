@@ -18,7 +18,7 @@ export default function Favoritos() {
   useEffect(() => {
     membro.favoritos.versos.forEach(async (k) => {
       const [b, ch, v] = k.split(".");
-      try { const l = await obterLivro(versao, b!); setTextos((t) => ({ ...t, [k]: l[Number(ch) - 1]?.[Number(v) - 1] ?? "" })); } catch { /* sem internet */ }
+      try { const l = await obterLivro(versao, b!); setTextos((t) => ({ ...t, [k]: l.capitulos[Number(ch) - 1]?.[Number(v) - 1] ?? "" })); } catch { /* sem internet */ }
     });
   }, [membro.favoritos.versos, versao]);
   const nome = (id: string) => indice?.livros.find((l) => l.id === id)?.nome ?? id;

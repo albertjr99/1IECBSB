@@ -1,0 +1,48 @@
+/* Hinário — identidade da 1ª IEC Brasília: azul institucional, cruz vermelha só em detalhe,
+   Montserrat nos títulos, Lora na letra, cantos retos. */
+.hn { --hn-fundo: #fff; --hn-texto: #1d2b36; --hn-suave: #5b7f99; --hn-azul: #00436f; --hn-linha: #d9e6ef; --hn-nevoa: #f3f6f9; color: var(--hn-texto); }
+.hn-escuro { --hn-fundo: #121c26; --hn-texto: #e6edf3; --hn-suave: #8aa3b8; --hn-azul: #8fb6d3; --hn-linha: #22313f; --hn-nevoa: #16283a; }
+.hn-cabeca { padding-bottom: 22px; border-bottom: 1px solid var(--hn-linha); }
+.hn-sh { display: flex; align-items: center; gap: .7em; font: 700 10.5px/1 "Montserrat", sans-serif; letter-spacing: .24em; text-transform: uppercase; color: var(--hn-azul); }
+.hn-sh::before { content: ""; width: .62em; height: 1.1em; background: var(--cruz) center / contain no-repeat; }
+.hn-titulo { display: flex; align-items: flex-start; gap: 18px; margin-top: 16px; }
+.hn-numero { flex: none; min-width: 74px; padding: 10px 12px 8px; background: #00436f; color: #fff; font: 800 34px/1 "Montserrat", sans-serif; letter-spacing: -.02em; text-align: center; font-variant-numeric: tabular-nums; }
+.hn-titulo h1 { font: 700 clamp(24px, 4.2vw, 34px)/1.12 "Montserrat", sans-serif; letter-spacing: -.02em; color: var(--hn-azul); }
+.hn-autor { margin-top: 8px; font-size: 13.5px; color: var(--hn-suave); }
+.hn-ferramentas { display: flex; align-items: center; gap: 6px; margin-top: 20px; flex-wrap: wrap; }
+.hn-ferramentas button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; min-width: 38px; padding: 0 10px; border: 1px solid var(--hn-linha); color: var(--hn-azul); background: transparent; transition: background .15s; }
+.hn-ferramentas button:hover { background: var(--hn-nevoa); }
+.hn-tam { font: 700 15px "Montserrat"; color: var(--hn-suave); padding: 0 4px; }
+.hn-sep { width: 1px; height: 22px; background: var(--hn-linha); margin: 0 6px; }
+.hn-ferramentas .hn-culto-botao { margin-left: auto; background: #00436f; border-color: #00436f; color: #fff; font: 700 11.5px "Montserrat"; letter-spacing: .14em; text-transform: uppercase; padding: 0 16px; }
+.hn-ferramentas .hn-culto-botao:hover { background: #002a47; }
+.hn-corpo { display: grid; gap: 26px; padding: 30px 0 10px; }
+.hn-estrofe { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 6px; }
+.hn-num { font: 800 15px/1.9 "Montserrat", sans-serif; color: var(--hn-azul); }
+.hn-estrofe p, .hn-coro p { font-family: "Lora", Georgia, serif; line-height: 1.62; }
+.hn-coro { margin-left: 40px; padding: 16px 20px 18px; background: var(--hn-nevoa); border-left: 3px solid #00436f; }
+.hn-coro p { font-style: italic; color: var(--hn-azul); }
+.hn-escuro .hn-coro p { color: var(--hn-texto); }
+.hn-coro-rotulo { font: 700 10px/1 "Montserrat", sans-serif !important; font-style: normal !important; letter-spacing: .24em; text-transform: uppercase; color: var(--hn-suave) !important; margin-bottom: 10px; }
+.hn-navega { display: flex; justify-content: space-between; gap: 12px; padding-top: 22px; margin-top: 18px; border-top: 1px solid var(--hn-linha); }
+.hn-navega button { display: inline-flex; align-items: center; gap: 6px; font: 700 12px "Montserrat"; letter-spacing: .12em; text-transform: uppercase; color: var(--hn-azul); padding: 10px 0; }
+@media (max-width: 520px) { .hn-coro { margin-left: 0; } .hn-numero { min-width: 62px; font-size: 28px; } }
+
+/* modo culto */
+.hn-telao { position: fixed; inset: 0; z-index: 200; display: flex; flex-direction: column; background: #002a47; color: #fff; }
+.hn-telao-topo { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: max(16px, env(safe-area-inset-top)) 22px 14px; border-bottom: 1px solid rgba(255,255,255,.12); font: 600 14px "Montserrat"; color: rgba(255,255,255,.8); }
+.hn-telao-topo strong { display: inline-block; margin-right: 8px; padding: 3px 8px; background: #fff; color: #00436f; font-weight: 800; }
+.hn-telao-palco { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px clamp(20px, 6vw, 90px); text-align: center; cursor: pointer; color: inherit; }
+.hn-telao-rotulo { display: flex; align-items: center; gap: .7em; font: 700 11px/1 "Montserrat"; letter-spacing: .28em; text-transform: uppercase; color: #d9e6ef; margin-bottom: 26px; }
+.hn-telao-rotulo::before { content: ""; width: .62em; height: 1.1em; background: var(--cruz) center / contain no-repeat; }
+.hn-telao-texto { animation: hn-entra .35s ease both; }
+.hn-telao-texto p { font: 500 clamp(22px, 4.4vw, 52px)/1.42 "Lora", Georgia, serif; }
+.hn-telao-coro p { font-style: italic; }
+@keyframes hn-entra { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.hn-telao-base { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 12px 18px max(18px, env(safe-area-inset-bottom)); }
+.hn-telao-base button { width: 52px; height: 52px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.25); color: #fff; }
+.hn-telao-base button:disabled { opacity: .25; }
+.hn-telao-pontos { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 70%; }
+.hn-telao-pontos span { width: 18px; height: 3px; background: rgba(255,255,255,.25); }
+.hn-telao-pontos span.coro { width: 10px; }
+.hn-telao-pontos span.ativo { background: #fff; }

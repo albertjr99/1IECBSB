@@ -1,6 +1,6 @@
 /** Funções do painel para o app dos membros. */
 import { createServerFn } from "@tanstack/react-start";
-import type { Hino, SituacaoMembro } from "./membros";
+import type { SituacaoMembro } from "./membros";
 
 // ─── Membros ────────────────────────────────────────────────────────────────
 
@@ -88,73 +88,6 @@ export const removerMembroPainel = createServerFn({ method: "POST" })
     await gravarMembros(l.filter((x) => x.id !== data.id));
     await registrar(s.nome, "Removeu membro do app", m?.nome ?? data.id);
     return { ok: true };
-  });
-
-// ─── Hinário ────────────────────────────────────────────────────────────────
-
-export const listarHinosPainel = createServerFn({ method: "GET" }).handler(async () => {
-  const { exigirAcesso } = await import("../server/auth");
-  const { lerHinos } = await import("../server/membros");
-  await exigirAcesso("hinario");
-  return lerHinos();
-});
-
-export const salvarHinoPainel = createServerFn({ method: "POST" })
-  .validator((d: { hino: Hino; numeroAnterior?: number }) => {
-    if (!Number.isInteger(d.hino.numero) || d.hino.numero < 1) throw new Error("Informe o número do hino.");
-    if (!d.hino.titulo.trim()) throw new Error("Informe o título.");
-    if (!d.hino.letra.trim()) throw new Error("Escreva a letra.");
-    return d;
-  })
-  .handler(async ({ data }) => {
-    const { exigirAcesso } = await import("../server/auth");
-    const { lerHinos, gravarHinos } = await import("../server/membros");
-    const { registrar } = await import("../server/armazem");
-    const s = await exigirAcesso("hinario");
-    const l = await lerHinos();
-    const anterior = data.numeroAnterior ?? data.hino.numero;
-    if (data.hino.numero !== anterior && l.some((h) => h.numero === data.hino.numero)) throw new Error(`Já existe o hino nº ${data.hino.numero}.`);
-    const h: Hino = { numero: data.hino.numero, titulo: data.hino.titulo.trim(), letra: data.hino.letra.replace(/\r/g, "").trim(), ...(data.hino.autor?.trim() ? { autor: data.hino.autor.trim() } : {}), ...(data.hino.secao?.trim() ? { secao: data.hino.secao.trim() } : {}) };
-    await gravarHinos([...l.filter((x) => x.numero !== anterior), h]);
-    await registrar(s.nome, "Salvou hino", `${h.numero} — ${h.titulo}`);
-    return { ok: true };
-  });
-
-export const removerHinoPainel = createServerFn({ method: "POST" })
-  .validator((d: { numero: number }) => d)
-  .handler(async ({ data }) => {
-    const { exigirAcesso } = await import("../server/auth");
-    const { lerHinos, gravarHinos } = await import("../server/membros");
-    await exigirAcesso("hinario");
-    await gravarHinos((await lerHinos()).filter((h) => h.numero !== data.numero));
-    return { ok: true };
-  });
-
-/**
- * Importa vários hinos de um texto colado: cada hino começa com uma linha
- * "123 - Título" (ou "123. Título"); o que vem depois é a letra.
- */
-export const importarHinosPainel = createServerFn({ method: "POST" })
-  .validator((d: { texto: string }) => d)
-  .handler(async ({ data }) => {
-    const { exigirAcesso } = await import("../server/auth");
-    const { lerHinos, gravarHinos } = await import("../server/membros");
-    const { registrar } = await import("../server/armazem");
-    const s = await exigirAcesso("hinario");
-    const novos: Hino[] = [];
-    let atual: Hino | null = null;
-    for (const linha of data.texto.replace(/\r/g, "").split("\n")) {
-      const m = /^\s*(\d{1,4})\s*[-–.)]\s*(.+?)\s*$/.exec(linha);
-      if (m) { if (atual) novos.push(atual); atual = { numero: Number(m[1]), titulo: m[2]!, letra: "" }; continue; }
-      if (atual) atual.letra += `${linha}\n`;
-    }
-    if (atual) novos.push(atual);
-    const validos = novos.map((h) => ({ ...h, letra: h.letra.replace(/\n{3,}/g, "\n\n").trim() })).filter((h) => h.letra);
-    if (!validos.length) throw new Error("Nenhum hino encontrado. Cada hino deve começar com uma linha como “1 - Título do hino”.");
-    const numeros = new Set(validos.map((h) => h.numero));
-    await gravarHinos([...(await lerHinos()).filter((h) => !numeros.has(h.numero)), ...validos]);
-    await registrar(s.nome, "Importou hinos", `${validos.length} hino(s)`);
-    return { importados: validos.length };
   });
 
 // ─── Contribuições (tesouraria) ─────────────────────────────────────────────

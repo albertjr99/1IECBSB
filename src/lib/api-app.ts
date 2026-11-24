@@ -127,9 +127,11 @@ export const appInicio = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const appHinos = createServerFn({ method: "GET" }).handler(async () => {
-  const { exigirMembro, lerHinos } = await import("../server/membros");
+  const { exigirMembro } = await import("../server/membros");
+  const { HINARIO, letraDe } = await import("./hinario");
   await exigirMembro();
-  return lerHinos();
+  // "letra" mantém compatível o app 1.0; "partes" traz estrofes e coro separados
+  return HINARIO.map((h) => ({ ...h, letra: letraDe(h) }));
 });
 
 /** Dados do Pix da igreja e as contribuições do próprio membro. */

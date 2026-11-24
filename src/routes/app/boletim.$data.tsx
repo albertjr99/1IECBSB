@@ -28,7 +28,7 @@ function BoletimApp() {
         </div>
       </div>
       <div className={modo === "folhas" ? "px-3 py-4" : "pt-3"}>
-        {b === undefined ? <div className="mx-auto aspect-[210/297] w-full animate-pulse bg-[var(--a-borda)]" /> : !b ? <p className="py-16 text-center text-[var(--a-suave)]">Boletim não encontrado.</p> : modo === "leitura" ? <LeituraCelular boletim={b} /> : <FolhasEscaladas boletim={b} espaco={14} />}
+        {b === undefined ? <div className="mx-auto aspect-[210/297] w-full animate-pulse bg-[var(--a-borda)]" /> : !b ? <p className="py-16 text-center text-[var(--a-suave)]">Boletim não encontrado.</p> : modo === "leitura" ? <div style={{ ["--bl-topo" as string]: "calc(env(safe-area-inset-top) + 59px)" }}><LeituraCelular boletim={b} /></div> : <FolhasEscaladas boletim={b} espaco={14} />}
       </div>
     </div>
   );

@@ -43,3 +43,23 @@
 .bl-oficios { display: grid; gap: 12px; margin-top: 12px; font-size: calc(14.5px * var(--bl-letra)); }
 .bl-oficios p span { display: block; }
 .bl-oficios strong { color: var(--bl-azul); }
+
+/* boletim em partes */
+.bl-abas { position: sticky; top: var(--bl-topo, 0px); z-index: 5; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 10px 14px; background: color-mix(in srgb, var(--bl-fundo) 94%, transparent); backdrop-filter: blur(14px); border-bottom: 1px solid var(--bl-linha); }
+.bl-abas::-webkit-scrollbar { display: none; }
+.bl-abas button { flex: none; padding: 8px 13px; border: 1px solid var(--bl-linha); font: 700 11px/1 "Montserrat", sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--bl-suave); background: transparent; white-space: nowrap; }
+.bl-abas button.ativa { background: #00436f; border-color: #00436f; color: #fff; }
+.bl-progresso { height: 2px; background: var(--bl-linha); }
+.bl-progresso span { display: block; height: 100%; background: #00436f; transition: width .3s ease; }
+.bl-pagina { min-height: 52vh; animation: bl-entra .35s cubic-bezier(.2,.8,.2,1) both; }
+.bl-pagina > .bl-parte:first-child { border-top: 0; margin-top: 0; }
+@keyframes bl-entra { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+.bl-sumario { padding: 24px 20px 6px; }
+.bl-sumario ol { margin-top: 12px; border-top: 1px solid var(--bl-linha); }
+.bl-sumario li button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 13px 2px; border-bottom: 1px solid var(--bl-linha); text-align: left; font: 600 15px "Montserrat", sans-serif; color: var(--bl-texto); }
+.bl-sumario li button span { font-weight: 800; font-size: 12px; color: var(--bl-azul); font-variant-numeric: tabular-nums; }
+.bl-passos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 26px 16px 8px; }
+.bl-passos button { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 12px 14px; border: 1px solid var(--bl-linha); font: 700 14px "Montserrat", sans-serif; color: var(--bl-azul); text-align: left; }
+.bl-passos button small { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--bl-suave); }
+.bl-passos .bl-proxima { grid-column: 2; align-items: flex-end; text-align: right; background: #00436f; border-color: #00436f; color: #fff; }
+.bl-passos .bl-proxima small { color: #d9e6ef; }

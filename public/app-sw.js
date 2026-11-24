@@ -4,7 +4,7 @@
  * - Telas do app: busca na rede; sem internet, usa a última versão guardada.
  * - Dados (funções do servidor): sempre da rede.
  */
-const VERSAO = "iecb-app-v1";
+const VERSAO = "iecb-app-v2";
 const ESSENCIAIS = ["/app", "/app/manifest.webmanifest", "/app/icone-192.png", "/biblia/indice.json"];
 
 self.addEventListener("install", (e) => {
@@ -12,7 +12,7 @@ self.addEventListener("install", (e) => {
 });
 
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSAO).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSAO && !k.startsWith("iecb-biblia")).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 const guardado = (req) => caches.match(req);

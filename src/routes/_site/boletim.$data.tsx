@@ -33,6 +33,14 @@ function BoletimPagina() {
   // no celular, o boletim abre em modo leitura (texto corrido); no computador, nas folhas
   const [modo, setModo] = useState<"leitura" | "folhas">("folhas");
   useEffect(() => { if (window.innerWidth < 640) setModo("leitura"); }, []);
+  // as abas do modo leitura grudam logo abaixo do cabeçalho do site
+  const [topo, setTopo] = useState(0);
+  useEffect(() => {
+    const h = document.querySelector("header");
+    const medir = () => setTopo(h?.getBoundingClientRect().height ?? 0);
+    medir(); window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
+  }, []);
 
   const compartilhar = async () => {
     const url = window.location.href;
@@ -64,7 +72,7 @@ function BoletimPagina() {
           </div>
         </div>
         <div className={modo === "leitura" ? "mx-auto max-w-[680px] shadow-[0_20px_50px_-30px_rgba(0,42,71,0.5)]" : "mx-auto max-w-[860px]"}>
-          {modo === "leitura" ? <LeituraCelular boletim={b} /> : <FolhasEscaladas boletim={b} espaco={20} />}
+          {modo === "leitura" ? <div style={{ ["--bl-topo" as string]: `${topo}px` }}><LeituraCelular boletim={b} /></div> : <FolhasEscaladas boletim={b} espaco={20} />}
         </div>
       </div>
     </section>
