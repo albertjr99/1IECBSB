@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight, FileDown, Globe, Loader2, Newspaper, PenLine, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, ExternalLink, FileDown, Loader2, PenLine, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { dataPorExtenso, type ResumoBoletim } from "@/lib/boletim";
+import { FolhasEscaladas } from "@/components/boletim/Folhas";
+import { dataPorExtenso, type Boletim, type ResumoBoletim } from "@/lib/boletim";
 import { domingoDaVez } from "@/lib/boletim-facil";
-import { criarBoletimDaSemana, excluirBoletim, listarBoletinsPainel } from "@/lib/api-boletim";
+import { criarBoletimDaSemana, excluirBoletim, listarBoletinsPainel, obterBoletimPainel } from "@/lib/api-boletim";
 import { cn } from "@/lib/utils";
 import { EditorFacil } from "./EditorFacil";
 import { EstudioBoletim } from "./Estudio";
+import "./editor.css";
 
 type Aberto = { id: string; modo: "facil" | "avancado"; lembretes?: string[] };
 
@@ -28,25 +30,40 @@ export function ModuloBoletim() {
 }
 
 const MES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
-function Calendario({ data, grande }: { data: string; grande?: boolean }) {
+/** A primeira página do boletim, em pé e em perspectiva, com uma folha atrás. */
+function Capa3D({ boletim, apagada }: { boletim: Boletim | null; apagada?: boolean }) {
   return (
-    <span className={cn("grid shrink-0 overflow-hidden rounded-xl border-2 border-p-borda bg-p-superficie text-center", grande ? "w-20" : "w-14")}>
-      <span className={cn("bg-p-acento font-bold uppercase tracking-wider text-white", grande ? "py-1 text-[12px]" : "py-0.5 text-[10px]")}>{MES[Number(data.slice(5, 7)) - 1]}</span>
-      <span className={cn("font-bold leading-none text-p-texto", grande ? "py-2 text-[30px]" : "py-1.5 text-[20px]")}>{Number(data.slice(8, 10))}</span>
-    </span>
+    <div className="ef-vitrine-cena relative mx-auto w-[210px] sm:w-[236px]" aria-hidden>
+      <div className="ef-folha-atras absolute inset-0" />
+      <div className={cn("ef-capa3d relative overflow-hidden bg-white", apagada && "opacity-80")} style={{ aspectRatio: "210 / 297" }}>
+        {boletim ? (
+          <div className="pointer-events-none">
+            <FolhasEscaladas boletim={boletim} somentePagina={boletim.paginas[0]?.id} espaco={0} />
+          </div>
+        ) : <div className="grid h-full place-items-center"><Loader2 className="animate-spin text-[#5b7f99]" /></div>}
+      </div>
+    </div>
   );
 }
 
 function ListaBoletins({ aoAbrir }: { aoAbrir: (id: string, lembretes?: string[]) => void }) {
   const [lista, setLista] = useState<ResumoBoletim[] | null>(null);
+  const [capa, setCapa] = useState<Boletim | null>(null);
   const [criando, setCriando] = useState(false);
   const carregar = useCallback(() => { listarBoletinsPainel().then(setLista).catch((e) => toast.error(e.message)); }, []);
   useEffect(carregar, [carregar]);
 
   const domingo = domingoDaVez();
   const daVez = lista?.find((x) => x.data === domingo) ?? [...(lista ?? [])].reverse().find((x) => x.data > domingo);
+  const base = daVez ?? lista?.[0];
   const outros = lista?.filter((x) => x !== daVez) ?? [];
+
+  useEffect(() => {
+    if (!base) return;
+    obterBoletimPainel({ data: { id: base.id } }).then((r) => setCapa(r.boletim)).catch(() => {});
+  }, [base?.id]);
 
   const criar = async () => {
     setCriando(true);
@@ -59,81 +76,91 @@ function ListaBoletins({ aoAbrir }: { aoAbrir: (id: string, lembretes?: string[]
   };
 
   return (
-    <div className="mx-auto grid max-w-3xl gap-7 p-4 sm:p-8">
-      <div>
-        <h1 className="text-[26px] font-bold text-p-texto">Boletim dominical</h1>
-        <p className="mt-1 text-[15.5px] text-p-suave">Escreva o boletim em poucos passos. Ele fica pronto para o site e para imprimir.</p>
-      </div>
+    <div className="ef ef-mesa min-h-full">
+      <div className="mx-auto grid max-w-[1040px] gap-9 px-4 py-6 sm:px-8 sm:py-10">
+        <header>
+          <p className="ef-sobre">Comunicação</p>
+          <h1 className="ef-titulo mt-3">Boletim dominical</h1>
+          <p className="ef-sub mt-1.5 max-w-[60ch]">Escreva em poucos passos. O boletim sai no padrão da igreja, pronto para o site e para a impressão.</p>
+        </header>
 
-      {!lista ? (
-        <div className="grid place-items-center py-16"><Loader2 className="animate-spin text-p-suave" size={28} /></div>
-      ) : (
-        <>
-          {/* o boletim da vez */}
-          {daVez ? (
-            <section className="rounded-3xl border-2 border-p-acento/25 bg-p-realce p-5 sm:p-7">
-              <p className="text-[12.5px] font-bold uppercase tracking-[0.16em] text-p-acento">{daVez.data === domingo ? "Boletim deste domingo" : "Próximo boletim"}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-4">
-                <Calendario data={daVez.data} grande />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[21px] font-bold leading-tight text-p-texto">{dataPorExtenso(daVez.data)}</p>
-                  <p className="mt-1 text-[14.5px] text-p-suave">
-                    {daVez.publicado ? "Já está no site." : "Ainda é rascunho."} Última alteração: {daVez.atualizadoPor || "—"}, {new Date(daVez.atualizadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}.
-                  </p>
+        {!lista ? (
+          <div className="grid place-items-center py-20"><Loader2 className="animate-spin text-p-suave" size={26} /></div>
+        ) : (
+          <>
+            {/* vitrine: o boletim da vez */}
+            <section className="ef-vitrine grid items-center gap-10 px-6 py-9 sm:px-10 md:grid-cols-[minmax(0,1fr)_300px] md:py-12">
+              <div className="min-w-0">
+                {daVez ? (
+                  <>
+                    <p className="ef-sobre !text-white/80">{daVez.data === domingo ? "Boletim deste domingo" : "Próximo boletim"}</p>
+                    <h2 className="mt-4 text-[clamp(28px,3.6vw,42px)] font-bold leading-[1.05] tracking-[-0.025em]">{dataPorExtenso(daVez.data)}</h2>
+                    <div className="mt-5 flex flex-wrap items-center gap-3 text-[13px] text-white/70">
+                      <span className="ef-chip-vidro"><span className={cn("ef-ponto", !daVez.publicado && "ef-ponto-rascunho")} /> {daVez.publicado ? "No site" : "Rascunho"}</span>
+                      <span className="ef-num">Alterado por {daVez.atualizadoPor || "—"} · {quando(daVez.atualizadoEm)}</span>
+                    </div>
+                    <div className="mt-8 flex flex-wrap gap-2.5">
+                      <button onClick={() => aoAbrir(daVez.id)} className="ef-btn ef-btn-branco !h-[52px] !px-7"><PenLine size={17} /> Continuar o boletim <ArrowRight size={17} /></button>
+                      <a href={`/api/boletim/${daVez.id}/pdf`} target="_blank" rel="noopener" className="ef-btn ef-btn-vidro !h-[52px]"><FileDown size={17} /> PDF</a>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="ef-sobre !text-white/80">Próximo domingo</p>
+                    <h2 className="mt-4 text-[clamp(28px,3.6vw,42px)] font-bold leading-[1.05] tracking-[-0.025em]">{dataPorExtenso(domingo)}</h2>
+                    <p className="mt-4 max-w-[50ch] text-[15px] leading-relaxed text-white/75">
+                      {lista.length
+                        ? `O boletim já começa preparado a partir do de ${dataPorExtenso(lista[0]!.data).replace(/ de \d{4}$/, "")}: mesmos avisos, escala adiantada e agenda sem o que já passou. Falta revisar e escrever as pastorais.`
+                        : "O boletim começa no modelo da igreja, com todas as seções."}
+                    </p>
+                    <button disabled={criando} onClick={criar} className="ef-btn ef-btn-branco mt-8 !h-[52px] !px-7">
+                      {criando ? <Loader2 size={17} className="animate-spin" /> : <Plus size={18} strokeWidth={2.4} />} Começar o boletim
+                    </button>
+                  </>
+                )}
+              </div>
+              {base && <Capa3D boletim={capa} apagada={!daVez} />}
+            </section>
+
+            {outros.length > 0 && (
+              <section>
+                <div className="mb-3 flex items-end justify-between border-b border-p-borda pb-2.5">
+                  <h2 className="ef-h2">Arquivo</h2>
+                  <span className="ef-num text-[12.5px] text-p-suave">{outros.length} {outros.length === 1 ? "boletim" : "boletins"}</span>
                 </div>
-              </div>
-              <div className="mt-5 flex flex-wrap gap-2">
-                <button onClick={() => aoAbrir(daVez.id)} className="inline-flex h-14 items-center gap-2 rounded-xl bg-p-acento px-7 text-[17px] font-bold text-white shadow-sm transition hover:brightness-110">
-                  <PenLine size={20} /> Continuar o boletim <ArrowRight size={20} />
-                </button>
-                <a href={`/api/boletim/${daVez.id}/pdf`} target="_blank" rel="noopener" className="inline-flex h-14 items-center gap-2 rounded-xl border-2 border-p-borda bg-p-superficie px-5 text-[15px] font-semibold text-p-texto hover:border-p-acento hover:text-p-acento"><FileDown size={19} /> Baixar PDF</a>
-              </div>
-            </section>
-          ) : (
-            <section className="rounded-3xl border-2 border-dashed border-p-acento/40 bg-p-superficie p-6 text-center sm:p-9">
-              <Newspaper className="mx-auto text-p-acento" size={40} />
-              <p className="mt-3 text-[21px] font-bold text-p-texto">Fazer o boletim de {dataPorExtenso(domingo)}</p>
-              <p className="mx-auto mt-1.5 max-w-md text-[15px] text-p-suave">
-                {lista.length ? "Ele já vem preparado a partir do último: mesmos avisos, escala adiantada e agenda atualizada. É só revisar e escrever as pastorais." : "Ele já vem no modelo da igreja, com todas as seções."}
-              </p>
-              <button disabled={criando} onClick={criar} className="mt-6 inline-flex h-14 items-center gap-2 rounded-xl bg-p-acento px-8 text-[17px] font-bold text-white shadow-sm transition hover:brightness-110 disabled:opacity-60">
-                {criando ? <Loader2 size={20} className="animate-spin" /> : <Plus size={21} />} Começar o boletim
-              </button>
-            </section>
-          )}
-
-          {outros.length > 0 && (
-            <section>
-              <h2 className="mb-3 text-[17px] font-bold text-p-texto">Boletins anteriores</h2>
-              <ul className="grid gap-2">
-                {outros.map((b) => (
-                  <li key={b.id} className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-p-borda bg-p-superficie p-3 pr-4">
-                    <Calendario data={b.data} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[15.5px] font-bold text-p-texto">{dataPorExtenso(b.data)}</span>
-                      <span className={cn("mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-px text-[11.5px] font-bold", b.publicado ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : "bg-amber-500/15 text-amber-800 dark:text-amber-300")}>
-                        {b.publicado ? <><Globe size={11} /> No site</> : "Rascunho"}
+                <ul className="ef-peca">
+                  {outros.map((b) => (
+                    <li key={b.id} className="ef-linha">
+                      <span className="ef-data"><b>{Number(b.data.slice(8, 10))}</b><small>{MES[Number(b.data.slice(5, 7)) - 1]}</small></span>
+                      <button onClick={() => aoAbrir(b.id)} className="min-w-0 text-left">
+                        <span className="block truncate text-[15px] font-bold text-p-texto">{dataPorExtenso(b.data)}</span>
+                        <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-p-suave">
+                          <span className="inline-flex items-center gap-1.5 font-semibold text-p-texto-2"><span className={cn("ef-ponto !size-1.5", !b.publicado && "ef-ponto-rascunho")} /> {b.publicado ? "No site" : "Rascunho"}</span>
+                          <span className="ef-num">{b.atualizadoPor || "—"} · {quando(b.atualizadoEm)}</span>
+                        </span>
+                      </button>
+                      <span className="flex items-center gap-0.5">
+                        <button onClick={() => aoAbrir(b.id)} className="ef-btn ef-btn-fantasma !text-p-acento"><PenLine size={15} /> <span className="hidden sm:inline">Editar</span></button>
+                        <a href={`/api/boletim/${b.id}/pdf`} target="_blank" rel="noopener" className="ef-btn ef-btn-fantasma" title="Baixar PDF"><FileDown size={15} /> <span className="hidden sm:inline">PDF</span></a>
+                        {b.publicado && <a href={`/boletim/${b.data}`} target="_blank" rel="noopener" className="ef-btn ef-btn-fantasma !px-2.5" title="Ver no site" aria-label="Ver no site"><ExternalLink size={15} /></a>}
+                        <button
+                          title="Apagar"
+                          aria-label="Apagar"
+                          onClick={async () => {
+                            if (!confirm(`Apagar o boletim de ${dataPorExtenso(b.data)}? Ele sai do site e não poderá ser recuperado.`)) return;
+                            try { await excluirBoletim({ data: { id: b.id } }); carregar(); toast.success("Boletim apagado."); } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
+                          }}
+                          className="ef-btn ef-btn-perigo"
+                        ><Trash2 size={15} /></button>
                       </span>
-                    </span>
-                    <span className="flex flex-wrap items-center gap-1">
-                      <button onClick={() => aoAbrir(b.id)} className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[14px] font-semibold text-p-acento hover:bg-p-realce"><PenLine size={16} /> Editar</button>
-                      <a href={`/api/boletim/${b.id}/pdf`} target="_blank" rel="noopener" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[14px] font-semibold text-p-texto-2 hover:bg-p-hover"><FileDown size={16} /> PDF</a>
-                      <button
-                        title="Apagar"
-                        onClick={async () => {
-                          if (!confirm(`Apagar o boletim de ${dataPorExtenso(b.data)}? Ele sai do site e não poderá ser recuperado.`)) return;
-                          try { await excluirBoletim({ data: { id: b.id } }); carregar(); toast.success("Boletim apagado."); } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); }
-                        }}
-                        className="inline-flex h-10 items-center rounded-xl px-2.5 text-p-suave hover:bg-red-500/10 hover:text-red-600"
-                      ><Trash2 size={17} /></button>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-        </>
-      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

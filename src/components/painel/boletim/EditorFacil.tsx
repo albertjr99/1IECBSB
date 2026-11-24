@@ -6,8 +6,8 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BookOpen, Cake, CalendarDays, Check, CheckCircle2, Church, ClipboardList,
-  CloudOff, Copy, Eye, FileDown, Globe, HandHeart, History, Loader2, Megaphone, PenLine, Plus, Redo2, Send, Settings2, Star, Trash2, Undo2, X,
+  AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Bold, BookOpen, Cake, CalendarDays, Check, CheckCircle2, Church, ClipboardList,
+  CloudOff, Copy, Eye, FileDown, Globe, HandHeart, History, Italic, Loader2, Megaphone, PenLine, Plus, Redo2, RemoveFormatting, Send, Settings2, Trash2, Undo2, X,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -15,11 +15,12 @@ import { FolhasEscaladas } from "@/components/boletim/Folhas";
 import { Editavel, formatar } from "@/components/boletim/Editavel";
 import { dataPorExtenso, novoIdB, type Bloco, type Boletim, type ItemAviso } from "@/lib/boletim";
 import {
-  colocarNaAgenda, conferir, dataDoItem, MESES_MAIUSC, ordenarAgenda, paginaDo, partes, type Partes,
+  colocarNaAgenda, conferir, dataDoItem, mais7, MESES_MAIUSC, ordenarAgenda, paginaDo, partes, type Partes,
 } from "@/lib/boletim-facil";
 import { listarVersoesBoletim, obterBoletimPainel, publicarBoletim, restaurarVersaoBoletim, salvarBoletim } from "@/lib/api-boletim";
 import { IconeWhatsapp } from "@/components/site/Icones";
 import { cn } from "@/lib/utils";
+import "./editor.css";
 
 type IdPasso = "inicio" | "pastoral" | "segunda" | "avisos" | "oracao" | "escala" | "agenda" | "semana" | "aniversariantes" | "publicar";
 type Passo = { id: IdPasso; titulo: string; Icone: LucideIcon; ajuda: string };
@@ -40,9 +41,10 @@ const PASSOS: Passo[] = [
 type Salvamento = "salvo" | "pendente" | "salvando" | "erro";
 type Mudar = (fn: (b: Boletim) => void, chave?: string) => void;
 
-const campo = "h-12 w-full min-w-0 rounded-xl border-2 border-p-borda bg-p-superficie px-3.5 text-[16px] text-p-texto outline-none transition placeholder:text-p-suave/70 hover:border-p-borda-forte focus:border-p-acento focus:ring-4 focus:ring-p-acento/12";
-const btnSec = "inline-flex h-11 items-center justify-center gap-2 rounded-xl border-2 border-p-borda bg-p-superficie px-4 text-[14.5px] font-semibold text-p-texto transition hover:border-p-acento hover:text-p-acento disabled:opacity-50";
-const btnPri = "inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-p-acento px-5 text-[15px] font-bold text-white shadow-sm transition hover:brightness-110 disabled:opacity-60";
+const campo = "ef-campo";
+const btnSec = "ef-btn ef-btn-sec";
+const btnPri = "ef-btn ef-btn-pri";
+const dois = (n: number) => String(n).padStart(2, "0");
 
 const dataCurta = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
 
@@ -263,148 +265,168 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
     aoVoltar();
   };
 
+  const prontos = PASSOS.filter((p) => feito(p.id)).length;
+  const inclinar = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / Math.min(r.height, 900) - 0.5;
+    e.currentTarget.style.setProperty("--ef-ry", `${(x * 5).toFixed(2)}deg`);
+    e.currentTarget.style.setProperty("--ef-rx", `${(-y * 3).toFixed(2)}deg`);
+  };
+  const endireitar = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.currentTarget.style.setProperty("--ef-ry", "0deg");
+    e.currentTarget.style.setProperty("--ef-rx", "0deg");
+  };
+
   return (
-    <div className="flex h-full min-h-0 flex-col bg-p-fundo">
-      {/* ── barra de cima ── */}
-      <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-p-borda bg-p-superficie px-3 py-2.5 sm:px-5">
-        <button onClick={fecharEditor} className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[14px] font-semibold text-p-texto-2 hover:bg-p-hover">
-          <ArrowLeft size={18} /> Voltar
-        </button>
-        <div className="min-w-0 flex-1 pl-1">
-          <p className="truncate text-[16px] font-bold leading-tight text-p-texto">Boletim de {dataPorExtenso(b.data)}</p>
-          <p className="flex items-center gap-2 text-[12.5px] text-p-suave">
-            <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-px text-[11.5px] font-bold", b.publicado ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : "bg-amber-500/15 text-amber-800 dark:text-amber-300")}>
-              {b.publicado ? <><Globe size={11} /> No site</> : "Rascunho — só a equipe vê"}
+    <div className="ef flex h-full min-h-0 flex-col bg-p-fundo">
+      {/* ── barra de cima (vidro) ── */}
+      <header className="ef-vidro relative z-20 shrink-0">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:px-5">
+          <button onClick={fecharEditor} className="ef-btn ef-btn-fantasma"><ArrowLeft size={16} /> Boletins</button>
+          <span className="hidden h-8 w-px bg-p-borda sm:block" />
+          <div className="min-w-0 flex-1">
+            <p className="ef-sobre !text-[10.5px]">Boletim dominical</p>
+            <p className="mt-0.5 truncate text-[17px] font-bold leading-tight tracking-[-0.01em] text-p-texto">{dataPorExtenso(b.data)}</p>
+          </div>
+          <div className="hidden items-center gap-4 text-[12.5px] text-p-suave md:flex">
+            <span className="inline-flex items-center gap-2 font-semibold text-p-texto-2">
+              <span className={cn("ef-ponto", !b.publicado && "ef-ponto-rascunho")} /> {b.publicado ? "Publicado no site" : "Rascunho"}
             </span>
             <SeloSalvo estado={salvamento} />
-          </p>
+          </div>
+          <div className="flex items-center">
+            <button onClick={desfazer} disabled={!hist.current.passado.length} className="ef-btn ef-btn-fantasma !px-2.5" title="Desfazer (Ctrl+Z)" aria-label="Desfazer"><Undo2 size={17} /></button>
+            <button onClick={refazer} disabled={!hist.current.futuro.length} className="ef-btn ef-btn-fantasma !px-2.5" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer"><Redo2 size={17} /></button>
+          </div>
+          <button onClick={() => setVerPrevia(true)} className={cn(btnSec, "!h-10 xl:hidden")}><Eye size={16} /> Prévia</button>
+          <button onClick={() => ir("publicar")} className={cn(btnPri, "!h-10")}><Send size={15} /> {b.publicado ? "Publicado" : "Publicar"}</button>
         </div>
-        <div className="flex items-center gap-1">
-          <button onClick={desfazer} disabled={!hist.current.passado.length} className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[13.5px] font-semibold text-p-texto-2 hover:bg-p-hover disabled:opacity-40" title="Desfazer (Ctrl+Z)">
-            <Undo2 size={17} /> <span className="hidden md:inline">Desfazer</span>
-          </button>
-          <button onClick={refazer} disabled={!hist.current.futuro.length} className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-[13.5px] font-semibold text-p-texto-2 hover:bg-p-hover disabled:opacity-40" title="Refazer">
-            <Redo2 size={17} /> <span className="hidden md:inline">Refazer</span>
-          </button>
-        </div>
-        <button onClick={() => setVerPrevia(true)} className={cn(btnSec, "!h-10 xl:hidden")}><Eye size={17} /> Ver como fica</button>
-        <button onClick={() => ir("publicar")} className={cn(btnPri, "!h-10 !px-4 !text-[14px]")}><Send size={16} /> {b.publicado ? "Publicado" : "Publicar"}</button>
+        <div className="ef-progresso" title={`${prontos} de ${PASSOS.length - 1} passos prontos`}><span style={{ width: `${(prontos / (PASSOS.length - 1)) * 100}%` }} /></div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        {/* ── passos ── */}
-        <nav className="hidden w-[248px] shrink-0 overflow-y-auto border-r border-p-borda bg-p-superficie px-3 py-4 lg:block" aria-label="Passos do boletim">
-          <p className="px-2 pb-2 text-[11.5px] font-bold uppercase tracking-[0.14em] text-p-suave">Siga os passos</p>
-          <ol className="grid gap-1">
+      <div className="relative flex min-h-0 flex-1">
+        {/* ── trilho dos passos ── */}
+        <nav className="ef-trilho hidden w-[256px] shrink-0 flex-col overflow-y-auto border-r border-p-borda bg-p-sutil px-3 py-5 lg:flex" aria-label="Passos do boletim">
+          <div className="mb-4 px-3">
+            <p className="ef-h2 !text-[11px] !text-p-suave">Roteiro</p>
+            <p className="mt-1 text-[13px] text-p-suave"><span className="ef-num font-bold text-p-texto">{prontos}</span> de {PASSOS.length - 1} prontos</p>
+          </div>
+          <ol className="grid gap-0.5">
             {PASSOS.map((p, n) => {
               const ok = feito(p.id);
               const ativo = p.id === passo;
               return (
                 <li key={p.id}>
-                  <button onClick={() => ir(p.id)} className={cn("flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition", ativo ? "bg-p-acento text-white shadow-sm" : "text-p-texto hover:bg-p-hover")}>
-                    <span className={cn("grid size-8 shrink-0 place-items-center rounded-full text-[13px] font-bold", ativo ? "bg-white/20" : ok ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : "bg-p-fundo text-p-suave")}>
-                      {ok && !ativo ? <Check size={16} strokeWidth={3} /> : n + 1}
-                    </span>
-                    <span className="text-[14.5px] font-semibold leading-tight">{p.titulo}</span>
+                  <button onClick={() => ir(p.id)} className="ef-passo" aria-current={ativo ? "step" : undefined} data-estado={ok ? "feito" : "aberto"}>
+                    <span className="ef-passo-n">{ok && !ativo ? <Check size={14} strokeWidth={3} /> : dois(n + 1)}</span>
+                    <span className="ef-passo-t">{p.titulo}</span>
                   </button>
                 </li>
               );
             })}
           </ol>
-          <div className="mt-6 border-t border-p-borda px-2 pt-4">
-            <button onClick={async () => { if (pendente.current) await salvar(); aoModoAvancado(); }} className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-p-suave hover:text-p-acento">
-              <Settings2 size={14} /> Modo avançado (diagramação)
+          <div className="mt-auto border-t border-p-borda px-3 pt-4">
+            <button onClick={async () => { if (pendente.current) await salvar(); aoModoAvancado(); }} className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-p-suave transition hover:text-p-acento">
+              <Settings2 size={14} /> Modo avançado de diagramação
             </button>
           </div>
         </nav>
 
-        {/* ── formulário do passo ── */}
-        <main id="editor-facil-form" className="min-w-0 flex-1 overflow-y-auto">
+        {/* ── folha do passo ── */}
+        <main id="editor-facil-form" className="ef-mesa min-w-0 flex-1 overflow-y-auto">
           {/* passos no celular */}
-          <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-p-borda bg-p-superficie/95 px-3 py-2 backdrop-blur lg:hidden">
-            <select value={passo} onChange={(e) => ir(e.target.value as IdPasso)} className={cn(campo, "!h-11 font-semibold")}>
-              {PASSOS.map((p, n) => <option key={p.id} value={p.id}>{n + 1}. {p.titulo}{feito(p.id) ? " ✓" : ""}</option>)}
+          <div className="ef-vidro sticky top-0 z-10 px-3 py-2 lg:hidden">
+            <select value={passo} onChange={(e) => ir(e.target.value as IdPasso)} className={cn(campo, "!h-11 font-semibold")} aria-label="Passo">
+              {PASSOS.map((p, n) => <option key={p.id} value={p.id}>{dois(n + 1)} · {p.titulo}{feito(p.id) ? "  ✓" : ""}</option>)}
             </select>
           </div>
 
-          <div className="@container mx-auto max-w-[760px] px-4 pb-16 pt-6 sm:px-8 sm:pt-9">
-            <p className="text-[12.5px] font-bold uppercase tracking-[0.16em] text-p-acento">Passo {i + 1} de {PASSOS.length}</p>
-            <h1 className="mt-1 flex items-center gap-3 text-[26px] font-bold leading-tight text-p-texto sm:text-[30px]">
-              <atualPasso.Icone className="shrink-0 text-p-acento" size={28} /> {atualPasso.titulo}
-            </h1>
-            <p className="mt-1.5 text-[16px] text-p-suave">{atualPasso.ajuda}</p>
+          <div className="@container mx-auto max-w-[800px] px-3 pb-6 pt-5 sm:px-8 sm:pt-9">
+            <article className="ef-folha">
+              <header className="border-b border-p-borda px-5 pb-5 pt-6 sm:px-9 sm:pt-8">
+                <p className="ef-sobre">Passo {dois(i + 1)} de {dois(PASSOS.length)}</p>
+                <h1 className="ef-titulo mt-3">{atualPasso.titulo}</h1>
+                <p className="ef-sub mt-1.5">{atualPasso.ajuda}</p>
+              </header>
 
-            {passo === "inicio" && lembretes.length > 0 && (
-              <div className="mt-6 rounded-2xl border-2 border-p-acento/25 bg-p-realce p-4 sm:p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-[15.5px] font-bold text-p-texto">Este boletim foi preparado a partir do anterior</p>
-                  <button onClick={() => setLembretes([])} className="rounded-lg p-1 text-p-suave hover:bg-p-hover" title="Fechar"><X size={18} /></button>
-                </div>
-                <ul className="mt-2 grid gap-1.5 text-[15px] text-p-texto-2">
-                  {lembretes.map((l) => <li key={l} className="flex gap-2"><Check size={17} className="mt-0.5 shrink-0 text-p-acento" /> {l}</li>)}
-                </ul>
+              <div key={passo} className="ef-entra grid gap-7 px-5 py-7 sm:px-9 sm:py-8" data-campos>
+                {passo === "inicio" && lembretes.length > 0 && (
+                  <div className="ef-peca ef-peca-destaque px-5 py-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="ef-h2">Preparado a partir do boletim anterior</p>
+                      <button onClick={() => setLembretes([])} className="-m-1 p-1 text-p-suave hover:text-p-texto" title="Fechar" aria-label="Fechar"><X size={17} /></button>
+                    </div>
+                    <ul className="mt-3 grid gap-2 text-[14.5px] leading-relaxed text-p-texto-2">
+                      {lembretes.map((l) => <li key={l} className="flex gap-2.5"><span className="mt-[9px] h-px w-3 shrink-0 bg-p-acento" /> {l}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {passo === "inicio" && <PassoInicio {...props} />}
+                {passo === "pastoral" && <PassoArtigo {...props} bloco={pt.pastoral} nome="pastoral" />}
+                {passo === "segunda" && <PassoArtigo {...props} bloco={pt.segunda} nome="segunda pastoral" />}
+                {passo === "avisos" && <PassoAvisos {...props} desfazer={desfazer} />}
+                {passo === "oracao" && <PassoOracao {...props} />}
+                {passo === "escala" && <PassoEscala {...props} />}
+                {passo === "agenda" && <PassoAgenda {...props} />}
+                {passo === "semana" && <PassoSemana {...props} />}
+                {passo === "aniversariantes" && <PassoAniversariantes {...props} />}
+                {passo === "publicar" && (
+                  <PassoPublicar
+                    {...props}
+                    verificacao={verificacao}
+                    ir={ir}
+                    salvarAntes={async () => { if (pendente.current) await salvar(); }}
+                    aoPublicado={(publicado, em, atualizadoEm) => {
+                      baseEm.current = atualizadoEm;
+                      definir({ ...bRef.current!, publicado, ...(em ? { publicadoEm: em } : {}) });
+                    }}
+                    aoRestaurado={(n) => { baseEm.current = n.atualizadoEm; hist.current = { passado: [], futuro: [], chave: "", quando: 0 }; definir(n); }}
+                  />
+                )}
               </div>
-            )}
+            </article>
+          </div>
 
-            <div className="mt-7 grid gap-6" data-campos>
-              {passo === "inicio" && <PassoInicio {...props} />}
-              {passo === "pastoral" && <PassoArtigo {...props} bloco={pt.pastoral} nome="pastoral" />}
-              {passo === "segunda" && <PassoArtigo {...props} bloco={pt.segunda} nome="segunda pastoral" />}
-              {passo === "avisos" && <PassoAvisos {...props} desfazer={desfazer} />}
-              {passo === "oracao" && <PassoOracao {...props} />}
-              {passo === "escala" && <PassoEscala {...props} />}
-              {passo === "agenda" && <PassoAgenda {...props} />}
-              {passo === "semana" && <PassoSemana {...props} />}
-              {passo === "aniversariantes" && <PassoAniversariantes {...props} />}
-              {passo === "publicar" && (
-                <PassoPublicar
-                  {...props}
-                  verificacao={verificacao}
-                  ir={ir}
-                  salvarAntes={async () => { if (pendente.current) await salvar(); }}
-                  aoPublicado={(publicado, em, atualizadoEm) => {
-                    baseEm.current = atualizadoEm;
-                    definir({ ...bRef.current!, publicado, ...(em ? { publicadoEm: em } : {}) });
-                  }}
-                  aoRestaurado={(n) => { baseEm.current = n.atualizadoEm; hist.current = { passado: [], futuro: [], chave: "", quando: 0 }; definir(n); }}
-                />
-              )}
-            </div>
-
-            {/* navegação entre os passos */}
-            <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-p-borda pt-6">
+          {/* navegação entre os passos (vidro, presa no pé) */}
+          <div className="ef-vidro sticky bottom-0 z-10 border-t border-p-borda">
+            <div className="mx-auto flex max-w-[800px] items-center justify-between gap-3 px-3 py-3 sm:px-8">
               {i > 0 ? (
-                <button onClick={() => ir(PASSOS[i - 1]!.id)} className={btnSec}><ArrowLeft size={18} /> {PASSOS[i - 1]!.titulo}</button>
+                <button onClick={() => ir(PASSOS[i - 1]!.id)} className="ef-btn ef-btn-fantasma"><ArrowLeft size={16} /> <span className="hidden sm:inline">{PASSOS[i - 1]!.titulo}</span><span className="sm:hidden">Voltar</span></button>
               ) : <span />}
-              {i < PASSOS.length - 1 && (
-                <button onClick={() => ir(PASSOS[i + 1]!.id)} className={btnPri}>Próximo: {PASSOS[i + 1]!.titulo} <ArrowRight size={18} /></button>
-              )}
+              <span className="ef-num hidden whitespace-nowrap text-[12px] font-semibold text-p-suave md:inline">{dois(i + 1)} / {dois(PASSOS.length)}</span>
+              {i < PASSOS.length - 1 ? (
+                <button onClick={() => ir(PASSOS[i + 1]!.id)} className={btnPri}><span className="hidden sm:inline">Próximo:</span> {PASSOS[i + 1]!.titulo} <ArrowRight size={16} /></button>
+              ) : <span />}
             </div>
           </div>
         </main>
 
-        {/* ── como vai ficar ── */}
+        {/* ── palco da prévia ── */}
         <aside
           className={cn(
-            "flex-col border-l border-p-borda bg-[#e9eef2] dark:bg-[#0d1820]",
-            verPrevia ? "fixed inset-0 z-50 flex" : "absolute -left-[9999px] top-0 flex w-[420px] xl:static xl:flex xl:w-[min(34vw,520px)] xl:shrink-0",
+            "ef-palco flex-col",
+            verPrevia ? "fixed inset-0 z-50 flex" : "absolute -left-[9999px] top-0 flex w-[420px] xl:relative xl:left-0 xl:flex xl:w-[min(36vw,560px)] xl:shrink-0",
           )}
-          aria-label="Como o boletim vai ficar"
+          aria-label="Prévia do boletim"
         >
-          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-p-borda bg-p-superficie px-4 py-2.5">
-            <p className="flex items-center gap-2 text-[13.5px] font-bold text-p-texto"><Eye size={16} className="text-p-acento" /> Como vai ficar</p>
-            <span className="text-[12px] text-p-suave">Clique numa parte para editá-la</span>
-            {verPrevia && <button onClick={() => setVerPrevia(false)} className={cn(btnSec, "!h-9")}><X size={16} /> Fechar</button>}
+          <div className="ef-palco-barra flex shrink-0 items-center justify-between gap-3 px-5 py-3">
+            <div>
+              <p className="ef-palco-selo">Prévia ao vivo</p>
+              <p className="mt-0.5 text-[13px] font-semibold text-white/90">{b.paginas.length} páginas A4 · clique numa parte para editá-la</p>
+            </div>
+            {verPrevia && <button onClick={() => setVerPrevia(false)} className="ef-btn ef-btn-vidro !h-9"><X size={15} /> Fechar</button>}
           </div>
-          <div ref={previa} className="min-h-0 flex-1 overflow-y-auto p-4">
-            <div className={cn(verPrevia && "mx-auto max-w-[620px]")}>
+          <div ref={previa} className="ef-palco-cena min-h-0 flex-1 overflow-y-auto px-6 py-6" onMouseMove={inclinar} onMouseLeave={endireitar}>
+            <div className={cn("ef-palco-folhas", verPrevia && "mx-auto max-w-[620px]")}>
               <FolhasEscaladas
                 boletim={b}
-                espaco={14}
+                espaco={22}
                 aoOcupacao={aoOcupacao}
                 selecionado={blocoDoPasso(passo, pt) ?? null}
                 aoSelecionar={(blocoId) => {
-                  const alvo = (Object.keys({ pastoral: 1, segunda: 1, avisos: 1, escala: 1, agenda: 1, semana: 1, aniversariantes: 1 }) as IdPasso[]).find((p) => blocoDoPasso(p, pt) === blocoId);
+                  const alvo = (["pastoral", "segunda", "avisos", "escala", "agenda", "semana", "aniversariantes"] as IdPasso[]).find((p) => blocoDoPasso(p, pt) === blocoId);
                   if (alvo) ir(alvo);
                 }}
               />
@@ -418,7 +440,7 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
           titulo="Este boletim mudou em outro lugar"
           texto={`${conflito} Para não apagar o trabalho de ninguém, escolha o que fazer:`}
           acoes={[
-            { rotulo: "Carregar a versão mais nova (recomendado)", primario: true, acao: () => { setConflito(""); pendente.current = false; obterBoletimPainel({ data: { id } }).then((r) => { baseEm.current = r.boletim.atualizadoEm; hist.current = { passado: [], futuro: [], chave: "", quando: 0 }; definir(r.boletim); setSalvamento("salvo"); }); } },
+            { rotulo: "Carregar a versão mais nova", primario: true, acao: () => { setConflito(""); pendente.current = false; obterBoletimPainel({ data: { id } }).then((r) => { baseEm.current = r.boletim.atualizadoEm; hist.current = { passado: [], futuro: [], chave: "", quando: 0 }; definir(r.boletim); setSalvamento("salvo"); }); } },
             { rotulo: "Manter o que está na minha tela", acao: () => { setConflito(""); salvar(true); } },
           ]}
         />
@@ -430,18 +452,18 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
 // ─── Peças ──────────────────────────────────────────────────────────────────
 
 function SeloSalvo({ estado }: { estado: Salvamento }) {
-  if (estado === "salvando" || estado === "pendente") return <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Salvando…</span>;
-  if (estado === "erro") return <span className="inline-flex items-center gap-1 font-semibold text-red-600 dark:text-red-400"><CloudOff size={13} /> Sem conexão — tentando de novo</span>;
-  return <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400"><CheckCircle2 size={13} /> Tudo salvo</span>;
+  if (estado === "salvando" || estado === "pendente") return <span className="inline-flex items-center gap-1.5"><Loader2 size={13} className="animate-spin" /> Salvando</span>;
+  if (estado === "erro") return <span className="inline-flex items-center gap-1.5 font-semibold text-red-700 dark:text-red-400"><CloudOff size={14} /> Sem conexão · tentando de novo</span>;
+  return <span className="inline-flex items-center gap-1.5"><CheckCircle2 size={14} className="text-p-acento" /> Salvo</span>;
 }
 
 function Aviso({ titulo, texto, acoes }: { titulo: string; texto: string; acoes: { rotulo: string; acao: () => void; primario?: boolean }[] }) {
   return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-black/45 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-p-superficie p-6 shadow-2xl">
-        <AlertTriangle className="text-amber-500" size={30} />
-        <h2 className="mt-3 text-[20px] font-bold text-p-texto">{titulo}</h2>
-        <p className="mt-2 text-[15px] text-p-texto-2">{texto}</p>
+    <div className="ef-janela-fundo fixed inset-0 z-[60] grid place-items-center p-4">
+      <div className="ef-janela w-full max-w-[440px] p-7" role="alertdialog" aria-modal="true">
+        <p className="ef-sobre">Atenção</p>
+        <h2 className="mt-3 text-[21px] font-bold leading-tight tracking-[-0.015em] text-p-texto">{titulo}</h2>
+        <p className="mt-2 text-[14.5px] leading-relaxed text-p-texto-2">{texto}</p>
         <div className="mt-6 grid gap-2">
           {acoes.map((a) => <button key={a.rotulo} onClick={a.acao} className={a.primario ? btnPri : btnSec}>{a.rotulo}</button>)}
         </div>
@@ -452,23 +474,36 @@ function Aviso({ titulo, texto, acoes }: { titulo: string; texto: string; acoes:
 
 function Rotulo({ children, dica, htmlFor }: { children: ReactNode; dica?: ReactNode; htmlFor?: string }) {
   return (
-    <div className="mb-2">
-      <label htmlFor={htmlFor} className="block text-[15.5px] font-bold text-p-texto">{children}</label>
-      {dica && <p className="mt-0.5 text-[13.5px] text-p-suave">{dica}</p>}
+    <div className="mb-2.5">
+      <label htmlFor={htmlFor} className="ef-rotulo">{children}</label>
+      {dica && <p className="ef-dica">{dica}</p>}
     </div>
   );
 }
 
-/** Caixa para textos longos: negrito e itálico com botões grandes; aceita texto colado do Word ou do WhatsApp. */
-function CaixaTexto({ valor, aoMudar, dica, minimo = 160 }: { valor: string; aoMudar: (v: string) => void; dica: string; minimo?: number }) {
-  const bt = "inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13.5px] text-p-texto-2 transition hover:bg-p-hover hover:text-p-texto";
+/** Divisória de seção dentro de um passo. */
+function Secao({ titulo, dica, children }: { titulo: string; dica?: string; children: ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-xl border-2 border-p-borda bg-p-superficie transition focus-within:border-p-acento focus-within:ring-4 focus-within:ring-p-acento/12 hover:border-p-borda-forte">
-      <div className="flex flex-wrap items-center gap-1 border-b border-p-borda bg-p-fundo/60 px-2 py-1.5">
-        <button type="button" className={bt} onMouseDown={(e) => { e.preventDefault(); formatar("bold"); }} title="Selecione palavras e clique para deixar em negrito"><strong className="text-[15px]">N</strong> Negrito</button>
-        <button type="button" className={bt} onMouseDown={(e) => { e.preventDefault(); formatar("italic"); }} title="Selecione palavras e clique para deixar em itálico"><em className="font-serif text-[16px]">I</em> Itálico</button>
-        <button type="button" className={bt} onMouseDown={(e) => { e.preventDefault(); formatar("removeFormat"); }} title="Tira negrito e itálico do trecho selecionado">Tirar destaque</button>
-        <span className="ml-auto hidden pr-2 text-[12px] text-p-suave sm:inline">Pode colar do Word ou do WhatsApp</span>
+    <section>
+      <div className="mb-4 border-b border-p-borda pb-2.5">
+        <h2 className="ef-h2">{titulo}</h2>
+        {dica && <p className="ef-dica !mt-1">{dica}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** Caixa para textos longos: negrito e itálico; aceita texto colado do Word ou do WhatsApp. */
+function CaixaTexto({ valor, aoMudar, dica, minimo = 160 }: { valor: string; aoMudar: (v: string) => void; dica: string; minimo?: number }) {
+  return (
+    <div className="ef-texto">
+      <div className="ef-texto-barra">
+        <button type="button" className="ef-ferramenta" onMouseDown={(e) => { e.preventDefault(); formatar("bold"); }} title="Negrito: selecione as palavras e clique (Ctrl+B)"><Bold size={15} strokeWidth={2.6} /> Negrito</button>
+        <button type="button" className="ef-ferramenta" onMouseDown={(e) => { e.preventDefault(); formatar("italic"); }} title="Itálico: selecione as palavras e clique (Ctrl+I)"><Italic size={15} /> Itálico</button>
+        <span className="mx-1 h-5 w-px bg-p-borda" />
+        <button type="button" className="ef-ferramenta" onMouseDown={(e) => { e.preventDefault(); formatar("removeFormat"); }} title="Tira negrito e itálico do trecho selecionado"><RemoveFormatting size={15} /> Limpar</button>
+        <span className="ml-auto hidden pr-2 text-[12px] text-p-suave @lg:inline">Aceita texto colado do Word e do WhatsApp</span>
       </div>
       <Editavel
         valor={valor}
@@ -476,7 +511,7 @@ function CaixaTexto({ valor, aoMudar, dica, minimo = 160 }: { valor: string; aoM
         modo="paragrafos"
         como="div"
         dica={dica}
-        className="editor-facil-texto block px-4 py-3 text-[16.5px] leading-[1.7] text-p-texto outline-none [&_p+p]:mt-3"
+        className="editor-facil-texto block px-5 py-4 text-[16px] leading-[1.75] text-p-texto outline-none [&_p+p]:mt-3.5"
         style={{ minHeight: minimo }}
       />
     </div>
@@ -487,31 +522,27 @@ function AlertaCheia({ pct, linhas }: { pct: number; linhas: number }) {
   if (pct <= 100) return null;
   const sobra = Math.max(1, Math.ceil(((pct - 100) / 100) * linhas));
   return (
-    <div className="flex gap-3 rounded-xl border-2 border-red-300 bg-red-50 p-4 text-[15px] text-red-900 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-200" role="alert">
-      <AlertTriangle className="mt-0.5 shrink-0" size={20} />
-      <p><strong>O texto não cabe na página.</strong> As letras já foram diminuídas o máximo possível. Corte mais ou menos {sobra} {sobra === 1 ? "linha" : "linhas"} para caber.</p>
+    <div className="flex gap-3 border-l-[3px] border-red-600 bg-red-50 px-4 py-3.5 text-[14.5px] leading-relaxed text-red-900 dark:bg-red-500/10 dark:text-red-200" role="alert">
+      <AlertTriangle className="mt-0.5 shrink-0" size={18} />
+      <p><strong>O texto passou do tamanho da página.</strong> As letras já estão no menor tamanho legível; corte cerca de {sobra} {sobra === 1 ? "linha" : "linhas"} para caber.</p>
     </div>
   );
 }
 
 function Botaozinho({ children, onClick, perigo, titulo, disabled }: { children: ReactNode; onClick: () => void; perigo?: boolean; titulo?: string; disabled?: boolean }) {
   return (
-    <button type="button" title={titulo} disabled={disabled} onClick={onClick} className={cn("inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13.5px] font-semibold transition disabled:opacity-35", perigo ? "text-red-600 hover:bg-red-500/10 dark:text-red-400" : "text-p-texto-2 hover:bg-p-hover hover:text-p-texto")}>
+    <button type="button" title={titulo} aria-label={titulo} disabled={disabled} onClick={onClick} className={cn("ef-btn", perigo ? "ef-btn-perigo" : "ef-btn-fantasma !h-9 !px-2.5")}>
       {children}
     </button>
   );
 }
 
 function Adicionar({ children, onClick }: { children: ReactNode; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-p-borda-forte text-[15.5px] font-bold text-p-acento transition hover:border-p-acento hover:bg-p-realce">
-      <Plus size={20} /> {children}
-    </button>
-  );
+  return <button type="button" onClick={onClick} className="ef-adicionar"><Plus size={17} strokeWidth={2.4} /> {children}</button>;
 }
 
 function Faltando({ nome }: { nome: string }) {
-  return <p className="rounded-xl border-2 border-dashed border-p-borda p-6 text-[15px] text-p-suave">Este boletim não tem a seção “{nome}”. Se precisar dela, peça para a comunicação incluir pelo modo avançado.</p>;
+  return <p className="border border-dashed border-p-borda-forte px-5 py-6 text-[14.5px] text-p-suave">Este boletim não tem a seção “{nome}”. Se precisar dela, a comunicação pode incluí-la pelo modo avançado.</p>;
 }
 
 // ─── Passos ─────────────────────────────────────────────────────────────────
@@ -529,20 +560,26 @@ function PassoInicio({ b, mudar }: PropsPasso) {
   return (
     <>
       <div>
-        <Rotulo htmlFor="data-boletim" dica="O domingo em que o boletim será entregue.">Data do boletim</Rotulo>
-        <input id="data-boletim" type="date" value={b.data} onChange={(e) => e.target.value && mudar((d) => { d.data = e.target.value; })} className={cn(campo, "max-w-[260px]")} />
-        <p className={cn("mt-2 text-[14.5px]", domingo ? "text-p-suave" : "font-semibold text-amber-700 dark:text-amber-400")}>
-          {domingo ? `Domingo, ${dataPorExtenso(b.data)}.` : `Atenção: ${dataPorExtenso(b.data)} não é um domingo.`}
-        </p>
+        <Rotulo htmlFor="data-boletim" dica="O domingo em que o boletim será entregue.">Data</Rotulo>
+        <div className="flex flex-wrap items-center gap-3">
+          <input id="data-boletim" type="date" value={b.data} onChange={(e) => e.target.value && mudar((d) => { d.data = e.target.value; })} className={cn(campo, "max-w-[240px]")} />
+          <span className={cn("text-[14px]", domingo ? "text-p-suave" : "font-semibold text-amber-700 dark:text-amber-400")}>
+            {domingo ? `Domingo, ${dataPorExtenso(b.data)}` : "Atenção: esta data não é um domingo"}
+          </span>
+        </div>
       </div>
-      <div>
-        <Rotulo htmlFor="versiculo" dica="Aparece em destaque, no alto da página dos avisos (“Martelando a Palavra”).">Versículo da semana</Rotulo>
-        <textarea id="versiculo" rows={3} value={b.versiculo ?? ""} placeholder="Ex.: Tomai toda a armadura de Deus, para que possais resistir no dia mau…" onChange={(e) => mudar((d) => { d.versiculo = e.target.value.replace(/^["“]|["”]$/g, ""); }, "versiculo")} className={cn(campo, "!h-auto py-3 font-serif text-[17px] italic leading-relaxed")} />
-      </div>
-      <div>
-        <Rotulo htmlFor="referencia">Onde está na Bíblia</Rotulo>
-        <input id="referencia" value={b.versiculoRef ?? ""} placeholder="Ex.: Efésios 6.13" onChange={(e) => mudar((d) => { d.versiculoRef = e.target.value; }, "versiculoRef")} className={cn(campo, "max-w-[320px]")} />
-      </div>
+      <Secao titulo="Martelando a Palavra" dica="O versículo da semana, em destaque no alto da página dos avisos.">
+        <div className="grid gap-5">
+          <div>
+            <Rotulo htmlFor="versiculo">Versículo</Rotulo>
+            <textarea id="versiculo" rows={3} value={b.versiculo ?? ""} placeholder="Tomai toda a armadura de Deus, para que possais resistir no dia mau…" onChange={(e) => mudar((d) => { d.versiculo = e.target.value.replace(/^["“]|["”]$/g, ""); }, "versiculo")} className={cn(campo, "escritura !text-[18px] !leading-relaxed")} />
+          </div>
+          <div>
+            <Rotulo htmlFor="referencia">Referência</Rotulo>
+            <input id="referencia" value={b.versiculoRef ?? ""} placeholder="Efésios 6.13" onChange={(e) => mudar((d) => { d.versiculoRef = e.target.value; }, "versiculoRef")} className={cn(campo, "max-w-[300px]")} />
+          </div>
+        </div>
+      </Secao>
     </>
   );
 }
@@ -555,16 +592,22 @@ function PassoArtigo({ bloco, nome, mudarBloco, cheia }: PropsPasso & { bloco: P
     <>
       <div>
         <Rotulo htmlFor={`tit-${bloco.id}`}>Título</Rotulo>
-        <input id={`tit-${bloco.id}`} value={bloco.titulo.replace(/\*/g, "")} placeholder="Ex.: A questão do coração" onChange={(e) => m((x) => { x.titulo = e.target.value; }, `t${bloco.id}`)} className={cn(campo, "!h-14 text-[20px] font-bold")} />
+        <input id={`tit-${bloco.id}`} value={bloco.titulo.replace(/\*/g, "")} placeholder="A questão do coração" onChange={(e) => m((x) => { x.titulo = e.target.value; }, `t${bloco.id}`)} className={cn(campo, "!h-[54px] !text-[21px] font-bold tracking-[-0.015em] text-p-acento")} />
       </div>
       <div>
-        <Rotulo dica={<>Escreva ou cole o texto. Deixe uma linha em branco entre os parágrafos. {palavras > 0 && <span className="font-semibold">{palavras} palavras.</span>}</>}>Texto</Rotulo>
-        <CaixaTexto valor={bloco.texto} aoMudar={(v) => m((x) => { x.texto = v; }, `x${bloco.id}`)} dica="Comece a escrever aqui…" minimo={320} />
+        <div className="mb-2.5 flex items-end justify-between gap-3">
+          <div>
+            <p className="ef-rotulo">Texto</p>
+            <p className="ef-dica">Uma linha em branco separa os parágrafos.</p>
+          </div>
+          <span className="ef-num shrink-0 text-[12.5px] font-semibold text-p-suave">{palavras} {palavras === 1 ? "palavra" : "palavras"}</span>
+        </div>
+        <CaixaTexto valor={bloco.texto} aoMudar={(v) => m((x) => { x.texto = v; }, `x${bloco.id}`)} dica="Escreva ou cole o texto aqui…" minimo={340} />
       </div>
       <AlertaCheia pct={cheia(bloco.id)} linhas={96} />
       <div>
-        <Rotulo htmlFor={`aut-${bloco.id}`} dica="Aparece no fim do texto, à direita.">Quem escreveu</Rotulo>
-        <input id={`aut-${bloco.id}`} value={bloco.autor} placeholder="Ex.: Pr. Hilário José" onChange={(e) => m((x) => { x.autor = e.target.value; }, `a${bloco.id}`)} className={cn(campo, "max-w-[360px]")} />
+        <Rotulo htmlFor={`aut-${bloco.id}`} dica="Assinatura no fim do texto.">Autor</Rotulo>
+        <input id={`aut-${bloco.id}`} value={bloco.autor} placeholder="Pr. Hilário José" onChange={(e) => m((x) => { x.autor = e.target.value; }, `a${bloco.id}`)} className={cn(campo, "max-w-[340px]")} />
       </div>
     </>
   );
@@ -575,10 +618,10 @@ function PassoAvisos({ pt, mudarBloco, cheia, desfazer }: PropsPasso & { desfaze
   if (!av) return <Faltando nome="Avisos" />;
   const lista = av.itens.filter((x) => x.estilo !== "caixa");
   const m = (fn: (itens: ItemAviso[]) => void, chave?: string) => mudarBloco(av.id, (x) => { if (x.tipo === "avisos") fn(x.itens); }, chave);
-  // importantes primeiro, depois os normais, e a caixa de oração sempre por último
+  // destaques primeiro, depois os demais; a caixa de oração sempre por último
   const reordenar = (itens: ItemAviso[]) => {
     const peso = (e?: string) => (e === "destaque" ? 0 : e === "caixa" ? 2 : 1);
-    const ord = [...itens].sort((a, c) => peso(a.estilo) - peso(c.estilo));
+    const ord = [...itens].sort((x, y) => peso(x.estilo) - peso(y.estilo));
     itens.splice(0, itens.length, ...ord);
   };
   const mover = (id: string, dir: -1 | 1) => m((itens) => {
@@ -596,37 +639,40 @@ function PassoAvisos({ pt, mudarBloco, cheia, desfazer }: PropsPasso & { desfaze
   const destaques = lista.filter((x) => x.estilo === "destaque").length;
   return (
     <>
-      <p className="rounded-xl bg-p-realce px-4 py-3 text-[14.5px] text-p-texto-2">
-        Marque com <Star size={14} className="inline -translate-y-px fill-amber-400 text-amber-500" /> <strong>Importante</strong> os avisos que devem aparecer em destaque, no alto. O ideal é ter <strong>dois</strong>.
+      <p className="ef-dica !mt-0 !text-[14.5px]">
+        Os avisos em <strong className="text-p-texto">Destaque</strong> abrem a página, com fundo claro e filete azul — o ideal são dois. Os demais seguem em duas colunas.
       </p>
       {lista.map((a, n) => {
         const imp = a.estilo === "destaque";
         return (
-          <article key={a.id} className={cn("rounded-2xl border-2 bg-p-superficie p-4 sm:p-5", imp ? "border-amber-300 dark:border-amber-500/40" : "border-p-borda")}>
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className="grid size-8 place-items-center rounded-full bg-p-acento text-[14px] font-bold text-white">{n + 1}</span>
-              <button
-                type="button"
-                onClick={() => m((itens) => { const x = itens.find((y) => y.id === a.id)!; if (imp) delete x.estilo; else x.estilo = "destaque"; reordenar(itens); })}
-                className={cn("inline-flex h-9 items-center gap-1.5 rounded-full border-2 px-3.5 text-[13.5px] font-bold transition", imp ? "border-amber-400 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300" : "border-p-borda text-p-suave hover:border-amber-400 hover:text-amber-700")}
-              >
-                <Star size={15} className={imp ? "fill-amber-400 text-amber-500" : ""} /> {imp ? "Importante" : "Marcar como importante"}
-              </button>
-              <span className="ml-auto flex items-center">
-                <Botaozinho titulo="Subir" disabled={n === 0} onClick={() => mover(a.id, -1)}><ArrowUp size={16} /> <span className="hidden sm:inline">Subir</span></Botaozinho>
-                <Botaozinho titulo="Descer" disabled={n === lista.length - 1} onClick={() => mover(a.id, 1)}><ArrowDown size={16} /> <span className="hidden sm:inline">Descer</span></Botaozinho>
-                <Botaozinho perigo titulo="Apagar este aviso" onClick={() => { m((itens) => { itens.splice(itens.findIndex((y) => y.id === a.id), 1); }); toast(`Aviso “${a.titulo || "sem título"}” apagado`, { action: { label: "Desfazer", onClick: desfazer } }); }}>
-                  <Trash2 size={16} /> <span className="hidden sm:inline">Apagar</span>
+          <article key={a.id} className={cn("ef-peca px-4 pb-5 pt-3.5 sm:px-5", imp && "ef-peca-destaque")}>
+            <div className="mb-3.5 flex flex-wrap items-center gap-3">
+              <span className="ef-num text-[13px] font-bold text-p-acento">{dois(n + 1)}</span>
+              <div className="ef-chaves" role="group" aria-label="Aparência do aviso">
+                {([["normal", "Normal"], ["destaque", "Destaque"]] as const).map(([v, r]) => (
+                  <button
+                    key={v}
+                    type="button"
+                    aria-pressed={(imp ? "destaque" : "normal") === v}
+                    onClick={() => m((itens) => { const x = itens.find((y) => y.id === a.id)!; if (v === "destaque") x.estilo = "destaque"; else delete x.estilo; reordenar(itens); })}
+                  >{r}</button>
+                ))}
+              </div>
+              <span className="ml-auto flex items-center gap-0.5">
+                <Botaozinho titulo="Subir" disabled={n === 0} onClick={() => mover(a.id, -1)}><ArrowUp size={16} /></Botaozinho>
+                <Botaozinho titulo="Descer" disabled={n === lista.length - 1} onClick={() => mover(a.id, 1)}><ArrowDown size={16} /></Botaozinho>
+                <Botaozinho perigo titulo="Apagar aviso" onClick={() => { m((itens) => { itens.splice(itens.findIndex((y) => y.id === a.id), 1); }); toast(`Aviso “${a.titulo || "sem título"}” apagado`, { action: { label: "Desfazer", onClick: desfazer } }); }}>
+                  <Trash2 size={15} /> <span className="hidden @md:inline">Apagar</span>
                 </Botaozinho>
               </span>
             </div>
-            <input id={`aviso-${a.id}`} value={a.titulo} placeholder="Título do aviso (ex.: Bazar Missionário)" onChange={(e) => m((itens) => { itens.find((y) => y.id === a.id)!.titulo = e.target.value; }, `t${a.id}`)} className={cn(campo, "mb-3 text-[17px] font-bold")} />
-            <CaixaTexto valor={a.texto} aoMudar={(v) => m((itens) => { itens.find((y) => y.id === a.id)!.texto = v; }, `x${a.id}`)} dica="O que a igreja precisa saber…" minimo={90} />
+            <input id={`aviso-${a.id}`} value={a.titulo} placeholder="Título do aviso" onChange={(e) => m((itens) => { itens.find((y) => y.id === a.id)!.titulo = e.target.value; }, `t${a.id}`)} className={cn(campo, "mb-3 !text-[17px] font-bold text-p-acento")} />
+            <CaixaTexto valor={a.texto} aoMudar={(v) => m((itens) => { itens.find((y) => y.id === a.id)!.texto = v; }, `x${a.id}`)} dica="O que a igreja precisa saber…" minimo={96} />
           </article>
         );
       })}
       <Adicionar onClick={novo}>Novo aviso</Adicionar>
-      {destaques > 2 && <p className="text-[14px] text-amber-700 dark:text-amber-400">Há {destaques} avisos importantes. Com muitos destaques, nenhum se destaca — considere deixar só dois.</p>}
+      {destaques > 2 && <p className="text-[14px] text-amber-700 dark:text-amber-400">Há {destaques} avisos em destaque. Com muitos destaques, nenhum se sobressai — considere deixar dois.</p>}
       <AlertaCheia pct={cheia(av.id)} linhas={60} />
     </>
   );
@@ -648,15 +694,15 @@ function PassoOracao({ pt, mudarBloco, cheia }: PropsPasso) {
     <>
       <div>
         <Rotulo htmlFor="tit-oracao">Título da caixa</Rotulo>
-        <input id="tit-oracao" value={caixa.titulo} onChange={(e) => m((x) => { x.titulo = e.target.value; }, "toracao")} className={cn(campo, "max-w-[420px] font-bold")} />
+        <input id="tit-oracao" value={caixa.titulo} onChange={(e) => m((x) => { x.titulo = e.target.value; }, "toracao")} className={cn(campo, "max-w-[420px] font-bold text-p-acento")} />
       </div>
       <div>
-        <Rotulo dica="Um pedido depois do outro, separados por ponto e vírgula, ou um parágrafo para cada grupo.">Pedidos</Rotulo>
-        <CaixaTexto valor={caixa.texto} aoMudar={(v) => m((x) => { x.texto = v; }, "xoracao")} dica="Pela saúde de…" minimo={180} />
+        <Rotulo dica="Separe os pedidos com ponto e vírgula, ou use um parágrafo para cada grupo.">Pedidos</Rotulo>
+        <CaixaTexto valor={caixa.texto} aoMudar={(v) => m((x) => { x.texto = v; }, "xoracao")} dica="Pela saúde de…" minimo={200} />
       </div>
       <AlertaCheia pct={cheia(av.id)} linhas={60} />
       <div>
-        <Botaozinho perigo onClick={() => mudarBloco(av.id, (x) => { if (x.tipo === "avisos") x.itens = x.itens.filter((y) => y.estilo !== "caixa"); })}><Trash2 size={16} /> Tirar a caixa deste boletim</Botaozinho>
+        <Botaozinho perigo onClick={() => mudarBloco(av.id, (x) => { if (x.tipo === "avisos") x.itens = x.itens.filter((y) => y.estilo !== "caixa"); })}><Trash2 size={15} /> Retirar a caixa deste boletim</Botaozinho>
       </div>
     </>
   );
@@ -667,46 +713,40 @@ function PassoEscala({ b, pt, mudarBloco, cheia }: PropsPasso) {
   const nomes = nomesUsados(pt);
   if (!es) return <Faltando nome="Escala" />;
   const m = (fn: (x: Extract<Bloco, { tipo: "escala" }>) => void, chave?: string) => mudarBloco(es.id, (x) => { if (x.tipo === "escala") fn(x); }, chave);
-  const proximo = new Date(`${b.data}T12:00:00`);
-  proximo.setDate(proximo.getDate() + 7);
-  const prox = `${String(proximo.getDate()).padStart(2, "0")}/${String(proximo.getMonth() + 1).padStart(2, "0")}`;
+  const prox = dataCurta(mais7(b.data));
   return (
     <>
       <datalist id="nomes-boletim">{nomes.map((n) => <option key={n} value={n} />)}</datalist>
-      <section>
-        <h2 className="mb-1 text-[19px] font-bold text-p-texto">Escala de serviços</h2>
-        <p className="mb-4 text-[14px] text-p-suave">Ao digitar, aparecem os nomes já usados — é só escolher.</p>
-        <div className="overflow-hidden rounded-2xl border-2 border-p-borda bg-p-superficie">
-          <div className="hidden grid-cols-[1.1fr_1fr_1fr] gap-3 border-b border-p-borda bg-p-fundo/60 px-4 py-2.5 text-[12.5px] font-bold uppercase tracking-wider text-p-suave @2xl:grid">
+      <Secao titulo="Escala de serviços e dons" dica="Ao digitar, aparecem os nomes já usados.">
+        <div className="ef-peca ef-peca-filete !shadow-none">
+          <div className="hidden grid-cols-[1.05fr_1fr_1fr] gap-3 border-b border-p-borda bg-p-sutil px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-p-suave @2xl:grid">
             <span>Função</span><span>Hoje · {dataCurta(b.data)}</span><span>Próximo domingo · {prox}</span>
           </div>
           {es.linhas.map((l, n) => (
-            <div key={l.id} className="grid grid-cols-2 gap-2 border-b border-p-borda px-4 py-3 last:border-0 @2xl:grid-cols-[1.1fr_1fr_1fr] @2xl:items-center @2xl:gap-3">
-              <span className="col-span-2 text-[15px] font-bold text-p-texto @2xl:col-span-1">{l.celulas[0]}</span>
+            <div key={l.id} className="grid grid-cols-2 gap-2 border-b border-p-borda px-4 py-3 last:border-0 @2xl:grid-cols-[1.05fr_1fr_1fr] @2xl:items-center @2xl:gap-3">
+              <span className="col-span-2 text-[14px] font-bold text-p-acento @2xl:col-span-1">{l.celulas[0]}</span>
               {[1, 2].map((c) => (
                 <label key={c} className="grid gap-1">
-                  <span className="text-[12px] font-semibold text-p-suave @2xl:hidden">{c === 1 ? `Hoje · ${dataCurta(b.data)}` : `Próximo domingo · ${prox}`}</span>
-                  <input list="nomes-boletim" value={l.celulas[c]} placeholder="Nome" onChange={(e) => m((x) => { x.linhas[n]!.celulas[c as 1 | 2] = e.target.value; }, `e${l.id}${c}`)} className={cn(campo, "!h-11 text-[15px]")} />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-p-suave @2xl:hidden">{c === 1 ? `Hoje · ${dataCurta(b.data)}` : `Próximo · ${prox}`}</span>
+                  <input list="nomes-boletim" value={l.celulas[c]} placeholder="Nome" onChange={(e) => m((x) => { x.linhas[n]!.celulas[c as 1 | 2] = e.target.value; }, `e${l.id}${c}`)} className={cn(campo, "!h-10 !text-[14.5px]")} />
                 </label>
               ))}
             </div>
           ))}
         </div>
-      </section>
-      <section>
-        <h2 className="mb-1 text-[19px] font-bold text-p-texto">Porteiros de oração</h2>
-        <p className="mb-4 text-[14px] text-p-suave">Horário e nome de quem fica na porta orando.</p>
+      </Secao>
+      <Secao titulo="Porteiras e porteiros de oração" dica="Horário e nome de quem ora à porta durante o culto.">
         <div className="grid gap-2">
           {es.porteiros.map((p, n) => (
             <div key={p.id} className="flex items-center gap-2">
-              <input value={p.horario.replace(/^Das\s+/i, "")} placeholder="19h às 19h15" onChange={(e) => m((x) => { x.porteiros[n]!.horario = e.target.value ? `Das ${e.target.value.replace(/^Das\s+/i, "")}` : ""; }, `h${p.id}`)} className={cn(campo, "!h-11 w-[150px] shrink-0 text-[15px] sm:w-[190px]")} aria-label="Horário" />
-              <input list="nomes-boletim" value={p.nome} placeholder="Nome" onChange={(e) => m((x) => { x.porteiros[n]!.nome = e.target.value; }, `n${p.id}`)} className={cn(campo, "!h-11 text-[15px]")} aria-label="Nome" />
-              <Botaozinho perigo titulo="Tirar este horário" onClick={() => m((x) => { x.porteiros.splice(n, 1); })}><Trash2 size={16} /></Botaozinho>
+              <input value={p.horario.replace(/^Das\s+/i, "")} placeholder="19h às 19h15" onChange={(e) => m((x) => { x.porteiros[n]!.horario = e.target.value ? `Das ${e.target.value.replace(/^Das\s+/i, "")}` : ""; }, `h${p.id}`)} className={cn(campo, "ef-num !h-10 w-[150px] shrink-0 !text-[14.5px] @md:w-[180px]")} aria-label="Horário" />
+              <input list="nomes-boletim" value={p.nome} placeholder="Nome" onChange={(e) => m((x) => { x.porteiros[n]!.nome = e.target.value; }, `n${p.id}`)} className={cn(campo, "!h-10 !text-[14.5px]")} aria-label="Nome" />
+              <Botaozinho perigo titulo="Retirar este horário" onClick={() => m((x) => { x.porteiros.splice(n, 1); })}><Trash2 size={15} /></Botaozinho>
             </div>
           ))}
-          <Adicionar onClick={() => m((x) => { x.porteiros.push({ id: novoIdB("po"), horario: "", nome: "" }); })}>Mais um horário</Adicionar>
+          <Adicionar onClick={() => m((x) => { x.porteiros.push({ id: novoIdB("po"), horario: "", nome: "" }); })}>Adicionar horário</Adicionar>
         </div>
-      </section>
+      </Secao>
       <AlertaCheia pct={cheia(es.id)} linhas={20} />
     </>
   );
@@ -727,33 +767,32 @@ function PassoAgenda({ b, pt, mudarBloco, cheia }: PropsPasso) {
   };
   return (
     <>
-      <p className="rounded-xl bg-p-realce px-4 py-3 text-[14.5px] text-p-texto-2">
-        Escolha o dia no calendário: o compromisso vai sozinho para o mês certo, em ordem. Quando o boletim da semana seguinte for criado, o que já passou sai sozinho.
-      </p>
+      <p className="ef-dica !mt-0 !text-[14.5px]">Escolha o dia no calendário: o compromisso vai para o mês certo, em ordem. Deixe a hora vazia quando for o dia todo. Ao criar o boletim seguinte, o que já passou sai sozinho.</p>
       {ag.grupos.map((g) => (
-        <section key={g.id}>
-          <h2 className="mb-2 text-[13px] font-bold uppercase tracking-[0.16em] text-p-acento">{g.titulo}</h2>
-          <div className="grid gap-2">
+        <Secao key={g.id} titulo={g.titulo.toLowerCase().replace(/^./, (c) => c.toUpperCase())}>
+          <div className="ef-peca !shadow-none">
+            <div className="hidden grid-cols-[168px_92px_minmax(0,1fr)_40px] gap-2 border-b border-p-borda bg-p-sutil px-3 py-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-p-suave @2xl:grid">
+              <span>Dia</span><span>Hora</span><span>Compromisso</span><span />
+            </div>
             {g.itens.map((it) => {
               const dIso = dataDoItem(g.titulo, it.data, b.data);
               return (
-                <div key={it.id} className="grid grid-cols-[minmax(0,1fr)_96px] items-center gap-2 rounded-xl border-2 border-p-borda bg-p-superficie p-3 @2xl:grid-cols-[170px_96px_minmax(0,1fr)_auto]">
+                <div key={it.id} className="grid grid-cols-[minmax(0,1fr)_92px] items-center gap-2 border-b border-p-borda px-3 py-2.5 last:border-0 @2xl:grid-cols-[168px_92px_minmax(0,1fr)_40px]">
                   {dIso ? (
-                    <input type="date" value={dIso} onChange={(e) => e.target.value && m((x) => { const item = achar(x, it.id); if (item) colocarNaAgenda(x, b.data, item, e.target.value); })} className={cn(campo, "!h-11 text-[15px]")} aria-label="Dia" />
+                    <input type="date" value={dIso} onChange={(e) => e.target.value && m((x) => { const item = achar(x, it.id); if (item) colocarNaAgenda(x, b.data, item, e.target.value); })} className={cn(campo, "ef-num !h-10 !text-[14.5px]")} aria-label="Dia" />
                   ) : (
-                    <input value={it.data} placeholder="Dia" onChange={(e) => m((x) => { const item = achar(x, it.id); if (item) item.data = e.target.value; }, `d${it.id}`)} className={cn(campo, "!h-11 text-[15px]")} aria-label="Dia" />
+                    <input value={it.data} placeholder="Dia" onChange={(e) => m((x) => { const item = achar(x, it.id); if (item) item.data = e.target.value; }, `d${it.id}`)} className={cn(campo, "!h-10 !text-[14.5px]")} aria-label="Dia" />
                   )}
-                  <input value={it.hora === "-" ? "" : it.hora} placeholder="Hora" onChange={(e) => m((x) => { const item = achar(x, it.id); if (item) item.hora = e.target.value.trim() ? e.target.value : "-"; }, `h${it.id}`)} onBlur={() => m((x) => ordenarAgenda(x, b.data))} className={cn(campo, "!h-11 text-[15px]")} aria-label="Hora (deixe vazio se for o dia todo)" />
-                  <input id={`ag-${it.id}`} value={it.texto} placeholder="O que vai acontecer" onChange={(e) => m((x) => { const item = achar(x, it.id); if (item) item.texto = e.target.value; }, `t${it.id}`)} className={cn(campo, "!h-11 text-[15px]")} aria-label="Descrição" />
-                  <Botaozinho perigo titulo="Apagar este compromisso" onClick={() => m((x) => { for (const gg of x.grupos) gg.itens = gg.itens.filter((y) => y.id !== it.id); x.grupos = x.grupos.filter((gg) => gg.itens.length); })}><Trash2 size={16} /> <span className="@2xl:hidden">Apagar</span></Botaozinho>
+                  <input value={it.hora === "-" ? "" : it.hora} placeholder="19h" onChange={(e) => m((x) => { const item = achar(x, it.id); if (item) item.hora = e.target.value.trim() ? e.target.value : "-"; }, `h${it.id}`)} onBlur={() => m((x) => ordenarAgenda(x, b.data))} className={cn(campo, "ef-num !h-10 !text-[14.5px]")} aria-label="Hora (vazio = o dia todo)" />
+                  <input id={`ag-${it.id}`} value={it.texto} placeholder="O que vai acontecer" onChange={(e) => m((x) => { const item = achar(x, it.id); if (item) item.texto = e.target.value; }, `t${it.id}`)} className={cn(campo, "!h-10 !text-[14.5px]")} aria-label="Compromisso" />
+                  <Botaozinho perigo titulo="Apagar compromisso" onClick={() => m((x) => { for (const gg of x.grupos) gg.itens = gg.itens.filter((y) => y.id !== it.id); x.grupos = x.grupos.filter((gg) => gg.itens.length); })}><Trash2 size={15} /></Botaozinho>
                 </div>
               );
             })}
           </div>
-        </section>
+        </Secao>
       ))}
       <Adicionar onClick={novo}>Novo compromisso</Adicionar>
-      <p className="text-[13.5px] text-p-suave">Hora vazia = o dia todo.</p>
       <AlertaCheia pct={cheia(ag.id)} linhas={20} />
     </>
   );
@@ -768,20 +807,24 @@ function PassoSemana({ pt, mudarBloco, cheia }: PropsPasso) {
   return (
     <>
       <datalist id="nomes-semana">{nomes.map((n) => <option key={n} value={n} />)}</datalist>
-      {colunas.map((c, ci) => (
-        <section key={ci} className="rounded-2xl border-2 border-p-borda bg-p-superficie p-4 sm:p-5">
-          <Rotulo htmlFor={`col-${ci}`} dica="Dia, horário e o que acontece.">Dia da semana</Rotulo>
-          <input id={`col-${ci}`} value={c} onChange={(e) => m((x) => { x.cabecalho[ci + 1] = e.target.value; }, `c${ci}`)} className={cn(campo, "mb-4 font-bold")} />
-          <div className="grid gap-2.5">
-            {t.linhas.map((l, li) => (
-              <label key={l.id} className="grid gap-1 @lg:grid-cols-[180px_1fr] @lg:items-center @lg:gap-3">
-                <span className="text-[14.5px] font-semibold text-p-texto-2">{l.celulas[0]}</span>
-                <input list="nomes-semana" value={l.celulas[ci + 1] ?? ""} placeholder="Nome" onChange={(e) => m((x) => { x.linhas[li]!.celulas[ci + 1] = e.target.value; }, `v${l.id}${ci}`)} className={cn(campo, "!h-11 text-[15px]")} />
-              </label>
-            ))}
-          </div>
-        </section>
-      ))}
+      <div className="grid gap-5 @2xl:grid-cols-2">
+        {colunas.map((c, ci) => (
+          <section key={ci} className="ef-peca ef-peca-filete !shadow-none">
+            <div className="border-b border-p-borda bg-p-sutil px-4 py-3">
+              <label htmlFor={`col-${ci}`} className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-p-suave">Dia, horário e atividade</label>
+              <input id={`col-${ci}`} value={c} onChange={(e) => m((x) => { x.cabecalho[ci + 1] = e.target.value; }, `c${ci}`)} className={cn(campo, "mt-1.5 !h-10 font-bold text-p-acento")} />
+            </div>
+            <div className="grid gap-3 px-4 py-4">
+              {t.linhas.map((l, li) => (
+                <label key={l.id} className="grid gap-1">
+                  <span className="text-[13px] font-semibold text-p-texto-2">{l.celulas[0]}</span>
+                  <input list="nomes-semana" value={l.celulas[ci + 1] ?? ""} placeholder="Nome" onChange={(e) => m((x) => { x.linhas[li]!.celulas[ci + 1] = e.target.value; }, `v${l.id}${ci}`)} className={cn(campo, "!h-10 !text-[14.5px]")} />
+                </label>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
       <AlertaCheia pct={cheia(t.id)} linhas={20} />
     </>
   );
@@ -809,35 +852,36 @@ function PassoAniversariantes({ b, pt, mudarBloco, cheia }: PropsPasso) {
       <div>
         <Rotulo htmlFor="tit-aniv">Título</Rotulo>
         <div className="flex flex-wrap items-center gap-2">
-          <input id="tit-aniv" value={an.titulo} onChange={(e) => m((x) => { x.titulo = e.target.value; }, "taniv")} className={cn(campo, "max-w-[420px] font-bold")} />
+          <input id="tit-aniv" value={an.titulo} onChange={(e) => m((x) => { x.titulo = e.target.value; }, "taniv")} className={cn(campo, "max-w-[400px] font-bold text-p-acento")} />
           {an.titulo.toUpperCase() !== tituloCerto && (
-            <button type="button" onClick={() => m((x) => { x.titulo = tituloCerto; })} className={btnSec}>Usar “{tituloCerto.toLowerCase().replace(/^./, (c) => c.toUpperCase())}”</button>
+            <button type="button" onClick={() => m((x) => { x.titulo = tituloCerto; })} className={cn(btnSec, "!h-[46px]")}>Usar {mes.toLowerCase()}</button>
           )}
         </div>
       </div>
-      <section>
-        <Rotulo dica="Uma pessoa (ou casal) por linha. A lista se arruma sozinha pela ordem dos dias.">Lista do mês</Rotulo>
-        <div className="grid gap-2">
+      <Secao titulo="Lista do mês" dica="Uma pessoa ou casal por linha. A ordem dos dias se arruma sozinha.">
+        <div className="ef-peca !shadow-none">
           {pessoas.map((p, n) => (
-            <div key={p.id} className="flex items-center gap-2">
-              <input value={p.dia} inputMode="numeric" placeholder="Dia" onChange={(e) => m((x) => { const l = [...pessoas]; l[n] = { ...p, dia: e.target.value }; gravar(x, l); }, `d${n}`)} onBlur={() => m((x) => gravar(x, pessoas, true))} className={cn(campo, "!h-11 w-[76px] shrink-0 text-center text-[15px] font-bold")} aria-label="Dia" />
-              <input value={p.nome} placeholder="Nome (ou “Cas. Fulano e Fulana (10 anos)”)" onChange={(e) => m((x) => { const l = [...pessoas]; l[n] = { ...p, nome: e.target.value }; gravar(x, l); }, `n${n}`)} className={cn(campo, "!h-11 text-[15px]")} aria-label="Nome" />
-              <Botaozinho perigo titulo="Tirar da lista" onClick={() => m((x) => gravar(x, pessoas.filter((_, k) => k !== n)))}><Trash2 size={16} /></Botaozinho>
+            <div key={p.id} className="flex items-center gap-2 border-b border-p-borda px-3 py-2 last:border-0">
+              <input value={p.dia} inputMode="numeric" placeholder="Dia" onChange={(e) => m((x) => { const l = [...pessoas]; l[n] = { ...p, dia: e.target.value }; gravar(x, l); }, `d${n}`)} onBlur={() => m((x) => gravar(x, pessoas, true))} className={cn(campo, "ef-num !h-10 w-[68px] shrink-0 text-center !text-[15px] font-bold text-p-acento")} aria-label="Dia" />
+              <input value={p.nome} placeholder="Nome, ou “Cas. Fulano e Fulana (10 anos)”" onChange={(e) => m((x) => { const l = [...pessoas]; l[n] = { ...p, nome: e.target.value }; gravar(x, l); }, `n${n}`)} className={cn(campo, "!h-10 !text-[14.5px]")} aria-label="Nome" />
+              <Botaozinho perigo titulo="Retirar da lista" onClick={() => m((x) => gravar(x, pessoas.filter((_, k) => k !== n)))}><Trash2 size={15} /></Botaozinho>
             </div>
           ))}
-          <Adicionar onClick={() => m((x) => gravar(x, [...pessoas, { id: "", dia: "", nome: "" }]))}>Mais um aniversariante</Adicionar>
         </div>
-      </section>
-      <div className="grid gap-3 sm:grid-cols-[1fr_220px]">
-        <div>
-          <Rotulo htmlFor="vers-aniv">Versículo dos aniversariantes</Rotulo>
-          <input id="vers-aniv" value={an.versiculo} onChange={(e) => m((x) => { x.versiculo = e.target.value; }, "vaniv")} className={cn(campo, "font-serif italic")} />
+        <div className="mt-2"><Adicionar onClick={() => m((x) => gravar(x, [...pessoas, { id: "", dia: "", nome: "" }]))}>Adicionar aniversariante</Adicionar></div>
+      </Secao>
+      <Secao titulo="Versículo dos aniversariantes">
+        <div className="grid gap-3 @xl:grid-cols-[1fr_200px]">
+          <div>
+            <Rotulo htmlFor="vers-aniv">Versículo</Rotulo>
+            <input id="vers-aniv" value={an.versiculo} onChange={(e) => m((x) => { x.versiculo = e.target.value; }, "vaniv")} className={cn(campo, "escritura !text-[16.5px]")} />
+          </div>
+          <div>
+            <Rotulo htmlFor="ref-aniv">Referência</Rotulo>
+            <input id="ref-aniv" value={an.referencia} onChange={(e) => m((x) => { x.referencia = e.target.value; }, "raniv")} className={campo} />
+          </div>
         </div>
-        <div>
-          <Rotulo htmlFor="ref-aniv">Referência</Rotulo>
-          <input id="ref-aniv" value={an.referencia} onChange={(e) => m((x) => { x.referencia = e.target.value; }, "raniv")} className={campo} />
-        </div>
-      </div>
+      </Secao>
       <AlertaCheia pct={cheia(an.id)} linhas={20} />
     </>
   );
@@ -856,6 +900,7 @@ function PassoPublicar({ b, verificacao, ir, salvarAntes, aoPublicado, aoRestaur
   const [versoes, setVersoes] = useState<VersaoResumo[] | null>(null);
   const [restaurando, setRestaurando] = useState("");
   const graves = verificacao.filter((v) => !v.ok && v.grave);
+  const pendentes = verificacao.filter((v) => !v.ok).length;
   const origem = typeof window !== "undefined" ? window.location.origin : "";
   const linkSite = `${origem}/boletim/${b.data}`;
   const linkPdf = `/api/boletim/${b.id}/pdf`;
@@ -866,7 +911,7 @@ function PassoPublicar({ b, verificacao, ir, salvarAntes, aoPublicado, aoRestaur
       await salvarAntes();
       const r = await publicarBoletim({ data: { id: b.id, publicar: sim } });
       aoPublicado(sim, r.publicadoEm, r.atualizadoEm);
-      toast.success(sim ? "Pronto! O boletim já está no site." : "O boletim saiu do site.");
+      toast.success(sim ? "Boletim publicado no site." : "O boletim saiu do site.");
     } catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível."); } finally { setPublicando(false); }
   };
 
@@ -874,88 +919,88 @@ function PassoPublicar({ b, verificacao, ir, salvarAntes, aoPublicado, aoRestaur
 
   return (
     <>
-      <section className="rounded-2xl border-2 border-p-borda bg-p-superficie p-4 sm:p-5">
-        <h2 className="mb-3 text-[19px] font-bold text-p-texto">Conferência</h2>
-        <ul className="grid gap-1">
+      <Secao titulo="Conferência" dica={pendentes ? `${pendentes} ${pendentes === 1 ? "ponto pede" : "pontos pedem"} atenção.` : "Tudo certo para publicar."}>
+        <ul className="ef-peca !shadow-none">
           {verificacao.map((v) => (
-            <li key={v.texto} className="flex items-center gap-3 rounded-lg px-1 py-1.5">
-              {v.ok ? <CheckCircle2 size={22} className="shrink-0 text-emerald-600" /> : <AlertTriangle size={22} className={cn("shrink-0", v.grave ? "text-red-600" : "text-amber-500")} />}
-              <span className={cn("flex-1 text-[15.5px]", v.ok ? "text-p-texto-2" : "font-semibold text-p-texto")}>{v.texto}</span>
-              {!v.ok && <button onClick={() => ir(v.passo as IdPasso)} className="rounded-lg px-3 py-1.5 text-[13.5px] font-bold text-p-acento hover:bg-p-realce">Arrumar</button>}
+            <li key={v.texto} className="flex items-center gap-3 border-b border-p-borda px-4 py-3 last:border-0">
+              <span className={cn("grid size-6 shrink-0 place-items-center rounded-full", v.ok ? "bg-p-acento text-white" : v.grave ? "bg-red-600 text-white" : "bg-amber-400 text-amber-950")}>
+                {v.ok ? <Check size={13} strokeWidth={3} /> : <span className="text-[13px] font-bold leading-none">!</span>}
+              </span>
+              <span className={cn("flex-1 text-[14.5px]", v.ok ? "text-p-texto-2" : "font-semibold text-p-texto")}>{v.texto}</span>
+              {!v.ok && <button onClick={() => ir(v.passo as IdPasso)} className="ef-btn ef-btn-fantasma !h-8 !text-p-acento">Arrumar <ArrowRight size={14} /></button>}
             </li>
           ))}
         </ul>
-      </section>
+      </Secao>
 
-      <section className="rounded-2xl border-2 border-p-acento/30 bg-p-realce p-5 sm:p-6">
+      <section className="ef-publicar px-6 py-7 sm:px-8">
         {b.publicado ? (
           <>
-            <p className="flex items-center gap-2 text-[19px] font-bold text-emerald-700 dark:text-emerald-400"><CheckCircle2 size={24} /> Este boletim está no site</p>
-            <p className="mt-1 text-[15px] text-p-texto-2">O que você mudar agora aparece no site sozinho, em segundos.</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <a href={`/boletim/${b.data}`} target="_blank" rel="noopener" className={btnPri}><Globe size={18} /> Ver no site</a>
-              <button disabled={publicando} onClick={() => { if (confirm("Tirar este boletim do site? Ele continua guardado aqui como rascunho.")) publicar(false); }} className={btnSec}>Tirar do site</button>
+            <span className="ef-chip-vidro"><span className="ef-ponto" /> No site</span>
+            <p className="mt-4 text-[23px] font-bold leading-tight tracking-[-0.015em]">Este boletim está publicado</p>
+            <p className="mt-1.5 max-w-[46ch] text-[14.5px] leading-relaxed text-white/75">As alterações salvas aparecem no site em segundos.</p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <a href={`/boletim/${b.data}`} target="_blank" rel="noopener" className="ef-btn ef-btn-branco"><Globe size={16} /> Ver no site</a>
+              <button disabled={publicando} onClick={() => { if (confirm("Retirar este boletim do site? Ele continua guardado aqui como rascunho.")) publicar(false); }} className="ef-btn ef-btn-vidro">Retirar do site</button>
             </div>
           </>
         ) : (
           <>
-            <p className="text-[19px] font-bold text-p-texto">Tudo certo? Coloque no site.</p>
-            <p className="mt-1 text-[15px] text-p-texto-2">Enquanto não for publicado, só a equipe do painel vê este boletim.</p>
-            {graves.length > 0 && <p className="mt-2 text-[14.5px] font-semibold text-red-700 dark:text-red-400">Antes de publicar, arrume os itens em vermelho acima.</p>}
-            <button disabled={publicando || graves.length > 0} onClick={() => publicar(true)} className={cn(btnPri, "mt-4 !h-14 w-full !text-[17px] sm:w-auto sm:!px-8")}>
-              {publicando ? <Loader2 size={20} className="animate-spin" /> : <Globe size={20} />} Publicar no site
+            <span className="ef-chip-vidro"><span className="ef-ponto ef-ponto-rascunho" /> Rascunho</span>
+            <p className="mt-4 text-[23px] font-bold leading-tight tracking-[-0.015em]">Publicar no site</p>
+            <p className="mt-1.5 max-w-[46ch] text-[14.5px] leading-relaxed text-white/75">Até lá, só a equipe do painel vê este boletim.</p>
+            {graves.length > 0 && <p className="mt-3 border-l-2 border-white/50 pl-3 text-[14px] font-semibold text-white">Antes, resolva os pontos em vermelho da conferência.</p>}
+            <button disabled={publicando || graves.length > 0} onClick={() => publicar(true)} className="ef-btn ef-btn-branco mt-6 !h-[52px] !px-8 !text-[12.5px]">
+              {publicando ? <Loader2 size={18} className="animate-spin" /> : <Globe size={18} />} Publicar agora
             </button>
           </>
         )}
       </section>
 
-      <section className="grid gap-2 sm:grid-cols-3">
-        <a href={linkPdf} target="_blank" rel="noopener" onClick={() => salvarAntes()} className={cn(btnSec, "!h-14")}><FileDown size={19} /> Baixar PDF</a>
-        <a href={`https://wa.me/?text=${encodeURIComponent(textoZap)}`} target="_blank" rel="noopener" className={cn(btnSec, "!h-14", !b.publicado && "pointer-events-none opacity-45")} aria-disabled={!b.publicado}><IconeWhatsapp className="size-[19px]" /> Enviar no WhatsApp</a>
-        <button disabled={!b.publicado} onClick={async () => { await navigator.clipboard?.writeText(linkSite); toast.success("Link copiado."); }} className={cn(btnSec, "!h-14")}><Copy size={18} /> Copiar link</button>
-      </section>
-      {!b.publicado && <p className="-mt-3 text-[13.5px] text-p-suave">WhatsApp e link ficam disponíveis depois de publicar. O PDF já pode ser baixado para imprimir.</p>}
-
-      <section className="rounded-2xl border-2 border-p-borda bg-p-superficie p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="flex items-center gap-2 text-[17px] font-bold text-p-texto"><History size={19} className="text-p-acento" /> Versões anteriores</h2>
-            <p className="text-[13.5px] text-p-suave">Algo deu errado? Volte o boletim para como estava antes.</p>
-          </div>
-          {!versoes && <button onClick={() => listarVersoesBoletim({ data: { id: b.id } }).then(setVersoes).catch((e) => toast.error(e.message))} className={btnSec}>Mostrar</button>}
+      <Secao titulo="Compartilhar e imprimir">
+        <div className="grid gap-2 @xl:grid-cols-3">
+          <a href={linkPdf} target="_blank" rel="noopener" onClick={() => salvarAntes()} className={cn(btnSec, "!h-12")}><FileDown size={17} /> Baixar PDF</a>
+          <a href={`https://wa.me/?text=${encodeURIComponent(textoZap)}`} target="_blank" rel="noopener" className={cn(btnSec, "!h-12", !b.publicado && "pointer-events-none opacity-45")} aria-disabled={!b.publicado}><IconeWhatsapp className="size-[17px]" /> WhatsApp</a>
+          <button disabled={!b.publicado} onClick={async () => { await navigator.clipboard?.writeText(linkSite); toast.success("Link copiado."); }} className={cn(btnSec, "!h-12")}><Copy size={16} /> Copiar link</button>
         </div>
-        {versoes && (versoes.length === 0 ? (
-          <p className="mt-3 text-[14.5px] text-p-suave">Ainda não há versões guardadas. Elas são guardadas sozinhas enquanto você trabalha.</p>
+        {!b.publicado && <p className="ef-dica !mt-2.5">WhatsApp e link ficam disponíveis depois de publicar. O PDF para impressão já pode ser baixado.</p>}
+      </Secao>
+
+      <Secao titulo="Versões anteriores" dica="Se algo deu errado, volte o boletim para como estava.">
+        {!versoes ? (
+          <button onClick={() => listarVersoesBoletim({ data: { id: b.id } }).then(setVersoes).catch((e) => toast.error(e.message))} className={btnSec}><History size={16} /> Ver versões guardadas</button>
+        ) : versoes.length === 0 ? (
+          <p className="text-[14px] text-p-suave">Ainda não há versões guardadas. Elas são criadas sozinhas enquanto você trabalha.</p>
         ) : (
-          <ul className="mt-3 grid gap-1.5">
+          <ul className="ef-peca !shadow-none">
             {versoes.map((v) => (
-              <li key={v.em} className="flex flex-wrap items-center gap-3 rounded-xl border border-p-borda px-3 py-2.5">
+              <li key={v.em} className="flex flex-wrap items-center gap-3 border-b border-p-borda px-4 py-3 last:border-0">
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[14.5px] font-semibold text-p-texto">{new Date(v.em).toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} · {v.por || "—"}</span>
-                  <span className="block truncate text-[13px] text-p-suave">{v.motivo}{v.pastoral ? ` · pastoral “${v.pastoral}”` : ""}</span>
+                  <span className="ef-num block text-[14px] font-semibold text-p-texto">{new Date(v.em).toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} · {v.por || "—"}</span>
+                  <span className="block truncate text-[12.5px] text-p-suave">{v.motivo}{v.pastoral ? ` · “${v.pastoral}”` : ""}</span>
                 </span>
                 <button
                   disabled={Boolean(restaurando)}
                   onClick={async () => {
-                    if (!confirm("Voltar o boletim para esta versão? A versão de agora fica guardada, caso mude de ideia.")) return;
+                    if (!confirm("Voltar o boletim para esta versão? A versão atual fica guardada, caso mude de ideia.")) return;
                     setRestaurando(v.em);
                     try {
                       await salvarAntes();
                       const n = await restaurarVersaoBoletim({ data: { id: b.id, em: v.em } });
                       aoRestaurado(n);
                       setVersoes(null);
-                      toast.success("Boletim voltou para a versão escolhida.");
+                      toast.success("Boletim restaurado.");
                     } catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível."); } finally { setRestaurando(""); }
                   }}
-                  className="rounded-lg px-3 py-1.5 text-[13.5px] font-bold text-p-acento hover:bg-p-realce"
+                  className="ef-btn ef-btn-fantasma !h-8 !text-p-acento"
                 >
-                  {restaurando === v.em ? <Loader2 size={15} className="animate-spin" /> : "Voltar para esta"}
+                  {restaurando === v.em ? <Loader2 size={15} className="animate-spin" /> : "Restaurar"}
                 </button>
               </li>
             ))}
           </ul>
-        ))}
-      </section>
+        )}
+      </Secao>
     </>
   );
 }

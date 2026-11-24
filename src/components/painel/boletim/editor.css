@@ -1,0 +1,164 @@
+/*
+ * Editor do boletim (painel) — linguagem da marca: cantos retos, sobretítulos
+ * com a cruzinha, filete azul no topo das peças, botões em maiúsculas
+ * espaçadas. Profundidade (3D) e vidro só onde ajudam: barra de cima,
+ * palco da prévia, capa do boletim e janelas.
+ */
+
+/* fora da camada: precisam vencer os utilitários (cantos) e as folhas do boletim */
+.ef [class*="rounded"]:not([class*="rounded-full"]) { border-radius: var(--ef-raio); }
+.ef :is(input, select, textarea) { border-radius: var(--ef-raio); }
+.ef-palco .bol-tela .bol-pagina { box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25), 0 18px 30px -18px rgba(0, 0, 0, 0.6), 0 60px 90px -50px rgba(0, 0, 0, 0.85); }
+.ef-palco .bol-selecionado::after, .ef-palco .bol-selecionado:hover::after { border: 1.5pt solid #1a6597; box-shadow: 0 0 0 5pt rgba(26, 101, 151, 0.16); }
+.ef-palco .bol-selecionavel { cursor: pointer; }
+
+@layer components {
+.ef {
+  --ef-raio: 2px;
+  --ef-azul: #00436f;
+  --ef-noite: #002a47;
+  --ef-ceu: #d9e6ef;
+  --ef-nevoa: #f3f6f9;
+  --ef-medio: #5b7f99;
+  --ef-sombra-folha: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 1px 2px rgba(0, 42, 71, 0.06), 0 14px 28px -16px rgba(0, 42, 71, 0.16), 0 48px 90px -56px rgba(0, 42, 71, 0.35);
+  font-family: var(--font-titulo);
+  font-feature-settings: "tnum" 0, "lnum" 1;
+}
+.tema-escuro .ef { --ef-nevoa: #16202b; --ef-ceu: #26394b; --ef-sombra-folha: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 20px 50px -30px rgba(0, 0, 0, 0.8); }
+
+/* ── mesa: fundo da área de trabalho, com o grafismo bem leve ── */
+.ef-mesa { position: relative; isolation: isolate; background: linear-gradient(180deg, var(--p-fundo), color-mix(in srgb, var(--p-fundo) 70%, var(--ef-ceu))); }
+.ef-mesa::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: url("/marca/grafismo-monte-transparente-azul.svg") left -260px bottom -180px / 1100px auto no-repeat; opacity: 0.07; }
+.tema-escuro .ef-mesa::before { opacity: 0.05; filter: invert(1); }
+
+/* ── barra de vidro ── */
+.ef-vidro { background: color-mix(in srgb, var(--p-superficie) 86%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--p-borda) 80%, transparent); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.5), 0 12px 32px -28px rgba(0, 42, 71, 0.55); backdrop-filter: blur(20px) saturate(170%); -webkit-backdrop-filter: blur(20px) saturate(170%); }
+.tema-escuro .ef-vidro { box-shadow: 0 12px 32px -26px rgba(0, 0, 0, 0.9); }
+
+/* ── tipografia ── */
+.ef-sobre { display: inline-flex; align-items: center; gap: 0.8em; font-size: 11.5px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: var(--p-acento); }
+.ef-sobre::before { content: ""; flex: none; width: 0.62em; height: 1.12em; background: var(--cruz) center / contain no-repeat; }
+.ef-titulo { font-size: clamp(24px, 2.4vw, 31px); font-weight: 700; line-height: 1.12; letter-spacing: -0.022em; color: var(--p-acento); }
+.tema-escuro .ef-titulo { color: var(--p-texto); }
+.ef-sub { font-size: 15.5px; line-height: 1.55; color: var(--p-suave); }
+.ef-h2 { font-size: 13px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--p-texto); }
+.ef-num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+/* ── peças (cartões): hairline + filete azul no topo ── */
+.ef-peca { position: relative; background: var(--p-superficie); border: 1px solid var(--p-borda); box-shadow: var(--ef-sombra-folha); }
+.ef-peca-filete { border-top: 3px solid var(--ef-azul); }
+.tema-escuro .ef-peca-filete { border-top-color: var(--p-acento); }
+.ef-peca-destaque { background: linear-gradient(180deg, var(--ef-nevoa), var(--p-superficie) 140px); border-top: 3px solid var(--ef-azul); }
+.ef-folha { position: relative; background: var(--p-superficie); border: 1px solid var(--p-borda); border-top: 3px solid var(--ef-azul); box-shadow: var(--ef-sombra-folha); }
+.tema-escuro .ef-folha { border-top-color: var(--p-acento); }
+
+/* ── campos ── */
+.ef-campo { height: 46px; width: 100%; min-width: 0; padding: 0 14px; font-size: 15.5px; color: var(--p-texto); background: var(--p-superficie); border: 1px solid var(--p-borda-forte); box-shadow: inset 0 1px 2px rgba(0, 42, 71, 0.05); outline: none; transition: border-color .15s, box-shadow .15s, background-color .15s; }
+.ef-campo::placeholder { color: color-mix(in srgb, var(--p-suave) 70%, transparent); }
+.ef-campo:hover { border-color: color-mix(in srgb, var(--p-acento) 45%, var(--p-borda-forte)); }
+.ef-campo:focus { border-color: var(--p-acento); box-shadow: inset 0 1px 2px rgba(0, 42, 71, 0.05), 0 0 0 3px color-mix(in srgb, var(--p-acento) 16%, transparent); }
+textarea.ef-campo { height: auto; padding: 12px 14px; line-height: 1.6; resize: vertical; }
+.ef-rotulo { display: block; font-size: 14px; font-weight: 700; color: var(--p-texto); }
+.ef-dica { margin-top: 2px; font-size: 13.5px; line-height: 1.5; color: var(--p-suave); }
+
+/* caixa de texto longo */
+.ef-texto { background: var(--p-superficie); border: 1px solid var(--p-borda-forte); box-shadow: inset 0 1px 2px rgba(0, 42, 71, 0.05); transition: border-color .15s, box-shadow .15s; }
+.ef-texto:focus-within { border-color: var(--p-acento); box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-acento) 16%, transparent); }
+.ef-texto-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 5px 6px; border-bottom: 1px solid var(--p-borda); background: color-mix(in srgb, var(--ef-nevoa) 75%, var(--p-superficie)); }
+.ef-ferramenta { display: inline-flex; height: 32px; align-items: center; gap: 7px; padding: 0 10px; font-size: 13px; font-weight: 600; color: var(--p-texto-2); transition: background-color .12s, color .12s; }
+.ef-ferramenta:hover { background: var(--p-hover); color: var(--p-texto); }
+.ef-ferramenta kbd { font: 600 10.5px/1 var(--font-titulo); color: var(--p-suave); }
+
+/* ── botões ── */
+.ef-btn { display: inline-flex; height: 44px; align-items: center; justify-content: center; gap: 9px; padding: 0 18px; font-size: 12px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; white-space: nowrap; transition: background-color .18s, color .18s, border-color .18s, box-shadow .25s, transform .25s cubic-bezier(.2, .8, .2, 1); }
+.ef-btn:disabled { opacity: 0.45; pointer-events: none; }
+.ef-btn-pri { color: #fff; background: linear-gradient(180deg, #0a5384, var(--ef-azul)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 1px 2px rgba(0, 42, 71, 0.3), 0 10px 22px -12px rgba(0, 67, 111, 0.8); }
+.ef-btn-pri:hover { background: linear-gradient(180deg, var(--ef-azul), var(--ef-noite)); transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 42, 71, 0.3), 0 16px 28px -14px rgba(0, 67, 111, 0.9); }
+.ef-btn-pri:active { transform: translateY(0); }
+.ef-btn-sec { color: var(--p-texto); background: var(--p-superficie); border: 1px solid var(--p-borda-forte); box-shadow: 0 1px 2px rgba(0, 42, 71, 0.06); }
+.ef-btn-sec:hover { color: var(--p-acento); border-color: var(--p-acento); }
+.ef-btn-fantasma { height: 38px; padding: 0 12px; color: var(--p-texto-2); letter-spacing: 0.1em; }
+.ef-btn-fantasma:hover { color: var(--p-texto); background: var(--p-hover); }
+.ef-btn-perigo { height: 36px; padding: 0 10px; font-size: 11.5px; color: #b42318; letter-spacing: 0.1em; }
+.ef-btn-perigo:hover { background: rgba(180, 35, 24, 0.08); }
+.tema-escuro .ef-btn-perigo { color: #f97066; }
+.ef-btn-branco { color: var(--ef-noite); background: #fff; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 14px 30px -14px rgba(0, 0, 0, 0.6); }
+.ef-btn-branco:hover { transform: translateY(-1px); background: var(--ef-nevoa); }
+.ef-btn-vidro { color: #fff; background: linear-gradient(150deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05)); border: 1px solid rgba(255, 255, 255, 0.24); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.ef-btn-vidro:hover { background: rgba(255, 255, 255, 0.2); }
+.ef-adicionar { display: flex; height: 52px; width: 100%; align-items: center; justify-content: center; gap: 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--p-acento); border: 1px dashed color-mix(in srgb, var(--p-acento) 45%, var(--p-borda-forte)); background: color-mix(in srgb, var(--p-superficie) 60%, transparent); transition: background-color .15s, border-color .15s; }
+.ef-adicionar:hover { border-style: solid; border-color: var(--p-acento); background: var(--p-realce); }
+
+/* seletor de duas opções (Normal | Destaque) */
+.ef-chaves { display: inline-flex; padding: 2px; background: var(--ef-nevoa); border: 1px solid var(--p-borda); }
+.ef-chaves button { height: 30px; padding: 0 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--p-suave); transition: background-color .15s, color .15s, box-shadow .15s; }
+.ef-chaves button[aria-pressed="true"] { color: #fff; background: var(--ef-azul); box-shadow: 0 4px 10px -6px rgba(0, 67, 111, 0.9); }
+
+/* ── trilho dos passos ── */
+.ef-trilho { position: relative; }
+.ef-trilho ol { position: relative; }
+.ef-trilho ol::before { content: ""; position: absolute; left: 25px; top: 18px; bottom: 18px; width: 1px; background: var(--p-borda-forte); }
+.ef-passo { position: relative; display: flex; width: 100%; align-items: center; gap: 14px; padding: 9px 12px 9px 12px; text-align: left; transition: background-color .15s; }
+.ef-passo:hover { background: color-mix(in srgb, var(--p-hover) 70%, transparent); }
+.ef-passo-n { position: relative; z-index: 1; display: grid; flex: none; place-items: center; width: 28px; height: 28px; border-radius: 9999px; font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--p-suave); background: var(--p-superficie); border: 1px solid var(--p-borda-forte); transition: all .2s; }
+.ef-passo-t { font-size: 14px; font-weight: 600; line-height: 1.25; color: var(--p-texto-2); }
+.ef-passo[data-estado="feito"] .ef-passo-n { color: #fff; background: var(--ef-azul); border-color: var(--ef-azul); }
+.tema-escuro .ef-passo[data-estado="feito"] .ef-passo-n { background: #1a6597; border-color: #1a6597; }
+.ef-passo[aria-current="step"] { background: var(--p-superficie); box-shadow: 0 1px 2px rgba(0, 42, 71, 0.06), 0 10px 22px -16px rgba(0, 42, 71, 0.45); }
+.ef-passo[aria-current="step"]::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; background: var(--ef-azul); }
+.ef-passo[aria-current="step"] .ef-passo-n { color: var(--ef-azul); background: var(--p-superficie); border: 2px solid var(--ef-azul); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ef-azul) 14%, transparent); }
+.ef-passo[aria-current="step"] .ef-passo-t { color: var(--p-acento); font-weight: 700; }
+.ef-progresso { height: 3px; background: var(--p-borda); overflow: hidden; }
+.ef-progresso > span { display: block; height: 100%; background: linear-gradient(90deg, var(--ef-azul), var(--ef-medio)); transition: width .5s cubic-bezier(.2, .8, .2, 1); }
+
+/* entrada do conteúdo de cada passo */
+@keyframes ef-entra { from { opacity: 0; translate: 0 10px; } }
+.ef-entra > * { animation: ef-entra .45s cubic-bezier(.2, .8, .2, 1) both; }
+.ef-entra > :nth-child(2) { animation-delay: .04s; }
+.ef-entra > :nth-child(3) { animation-delay: .08s; }
+.ef-entra > :nth-child(n + 4) { animation-delay: .12s; }
+
+/* ── palco da prévia: azul-noite, grafismo, folhas em profundidade ── */
+.ef-palco { isolation: isolate; background: radial-gradient(120% 80% at 30% 0%, #0b4a78 0%, #013455 45%, #001d33 100%); color: #fff; }
+.ef-palco::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: url("/marca/grafismo-monte-transparente-branco.svg") right -340px bottom -120px / 1200px auto no-repeat; opacity: 0.08; }
+.ef-palco-barra { background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03)); border-bottom: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); }
+.ef-palco-cena { perspective: 2200px; perspective-origin: 50% 20%; }
+.ef-palco-folhas { transform: rotateX(var(--ef-rx, 0deg)) rotateY(var(--ef-ry, 0deg)); transform-style: preserve-3d; transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+.ef-palco-selo { font-size: 10.5px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 255, 255, 0.55); }
+
+/* ── capa do boletim em 3D (tela de entrada) ── */
+.ef-vitrine { position: relative; isolation: isolate; overflow: hidden; background: radial-gradient(110% 90% at 85% 10%, #0b4a78 0%, #013455 45%, #001d33 100%); color: #fff; }
+.ef-vitrine::before { content: ""; position: absolute; inset: 0; z-index: -1; background: url("/marca/grafismo-monte-transparente-branco.svg") left -300px bottom -260px / 1200px auto no-repeat; opacity: 0.09; }
+.ef-vitrine-cena { perspective: 1600px; }
+.ef-capa3d { transform: rotateY(-18deg) rotateX(6deg) rotateZ(1deg); transform-style: preserve-3d; transition: transform .9s cubic-bezier(.2, .8, .2, 1); box-shadow: -2px 0 0 rgba(255, 255, 255, 0.5), 30px 40px 60px -20px rgba(0, 0, 0, 0.7), 80px 80px 120px -60px rgba(0, 0, 0, 0.6); }
+.ef-capa3d::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 38%); mix-blend-mode: soft-light; }
+.ef-vitrine:hover .ef-capa3d { transform: rotateY(-8deg) rotateX(3deg) rotateZ(0deg) translateZ(20px); }
+.ef-folha-atras { transform: rotateY(-18deg) rotateX(6deg) rotateZ(1deg) translate3d(14px, 10px, -40px); background: #f3f6f9; box-shadow: 20px 30px 50px -20px rgba(0, 0, 0, 0.6); transition: transform .9s cubic-bezier(.2, .8, .2, 1); }
+.ef-vitrine:hover .ef-folha-atras { transform: rotateY(-8deg) rotateX(3deg) translate3d(22px, 14px, -30px); }
+.ef-chip-vidro { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ef-ponto { width: 7px; height: 7px; border-radius: 9999px; background: #4ade80; box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2); }
+.ef-ponto-rascunho { background: #fbbf24; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2); }
+
+/* lista de boletins anteriores */
+.ef-linha { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--p-borda); transition: background-color .15s; }
+.ef-linha:last-child { border-bottom: 0; }
+.ef-linha:hover { background: color-mix(in srgb, var(--ef-nevoa) 70%, transparent); }
+.ef-data { display: grid; place-items: center; width: 56px; height: 56px; border: 1px solid var(--p-borda); background: var(--p-superficie); line-height: 1; }
+.ef-data b { font-size: 21px; font-weight: 700; color: var(--p-acento); font-variant-numeric: tabular-nums; }
+.ef-data small { margin-top: 3px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--p-suave); }
+
+/* janelas (conflito): vidro + entrada 3D */
+.ef-janela-fundo { background: rgba(0, 29, 51, 0.45); backdrop-filter: blur(8px) saturate(120%); -webkit-backdrop-filter: blur(8px) saturate(120%); animation: janela-fundo .2s ease-out both; }
+.ef-janela { background: color-mix(in srgb, var(--p-superficie) 92%, transparent); border: 1px solid color-mix(in srgb, #fff 60%, var(--p-borda)); border-top: 3px solid var(--ef-azul); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 40px 90px -30px rgba(0, 29, 51, 0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); animation: modal-3d .55s cubic-bezier(.2, .8, .2, 1) both; transform-origin: 50% 100%; }
+
+/* painel de publicação */
+.ef-publicar { position: relative; isolation: isolate; overflow: hidden; background: radial-gradient(120% 120% at 100% 0%, #0b4a78, #013455 50%, #002a47); color: #fff; box-shadow: 0 30px 60px -36px rgba(0, 29, 51, 0.9); }
+.ef-publicar::before { content: ""; position: absolute; inset: 0; z-index: -1; background: url("/marca/grafismo-monte-transparente-branco.svg") right -300px bottom -200px / 1000px auto no-repeat; opacity: 0.1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-entra > *, .ef-janela { animation: none !important; }
+  .ef-palco-folhas, .ef-capa3d, .ef-folha-atras { transition: none; }
+  .ef-vitrine:hover .ef-capa3d { transform: rotateY(-18deg) rotateX(6deg) rotateZ(1deg); }
+}
+
+}
