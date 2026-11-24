@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, Heart, Search } from "lucide-react";
+import { ArrowRight, ChevronLeft, Clock, Hash, Heart, Search } from "lucide-react";
 import { appAtualizarPerfil } from "@/lib/api-app";
 import { useMembro } from "@/components/app/contexto";
 import { LeitorHino } from "@/components/hinario/LeitorHino";
-import { buscarHinos, HINARIO } from "@/lib/hinario";
+import { acharHino, buscarHinos, HINARIO } from "@/lib/hinario";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/hinario")({
@@ -18,6 +18,9 @@ function Hinario() {
   const nav = Route.useNavigate();
   const [busca, setBusca] = useState("");
   const [so, setSo] = useState<"todos" | "favoritos">("todos");
+  const [modo, setModo] = useState<"numero" | "texto">("numero");
+  const recentes = (): number[] => { try { return JSON.parse(localStorage.getItem("iecb_hinos_recentes") ?? "[]"); } catch { return []; } };
+  const exato = /^\d+$/.test(busca.trim()) ? acharHino(Number(busca.trim())) : null;
   const favs = new Set(membro.favoritos.hinos);
   const lista = useMemo(() => buscarHinos(busca).filter((h) => so === "todos" || favs.has(h.numero)), [busca, so, membro.favoritos.hinos]); // eslint-disable-line react-hooks/exhaustive-deps
   const i = HINARIO.findIndex((h) => h.numero === n);
@@ -33,6 +36,7 @@ function Hinario() {
   };
 
   if (aberto) {
+    try { const r = recentes(); if (r[0] !== aberto.numero) localStorage.setItem("iecb_hinos_recentes", JSON.stringify([aberto.numero, ...r.filter((x) => x !== aberto.numero)].slice(0, 10))); } catch { /* sem armazenamento */ }
     return (
       <div className="min-h-dvh">
         <header className="sticky top-0 z-30 flex items-center gap-1 border-b border-[var(--a-borda)] bg-[color-mix(in_srgb,var(--a-sup)_92%,transparent)] px-2 pb-2 pt-[calc(env(safe-area-inset-top)+10px)] backdrop-blur-xl">
@@ -52,14 +56,27 @@ function Hinario() {
       <header className="a-topo">
         <p className="a-sobre !text-white/80">Salmos e Hinos</p>
         <h1 className="mt-2 text-[28px] font-bold tracking-[-0.02em]">Hinário</h1>
-        <div className="relative mt-5">
-          <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/60" />
-          <input value={busca} onChange={(e) => setBusca(e.target.value)} inputMode="search" placeholder="Número, título ou trecho" className="h-12 w-full border border-white/20 bg-white/10 pl-10 pr-3 text-[16px] text-white outline-none placeholder:text-white/50 focus:border-white/60" />
-        </div>
+        <form onSubmit={(e) => { e.preventDefault(); if (exato) nav({ search: { n: exato.numero } }); }} className="mt-5 flex gap-2">
+          <div className="relative min-w-0 flex-1">
+            {modo === "numero" ? <Hash size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/70" /> : <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/60" />}
+            <input key={modo} autoFocus={false} value={busca} onChange={(e) => setBusca(e.target.value)} inputMode={modo === "numero" ? "numeric" : "search"} enterKeyHint="go" placeholder={modo === "numero" ? "Número do hino" : "Título ou trecho da letra"} className={cn("h-12 w-full border border-white/25 bg-white/10 pl-10 pr-3 text-white outline-none placeholder:text-white/50 focus:border-white/70", modo === "numero" ? "text-[20px] font-bold" : "text-[16px]")} />
+          </div>
+          <button type="button" onClick={() => { setModo(modo === "numero" ? "texto" : "numero"); setBusca(""); }} className="grid size-12 shrink-0 place-items-center border border-white/25 text-white" aria-label={modo === "numero" ? "Procurar por título ou letra" : "Procurar por número"}>{modo === "numero" ? <Search size={19} /> : <Hash size={19} />}</button>
+        </form>
+        {exato && (
+          <button onClick={() => nav({ search: { n: exato.numero } })} className="mt-2 flex w-full items-center gap-3 bg-white px-4 py-3 text-left text-[#00436f]">
+            <span className="min-w-10 text-[22px] font-extrabold">{exato.numero}</span><span className="flex-1 truncate text-[16px] font-bold">{exato.titulo}</span><ArrowRight size={19} />
+          </button>
+        )}
       </header>
       <div className="flex gap-2 px-5">
         {(["todos", "favoritos"] as const).map((x) => <button key={x} onClick={() => setSo(x)} className={cn("border px-4 py-2 text-[12px] font-bold uppercase tracking-[0.12em]", so === x ? "border-[#00436f] bg-[#00436f] text-white" : "border-[var(--a-borda)] text-[var(--a-suave)]")}>{x === "todos" ? "Todos" : "Favoritos"}</button>)}
       </div>
+      {!busca && recentes().length > 0 && (
+        <div className="flex gap-2 overflow-x-auto px-5 pb-1">
+          {recentes().map((n) => { const h = acharHino(n); return h ? <button key={n} onClick={() => nav({ search: { n } })} className="flex shrink-0 items-center gap-1.5 border border-[var(--a-borda)] bg-[var(--a-sup)] px-3 py-2 text-[13px]"><Clock size={13} className="text-[var(--a-suave)]" /><b className="text-[var(--a-azul)]">{n}</b><span className="max-w-[140px] truncate font-semibold">{h.titulo}</span></button> : null; })}
+        </div>
+      )}
       <ul className="a-cartao mx-5 divide-y divide-[var(--a-borda)]">
         {lista.map((h) => (
           <li key={h.numero}>

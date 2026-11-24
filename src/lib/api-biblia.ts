@@ -38,3 +38,16 @@ export const importarLivroBibliaPainel = createServerFn({ method: "POST" })
     if (data.livro === "REV") await registrar(s.nome, "Importou a Bíblia no aplicativo", data.versao.toUpperCase());
     return { ok: true };
   });
+
+/** Procura palavras na Bíblia (membro logado). */
+export const appBuscarBiblia = createServerFn({ method: "POST" })
+  .validator((d: { versao: string; termo: string; testamento?: "AT" | "NT" }) => {
+    if (!d?.termo || d.termo.trim().length < 2) throw new Error("Digite ao menos uma palavra.");
+    return { versao: d.versao, termo: d.termo.slice(0, 80), testamento: d.testamento };
+  })
+  .handler(async ({ data }) => {
+    const { exigirMembro } = await import("../server/membros");
+    const { buscarNaBiblia } = await import("../server/biblia");
+    await exigirMembro();
+    return buscarNaBiblia(data.versao, data.termo, data.testamento);
+  });

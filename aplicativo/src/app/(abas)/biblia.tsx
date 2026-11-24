@@ -5,13 +5,15 @@
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams } from "expo-router";
-import { ArrowLeftRight, Bookmark, ChevronDown, ChevronLeft, ChevronRight, Copy, Download, Search, Share2, Type, X } from "lucide-react-native";
+import { ArrowLeftRight, ArrowRight, Bookmark, ChevronDown, ChevronLeft, ChevronRight, Clock, Copy, Download, Search, Share2, Type, X } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Modal, PanResponder, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View, type ScrollViewInstance } from "react-native";
+import { ActivityIndicator, Alert, Modal, PanResponder, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View, type ScrollViewInstance } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Carregando, T } from "@/componentes/ui";
+import { chamar } from "@/lib/api";
 import { baixarVersao, interpretar, obterIndice, obterLivro, type Indice, type LivroTexto } from "@/lib/biblia";
+import { anotarLeitura, leiturasRecentes, type Leitura } from "@/lib/historico";
 import { useMembro } from "@/lib/sessao";
 import { AZUL, F, useTema } from "@/lib/tema";
 
@@ -39,6 +41,10 @@ export default function Biblia() {
   const [serifa, setSerifa] = useState(true);
   const [comparacao, setComparacao] = useState<{ sigla: string; versos: [number, string][] } | null>(null);
   const [baixando, setBaixando] = useState<string | null>(null);
+  const [recentes, setRecentes] = useState<Leitura[]>([]);
+  const [achados, setAchados] = useState<{ total: number; achados: { livro: string; capitulo: number; versiculo: number; texto: string }[] } | null>(null);
+  const [procurando, setProcurando] = useState(false);
+  const [testBusca, setTestBusca] = useState<"" | "AT" | "NT">("");
   const rolagem = useRef<ScrollViewInstance>(null);
   const alvo = useRef<number | null>(null);
 
@@ -59,6 +65,7 @@ export default function Biblia() {
     setSel([]);
     rolagem.current?.scrollTo({ y: 0, animated: false });
     if (v) salvarPerfil({ ultimaLeitura: { versao: v.id, livro, capitulo: cap } }).catch(() => {});
+    anotarLeitura({ livro, cap }).catch(() => {});
   }, [v?.id, livro, cap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -116,7 +123,17 @@ export default function Biblia() {
     setLivro(r.livro); setCap(Math.min(r.capitulo, v.capitulos[r.livro]!)); alvo.current = r.versiculo ?? null; if (r.versiculo) setSel([r.versiculo]);
     setFolha(null); setBusca("");
   };
-  const abrirSeletor = () => { setRascunho({ livro, cap }); setTestamento(l?.testamento ?? "NT"); setFiltro(""); setFolha("livro"); };
+  const abrirSeletor = () => { setRascunho({ livro, cap }); setTestamento(l?.testamento ?? "NT"); setFiltro(""); leiturasRecentes().then(setRecentes); setFolha("livro"); };
+  const refBusca = indice && busca.trim() ? interpretar(busca, indice.livros) : null;
+  const procurar = async () => {
+    if (busca.trim().length < 2 || !v) return;
+    setProcurando(true); setAchados(null);
+    try { setAchados(await chamar("buscarBiblia", { versao: v.id, termo: busca, testamento: testBusca || undefined })); }
+    catch (e) { Alert.alert("Buscar", e instanceof Error ? e.message : "Sem conexão."); }
+    finally { setProcurando(false); }
+  };
+  const abrirAchado = (a: { livro: string; capitulo: number; versiculo: number }) => { setLivro(a.livro); setCap(a.capitulo); alvo.current = a.versiculo; setSel([a.versiculo]); setFolha(null); };
+  const nomeDe = (id: string) => indice?.livros.find((x) => x.id === id)?.nome ?? id;
   const escolherCapitulo = async (n: number, lv = rascunho.livro) => {
     setRascunho({ livro: lv, cap: n }); setVersosCap(0); setFolha("versiculo");
     try { const d = await obterLivro(v!.id, lv); setVersosCap(d.capitulos[n - 1]?.length ?? 0); } catch { setVersosCap(-1); }
@@ -188,6 +205,12 @@ export default function Biblia() {
         )}
       </ScrollView>
 
+      {sel.length === 0 && texto ? (
+        <>
+          <Pressable onPress={() => passo(-1)} accessibilityLabel="Capítulo anterior" style={{ position: "absolute", left: 12, bottom: 16, width: 46, height: 46, borderRadius: 23, backgroundColor: c.sup, borderWidth: 1, borderColor: c.borda, alignItems: "center", justifyContent: "center", shadowColor: "#002A47", shadowOpacity: 0.15, shadowRadius: 10, elevation: 3 }}><ChevronLeft size={22} color={c.azul} /></Pressable>
+          <Pressable onPress={() => passo(1)} accessibilityLabel="Próximo capítulo" style={{ position: "absolute", right: 12, bottom: 16, width: 46, height: 46, borderRadius: 23, backgroundColor: AZUL, alignItems: "center", justifyContent: "center", shadowColor: "#002A47", shadowOpacity: 0.25, shadowRadius: 10, elevation: 4 }}><ChevronRight size={22} color="#fff" /></Pressable>
+        </>
+      ) : null}
       {sel.length > 0 ? (
         <View style={{ position: "absolute", left: 12, right: 12, bottom: 14, backgroundColor: AZUL, flexDirection: "row", alignItems: "center", paddingHorizontal: 4, height: 58, shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 16, elevation: 8 }}>
           <T cor="#fff" f={F.negrito} s={13} linhas={1} style={{ flex: 1, paddingLeft: 12 }}>{refSel()}</T>
@@ -210,13 +233,25 @@ export default function Biblia() {
               <Pressable hitSlop={8} onPress={() => setFolha(folha === "versiculo" ? "capitulo" : "livro")} style={{ padding: 4 }}><ChevronLeft size={22} color={c.azul} /></Pressable>
             ) : <View style={{ width: 8 }} />}
             <T f={F.negrito} s={16} linhas={1} style={{ flex: 1 }}>
-              {folha === "livro" ? "Escolha o livro" : folha === "capitulo" ? `${livroRasc?.nome} · capítulo` : folha === "versiculo" ? `${livroRasc?.nome} ${rascunho.cap} · versículo` : folha === "busca" ? "Ir para" : folha === "ajustes" ? "Leitura" : comparacao ? `${refSel()} · ${comparacao.sigla}` : ""}
+              {folha === "livro" ? "Escolha o livro" : folha === "capitulo" ? `${livroRasc?.nome} · capítulo` : folha === "versiculo" ? `${livroRasc?.nome} ${rascunho.cap} · versículo` : folha === "busca" ? "Buscar na Bíblia" : folha === "ajustes" ? "Leitura" : comparacao ? `${refSel()} · ${comparacao.sigla}` : ""}
             </T>
             <Pressable hitSlop={10} onPress={() => setFolha(null)} style={{ padding: 4 }}><X size={22} color={c.suave} /></Pressable>
           </View>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 14, gap: 12 }}>
             {folha === "livro" && indice && v ? (
               <>
+                {!filtro && recentes.length ? (
+                  <View style={{ gap: 8 }}>
+                    <T s={11} f={F.negrito} cor={c.suave} style={{ letterSpacing: 1.6, textTransform: "uppercase" }}>Lidos recentemente</T>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                      {recentes.map((r) => (
+                        <Pressable key={`${r.livro}${r.cap}`} onPress={() => { setLivro(r.livro); setCap(r.cap); setFolha(null); }} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: c.borda, backgroundColor: c.fundo }}>
+                          <Clock size={14} color={c.suave} /><T s={14} f={F.semi}>{nomeDe(r.livro)} {r.cap}</T>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </View>
+                ) : null}
                 <TextInput value={filtro} onChangeText={setFiltro} placeholder="Procurar livro" placeholderTextColor={c.suave} style={{ height: 48, borderWidth: 1, borderColor: c.borda, paddingHorizontal: 12, fontFamily: F.medio, fontSize: 16, color: c.texto, backgroundColor: c.fundo }} />
                 {!filtro ? (
                   <View style={{ flexDirection: "row", borderWidth: 1, borderColor: c.borda }}>
@@ -247,8 +282,49 @@ export default function Biblia() {
               )
             ) : folha === "busca" ? (
               <>
-                <TextInput autoFocus value={busca} onChangeText={setBusca} onSubmitEditing={ir} placeholder="Ex.: Jo 3:16, Salmos 23, Rm 8" placeholderTextColor={c.suave} returnKeyType="go" style={{ height: 52, borderWidth: 1, borderColor: c.borda, paddingHorizontal: 14, fontFamily: F.medio, fontSize: 16, color: c.texto }} />
-                <Pressable onPress={ir} style={{ height: 50, backgroundColor: AZUL, alignItems: "center", justifyContent: "center" }}><T f={F.negrito} cor="#fff" s={12.5} style={{ letterSpacing: 1.4, textTransform: "uppercase" }}>Abrir</T></Pressable>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, height: 52, borderWidth: 1.5, borderColor: AZUL, paddingHorizontal: 12 }}>
+                  <Search size={18} color={c.azul} />
+                  <TextInput autoFocus value={busca} onChangeText={(t) => { setBusca(t); setAchados(null); }} onSubmitEditing={() => (refBusca && /\d/.test(busca) ? ir() : procurar())} placeholder="Jo 3:16 ou uma palavra: graça, pastor…" placeholderTextColor={c.suave} returnKeyType="search" style={{ flex: 1, fontFamily: F.medio, fontSize: 16, color: c.texto }} />
+                  {busca ? <Pressable hitSlop={8} onPress={() => { setBusca(""); setAchados(null); }}><X size={18} color={c.suave} /></Pressable> : null}
+                </View>
+                {refBusca ? (
+                  <Pressable onPress={ir} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, backgroundColor: AZUL }}>
+                    <ArrowRight size={18} color="#fff" />
+                    <View style={{ flex: 1 }}>
+                      <T s={10.5} f={F.negrito} cor="#D9E6EF" style={{ letterSpacing: 1.6, textTransform: "uppercase" }}>Abrir passagem</T>
+                      <T s={16} f={F.negrito} cor="#fff">{nomeDe(refBusca.livro)} {refBusca.capitulo}{refBusca.versiculo ? `:${refBusca.versiculo}` : ""}</T>
+                    </View>
+                  </Pressable>
+                ) : null}
+                {busca.trim().length >= 2 && !(refBusca && /\d/.test(busca)) ? (
+                  <View style={{ gap: 10 }}>
+                    <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+                      {([["", "Toda a Bíblia"], ["AT", "Antigo T."], ["NT", "Novo T."]] as const).map(([k, r]) => (
+                        <Pressable key={k} onPress={() => { setTestBusca(k); setAchados(null); }} style={{ paddingHorizontal: 11, paddingVertical: 7, borderWidth: 1, borderColor: testBusca === k ? AZUL : c.borda, backgroundColor: testBusca === k ? AZUL : "transparent" }}>
+                          <Text style={{ fontFamily: F.negrito, fontSize: 10.5, letterSpacing: 0.8, textTransform: "uppercase", color: testBusca === k ? "#fff" : c.suave }}>{r}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                    {!achados ? (
+                      <Pressable onPress={procurar} disabled={procurando} style={{ height: 48, borderWidth: 1, borderColor: c.borda, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                        {procurando ? <ActivityIndicator color={c.azul} /> : <Search size={17} color={c.azul} />}
+                        <T f={F.negrito} s={12.5} cor={c.azul} style={{ letterSpacing: 1, textTransform: "uppercase" }}>{procurando ? "Procurando…" : `Procurar “${busca.trim()}” na ${v?.sigla}`}</T>
+                      </Pressable>
+                    ) : (
+                      <View style={{ gap: 2 }}>
+                        <T s={12.5} cor={c.suave}>{achados.total === 0 ? "Nenhum versículo encontrado." : `${achados.total} versículo${achados.total > 1 ? "s" : ""}${achados.total > achados.achados.length ? ` · mostrando ${achados.achados.length}` : ""}`}</T>
+                        {achados.achados.map((a) => (
+                          <Pressable key={`${a.livro}${a.capitulo}.${a.versiculo}`} onPress={() => abrirAchado(a)} style={({ pressed }) => ({ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.borda, backgroundColor: pressed ? c.realce : "transparent", gap: 3 })}>
+                            <T s={12} f={F.negrito} cor={c.azul} style={{ letterSpacing: 0.6, textTransform: "uppercase" }}>{nomeDe(a.livro)} {a.capitulo}:{a.versiculo}</T>
+                            <Destaque texto={a.texto} termo={busca} />
+                          </Pressable>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ) : refBusca ? null : (
+                  <T s={13} cor={c.suave}>Digite uma referência (Jo 3:16, Salmos 23, Rm 8) para abrir direto, ou uma palavra para procurar em toda a Bíblia.</T>
+                )}
               </>
             ) : folha === "ajustes" ? (
               <>
@@ -302,4 +378,17 @@ function Grade({ total, atual, escolher }: { total: number; atual: number; escol
       ))}
     </View>
   );
+}
+
+/** Texto do resultado com as palavras buscadas em negrito. */
+function Destaque({ texto, termo }: { texto: string; termo: string }) {
+  const { c } = useTema();
+  const sem = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const ps = sem(termo).split(/\s+/).filter((p) => p.length >= 2);
+  const base = sem(texto);
+  const marcas = new Array(texto.length).fill(false);
+  ps.forEach((p) => { let i = base.indexOf(p); while (i >= 0) { for (let k = i; k < i + p.length; k++) marcas[k] = true; i = base.indexOf(p, i + 1); } });
+  const pedacos: { t: string; m: boolean }[] = [];
+  for (let i = 0; i < texto.length; i++) { const u = pedacos[pedacos.length - 1]; if (u && u.m === marcas[i]) u.t += texto[i]; else pedacos.push({ t: texto[i]!, m: marcas[i]! }); }
+  return <Text style={{ fontFamily: F.leitura, fontSize: 15, lineHeight: 22, color: c.texto }}>{pedacos.map((p, i) => <Text key={i} style={p.m ? { fontFamily: F.negrito, color: c.azul } : undefined}>{p.t}</Text>)}</Text>;
 }

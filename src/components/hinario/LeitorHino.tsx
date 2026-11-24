@@ -3,7 +3,7 @@
  * letra ajustável e "modo culto" — tela cheia, uma estrofe por vez,
  * com o coro voltando depois de cada estrofe, para acompanhar o canto.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Maximize2, Minus, Plus, Share2, X } from "lucide-react";
 import { sequenciaCulto, type HinoCompleto, type ParteHino } from "@/lib/hinario";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ export function LeitorHino({ hino, anterior, proximo, irPara, escuro }: { hino: 
     try { return Number(localStorage.getItem("hn-letra")) || 19; } catch { return 19; }
   });
   const [culto, setCulto] = useState(false);
+  const toque = useRef<{ x: number; y: number } | null>(null);
   useEffect(() => { try { localStorage.setItem("hn-letra", String(tam)); } catch { /* sem armazenamento */ } }, [tam]);
 
   const compartilhar = async () => {
@@ -39,7 +40,16 @@ export function LeitorHino({ hino, anterior, proximo, irPara, escuro }: { hino: 
   };
 
   return (
-    <article className={cn("hn", escuro && "hn-escuro")}>
+    <article
+      className={cn("hn", escuro && "hn-escuro")}
+      onTouchStart={(e) => { toque.current = { x: e.touches[0]!.clientX, y: e.touches[0]!.clientY }; }}
+      onTouchEnd={(e) => {
+        const t = toque.current; toque.current = null;
+        if (!t || culto) return;
+        const dx = e.changedTouches[0]!.clientX - t.x, dy = e.changedTouches[0]!.clientY - t.y;
+        if (Math.abs(dx) > 90 && Math.abs(dy) < 50) { const n = dx < 0 ? proximo : anterior; if (n) irPara(n); }
+      }}
+    >
       <header className="hn-cabeca">
         <p className="hn-sh">Salmos e Hinos</p>
         <div className="hn-titulo">

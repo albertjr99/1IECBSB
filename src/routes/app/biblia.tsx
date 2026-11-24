@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowLeftRight, Bookmark, ChevronDown, ChevronLeft, ChevronRight, Copy, Search, Share2, Type, X } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Bookmark, ChevronDown, ChevronLeft, ChevronRight, Clock, Copy, Loader2, Search, Share2, Type, X } from "lucide-react";
 import { toast } from "sonner";
 import { appAtualizarPerfil } from "@/lib/api-app";
 import { useMembro } from "@/components/app/contexto";
+import { appBuscarBiblia } from "@/lib/api-biblia";
 import { carregarIndice, carregarLivro, filtroLivro, lerReferencia, type Indice, type LivroTexto } from "@/lib/biblia-web";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,9 @@ function Biblia() {
   const [serifa, setSerifa] = useState(() => { try { return localStorage.getItem("iecb_biblia_fonte") !== "sem"; } catch { return true; } });
   const [comparar, setComparar] = useState<{ sigla: string; versos: [number, string][] } | null>(null);
   const [destino, setDestino] = useState<number | null>(null);
+  const [achados, setAchados] = useState<{ total: number; achados: { livro: string; capitulo: number; versiculo: number; texto: string }[] } | null>(null);
+  const [procurando, setProcurando] = useState(false);
+  const recentes = (): { livro: string; cap: number }[] => { try { return JSON.parse(localStorage.getItem("iecb_biblia_recentes") ?? "[]"); } catch { return []; } };
   const salvar = useRef(0);
   const toque = useRef<{ x: number; y: number } | null>(null);
 
@@ -55,6 +59,9 @@ function Biblia() {
     window.scrollTo({ top: 0 });
     return () => { vivo = false; };
   }, [versao, livro]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    try { localStorage.setItem("iecb_biblia_recentes", JSON.stringify([{ livro, cap }, ...recentes().filter((r) => r.livro !== livro || r.cap !== cap)].slice(0, 8))); } catch { /* sem armazenamento */ }
+  }, [livro, cap]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     setSel([]); window.scrollTo({ top: 0 });
     window.clearTimeout(salvar.current);
@@ -124,6 +131,13 @@ function Biblia() {
     setLivro(r.livro); setCap(Math.min(r.capitulo, v?.capitulos[r.livro] ?? 1)); if (r.verso) setDestino(r.verso);
     setIr(""); setBuscando(false);
   };
+  const procurar = async () => {
+    if (ir.trim().length < 2) return;
+    setProcurando(true); setAchados(null);
+    try { setAchados(await appBuscarBiblia({ data: { versao, termo: ir } })); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Sem conexão."); }
+    finally { setProcurando(false); }
+  };
   const abrirSeletor = () => { setRascunho({ livro, cap }); setTestamento(l?.testamento ?? "NT"); setFiltro(""); setSeletor("livro"); };
   const escolherVerso = (n: number) => { setLivro(rascunho.livro); setCap(rascunho.cap); setDestino(n); setSeletor(null); };
 
@@ -155,10 +169,35 @@ function Biblia() {
           <button onClick={() => setAjustes((a) => !a)} className="grid size-9 place-items-center text-[var(--a-azul)]" aria-label="Letra"><Type size={19} /></button>
         </div>
         {buscando && (
-          <form onSubmit={(e) => { e.preventDefault(); irPara(); }} className="mt-2 flex gap-2">
-            <input autoFocus value={ir} onChange={(e) => setIr(e.target.value)} placeholder="Ir para: Jo 3:16, Salmos 23, Rm 8" className="h-11 min-w-0 flex-1 border border-[var(--a-borda)] bg-[var(--a-fundo)] px-3 text-[16px] outline-none focus:border-[var(--a-azul)]" />
-            <button className="h-11 bg-[#00436f] px-4 text-[12px] font-bold uppercase tracking-[0.12em] text-white">Ir</button>
-          </form>
+          <div className="mt-2 grid gap-2">
+            <form onSubmit={(e) => { e.preventDefault(); if (indice && lerReferencia(ir, indice.livros) && /\d/.test(ir)) irPara(); else procurar(); }} className="flex items-center gap-2 border-[1.5px] border-[#00436f] bg-[var(--a-fundo)] px-3">
+              <Search size={17} className="text-[var(--a-azul)]" />
+              <input autoFocus value={ir} onChange={(e) => { setIr(e.target.value); setAchados(null); }} placeholder="Jo 3:16 ou uma palavra: graça, pastor…" className="h-11 min-w-0 flex-1 bg-transparent text-[16px] outline-none" />
+              {ir && <button type="button" onClick={() => { setIr(""); setAchados(null); }} aria-label="Limpar"><X size={17} className="text-[var(--a-suave)]" /></button>}
+            </form>
+            {indice && ir.trim() && (() => { const r = lerReferencia(ir, indice.livros); return r ? (
+              <button onClick={irPara} className="flex items-center gap-3 bg-[#00436f] px-4 py-3 text-left text-white">
+                <ArrowRight size={18} />
+                <span><span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-[#d9e6ef]">Abrir passagem</span><span className="text-[16px] font-bold">{indice.livros.find((x) => x.id === r.livro)?.nome} {r.capitulo}{r.verso ? `:${r.verso}` : ""}</span></span>
+              </button>
+            ) : null; })()}
+            {ir.trim().length >= 2 && !achados && !(indice && /\d/.test(ir) && lerReferencia(ir, indice.livros)) && (
+              <button onClick={procurar} disabled={procurando} className="flex h-11 items-center justify-center gap-2 border border-[var(--a-borda)] text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--a-azul)]">
+                {procurando ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />} {procurando ? "Procurando…" : `Procurar “${ir.trim()}” na ${v?.sigla ?? ""}`}
+              </button>
+            )}
+            {achados && (
+              <div className="max-h-[60dvh] overflow-y-auto">
+                <p className="py-1 text-[12.5px] text-[var(--a-suave)]">{achados.total === 0 ? "Nenhum versículo encontrado." : `${achados.total} versículo${achados.total > 1 ? "s" : ""}${achados.total > achados.achados.length ? ` · mostrando ${achados.achados.length}` : ""}`}</p>
+                {achados.achados.map((a) => (
+                  <button key={`${a.livro}${a.capitulo}.${a.versiculo}`} onClick={() => { setLivro(a.livro); setCap(a.capitulo); setDestino(a.versiculo); setBuscando(false); setAchados(null); }} className="block w-full border-b border-[var(--a-borda)] py-3 text-left">
+                    <span className="block text-[11.5px] font-bold uppercase tracking-[0.06em] text-[var(--a-azul)]">{indice?.livros.find((x) => x.id === a.livro)?.nome} {a.capitulo}:{a.versiculo}</span>
+                    <span className="mt-1 block font-[Lora] text-[15px] leading-snug" dangerouslySetInnerHTML={{ __html: destacar(a.texto, ir) }} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
         {ajustes && (
           <div className="mt-2 flex items-center gap-2 text-[13px]">
@@ -214,6 +253,12 @@ function Biblia() {
         )}
       </article>
 
+      {sel.length === 0 && texto && (
+        <>
+          <button onClick={() => passo(-1)} aria-label="Capítulo anterior" className="fixed bottom-[calc(env(safe-area-inset-bottom)+88px)] left-3 z-30 grid size-11 place-items-center rounded-full border border-[var(--a-borda)] bg-[var(--a-sup)] text-[var(--a-azul)] shadow-[0_8px_20px_-8px_rgba(0,42,71,0.35)]"><ChevronLeft size={21} /></button>
+          <button onClick={() => passo(1)} aria-label="Próximo capítulo" className="fixed bottom-[calc(env(safe-area-inset-bottom)+88px)] right-3 z-30 grid size-11 place-items-center rounded-full bg-[#00436f] text-white shadow-[0_8px_20px_-8px_rgba(0,42,71,0.5)]"><ChevronRight size={21} /></button>
+        </>
+      )}
       {sel.length > 0 && (
         <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+84px)] z-40 bg-[#00436f] text-white shadow-[0_18px_40px_-12px_rgba(0,20,34,0.6)]">
           <div className="flex items-center gap-1 px-2">
@@ -245,6 +290,14 @@ function Biblia() {
         >
           {seletor === "livro" ? (
             <div className="px-4 pb-6">
+              {!filtro && recentes().length > 0 && (
+                <div className="pb-3 pt-1">
+                  <p className="mb-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--a-suave)]">Lidos recentemente</p>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {recentes().map((r) => <button key={`${r.livro}${r.cap}`} onClick={() => { setLivro(r.livro); setCap(r.cap); setSeletor(null); }} className="flex shrink-0 items-center gap-1.5 border border-[var(--a-borda)] bg-[var(--a-fundo)] px-3 py-2 text-[14px] font-semibold"><Clock size={13} className="text-[var(--a-suave)]" /> {indice.livros.find((x) => x.id === r.livro)?.nome} {r.cap}</button>)}
+                  </div>
+                </div>
+              )}
               <div className="sticky top-0 z-10 grid gap-2 bg-[var(--a-sup)] pb-3 pt-1">
                 <input value={filtro} onChange={(e) => setFiltro(e.target.value)} placeholder="Procurar livro" className="h-11 border border-[var(--a-borda)] bg-[var(--a-fundo)] px-3 text-[16px] outline-none focus:border-[var(--a-azul)]" />
                 {!filtro && (
@@ -307,3 +360,19 @@ function Versiculos({ versao, livro, cap, escolher, abrirCapitulo }: { versao: s
   return <Grade total={n} atual={0} escolher={escolher} rodape={<button onClick={abrirCapitulo} className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--a-azul)]">Abrir o capítulo inteiro</button>} />;
 }
 
+
+/** Realça as palavras buscadas (texto já vem do servidor da igreja; escapamos o HTML). */
+function destacar(texto: string, termo: string) {
+  const sem = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
+  const base = sem(texto);
+  const m = new Array(texto.length).fill(false);
+  sem(termo).split(/\s+/).filter((p) => p.length >= 2).forEach((p) => { let i = base.indexOf(p); while (i >= 0) { for (let k = i; k < i + p.length; k++) m[k] = true; i = base.indexOf(p, i + 1); } });
+  let out = ""; let aberto = false;
+  for (let i = 0; i < texto.length; i++) {
+    if (m[i] && !aberto) { out += '<b style="color:var(--a-azul)">'; aberto = true; }
+    if (!m[i] && aberto) { out += "</b>"; aberto = false; }
+    out += esc(texto[i]!);
+  }
+  return aberto ? out + "</b>" : out;
+}

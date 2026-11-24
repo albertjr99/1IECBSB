@@ -3,14 +3,15 @@ import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { useKeepAwake } from "expo-keep-awake";
 import { StatusBar } from "expo-status-bar";
-import { ChevronLeft, ChevronRight, Heart, Maximize2, Share2, X } from "lucide-react-native";
-import { useState } from "react";
+import { ChevronLeft, ChevronRight, Heart, Maximize2, Minus, Plus, Share2, X } from "lucide-react-native";
+import { useEffect, useMemo, useState } from "react";
 import { Modal, PanResponder, Pressable, Share, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SvgXml } from "react-native-svg";
 import { Aviso, T, Tela } from "@/componentes/ui";
 import { acharHino, HINARIO, sequenciaCulto, type HinoCompleto } from "@/lib/hinario";
 import { CRUZ } from "@/lib/marca";
+import { anotarHino } from "@/lib/historico";
 import { useMembro } from "@/lib/sessao";
 import { AZUL, F, NOITE, useTema } from "@/lib/tema";
 
@@ -28,7 +29,14 @@ export default function TelaHino() {
     Haptics.selectionAsync().catch(() => {});
     salvarPerfil({ favoritos: { ...membro.favoritos, hinos: [...s] } }).catch(() => {});
   };
+  useEffect(() => { if (h) anotarHino(h.numero).catch(() => {}); }, [h?.numero]); // eslint-disable-line react-hooks/exhaustive-deps
   const tam = 18 * letra;
+  const mudarLetra = (d: number) => salvarPerfil({ prefs: { ...membro.prefs, letra: Math.min(5, Math.max(1, membro.prefs.letra + d)) } }).catch(() => {});
+  const vizinho = (d: 1 | -1) => { const x = HINARIO[i + d]; if (x) { Haptics.selectionAsync().catch(() => {}); router.replace(`/hino/${x.numero}`); } };
+  const gesto = useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 24 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
+    onPanResponderRelease: (_e, g) => { if (Math.abs(g.dx) > 90) vizinho(g.dx < 0 ? 1 : -1); },
+  }), [i]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <Tela voltar titulo="Hinário" fundo={c.sup} direita={
       <View style={{ flexDirection: "row" }}>
@@ -37,7 +45,7 @@ export default function TelaHino() {
       </View>
     }>
       {!h ? <Aviso texto="Hino não encontrado." /> : (
-        <View style={{ gap: 24, paddingTop: 4 }}>
+        <View style={{ gap: 24, paddingTop: 4 }} {...gesto.panHandlers}>
           <View style={{ gap: 14 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><SvgXml xml={CRUZ} width={7} height={13} /><Text style={{ fontFamily: F.negrito, fontSize: 10.5, letterSpacing: 2.3, textTransform: "uppercase", color: c.azul }}>Salmos e Hinos</Text></View>
             <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
@@ -47,10 +55,14 @@ export default function TelaHino() {
                 {h.autor ? <T s={13} cor={c.suave}>{h.autor}</T> : null}
               </View>
             </View>
-            <Pressable onPress={() => setCulto(true)} style={{ height: 48, backgroundColor: AZUL, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 }}>
-              <Maximize2 size={17} color="#fff" />
-              <Text style={{ fontFamily: F.negrito, fontSize: 12, letterSpacing: 1.6, textTransform: "uppercase", color: "#fff" }}>Modo culto</Text>
-            </Pressable>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Pressable onPress={() => mudarLetra(-1)} accessibilityLabel="Letra menor" style={{ width: 48, height: 48, borderWidth: 1, borderColor: c.borda, alignItems: "center", justifyContent: "center" }}><Minus size={18} color={c.azul} /></Pressable>
+              <Pressable onPress={() => mudarLetra(1)} accessibilityLabel="Letra maior" style={{ width: 48, height: 48, borderWidth: 1, borderColor: c.borda, alignItems: "center", justifyContent: "center" }}><Plus size={18} color={c.azul} /></Pressable>
+              <Pressable onPress={() => setCulto(true)} style={{ flex: 1, height: 48, backgroundColor: AZUL, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                <Maximize2 size={17} color="#fff" />
+                <Text style={{ fontFamily: F.negrito, fontSize: 12, letterSpacing: 1.6, textTransform: "uppercase", color: "#fff" }}>Modo culto</Text>
+              </Pressable>
+            </View>
           </View>
           {h.partes.map((p, k) => p.tipo === "coro" ? (
             <View key={k} style={{ marginLeft: 8, padding: 16, backgroundColor: c.realce, borderLeftWidth: 3, borderLeftColor: AZUL, gap: 2 }}>
@@ -64,8 +76,8 @@ export default function TelaHino() {
             </View>
           ))}
           <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: c.borda, paddingTop: 16, marginTop: 6 }}>
-            {HINARIO[i - 1] ? <Pressable onPress={() => router.replace(`/hino/${HINARIO[i - 1]!.numero}`)} style={{ flexDirection: "row", alignItems: "center", gap: 4, padding: 6 }}><ChevronLeft size={18} color={c.azul} /><T f={F.negrito} s={12.5} cor={c.azul}>Hino {HINARIO[i - 1]!.numero}</T></Pressable> : <View />}
-            {HINARIO[i + 1] ? <Pressable onPress={() => router.replace(`/hino/${HINARIO[i + 1]!.numero}`)} style={{ flexDirection: "row", alignItems: "center", gap: 4, padding: 6 }}><T f={F.negrito} s={12.5} cor={c.azul}>Hino {HINARIO[i + 1]!.numero}</T><ChevronRight size={18} color={c.azul} /></Pressable> : <View />}
+            {HINARIO[i - 1] ? <Pressable onPress={() => vizinho(-1)} style={{ flexDirection: "row", alignItems: "center", gap: 4, padding: 6 }}><ChevronLeft size={18} color={c.azul} /><T f={F.negrito} s={12.5} cor={c.azul}>Hino {HINARIO[i - 1]!.numero}</T></Pressable> : <View />}
+            {HINARIO[i + 1] ? <Pressable onPress={() => vizinho(1)} style={{ flexDirection: "row", alignItems: "center", gap: 4, padding: 6 }}><T f={F.negrito} s={12.5} cor={c.azul}>Hino {HINARIO[i + 1]!.numero}</T><ChevronRight size={18} color={c.azul} /></Pressable> : <View />}
           </View>
           {culto ? <ModoCulto hino={h} fechar={() => setCulto(false)} /> : null}
         </View>

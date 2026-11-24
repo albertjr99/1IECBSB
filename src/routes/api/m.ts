@@ -56,6 +56,14 @@ const ACOES: Record<string, Acao> = {
     if (!l) throw new Error("Este livro ainda não foi carregado no aplicativo.");
     return l;
   },
+  /** Procura palavras na Bíblia. */
+  async buscarBiblia(d: { versao: string; termo: string; testamento?: "AT" | "NT" }) {
+    const { exigirMembro } = await import("@/server/membros");
+    const { buscarNaBiblia } = await import("@/server/biblia");
+    await exigirMembro();
+    if (!d?.termo || d.termo.trim().length < 2) throw new Error("Digite ao menos uma palavra.");
+    return buscarNaBiblia(d.versao ?? "ara", d.termo.slice(0, 80), d.testamento);
+  },
   /** Informações da igreja: contatos, endereço, redes, programação e eventos. */
   async igreja() {
     const { exigirMembro } = await import("@/server/membros");

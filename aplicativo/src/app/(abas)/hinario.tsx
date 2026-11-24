@@ -1,11 +1,13 @@
 /** Hinário: Coletânea dos Salmos e Hinos — busca por número, título ou trecho; favoritos. */
 import { router } from "expo-router";
-import { Heart, Search } from "lucide-react-native";
-import { useMemo, useState } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { ArrowRight, Clock, Hash, Heart, Search } from "lucide-react-native";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Aviso, Sobre, T, Titulo } from "@/componentes/ui";
-import { buscarHinos } from "@/lib/hinario";
+import { acharHino, buscarHinos } from "@/lib/hinario";
+import { hinosRecentes } from "@/lib/historico";
 import { useMembro } from "@/lib/sessao";
 import { AZUL, F, useTema } from "@/lib/tema";
 
@@ -15,6 +17,11 @@ export default function Hinario() {
   const ins = useSafeAreaInsets();
   const [busca, setBusca] = useState("");
   const [so, setSo] = useState<"todos" | "favoritos">("todos");
+  const [modo, setModo] = useState<"numero" | "texto">("numero");
+  const [recentes, setRecentes] = useState<number[]>([]);
+  useFocusEffect(useCallback(() => { hinosRecentes().then(setRecentes); }, []));
+  const exato = /^\d+$/.test(busca.trim()) ? acharHino(Number(busca.trim())) : null;
+  const abrir = (n: number) => router.push(`/hino/${n}`);
   const favs = new Set(membro.favoritos.hinos);
   const lista = useMemo(() => buscarHinos(busca).filter((h) => so === "todos" || favs.has(h.numero)), [busca, so, membro.favoritos.hinos]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -22,10 +29,41 @@ export default function Hinario() {
     <View style={{ flex: 1, backgroundColor: c.fundo }}>
       <View style={{ paddingTop: ins.top + 14, paddingHorizontal: 18, paddingBottom: 12, gap: 12, backgroundColor: c.sup, borderBottomWidth: 1, borderBottomColor: c.borda }}>
         <View style={{ gap: 6 }}><Sobre>Salmos e Hinos</Sobre><Titulo>Hinário</Titulo></View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, height: 48, borderWidth: 1, borderColor: c.borda, paddingHorizontal: 12, backgroundColor: c.fundo }}>
-          <Search size={18} color={c.suave} />
-          <TextInput value={busca} onChangeText={setBusca} placeholder="Número, título ou trecho" placeholderTextColor={c.suave} style={{ flex: 1, fontFamily: F.medio, fontSize: 15.5, color: c.texto }} />
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10, height: 52, borderWidth: 1.5, borderColor: AZUL, paddingHorizontal: 12, backgroundColor: c.fundo }}>
+            {modo === "numero" ? <Hash size={18} color={c.azul} /> : <Search size={18} color={c.azul} />}
+            <TextInput
+              key={modo}
+              value={busca}
+              onChangeText={setBusca}
+              keyboardType={modo === "numero" ? "number-pad" : "default"}
+              returnKeyType="go"
+              onSubmitEditing={() => { if (exato) abrir(exato.numero); }}
+              placeholder={modo === "numero" ? "Número do hino" : "Título ou trecho da letra"}
+              placeholderTextColor={c.suave}
+              style={{ flex: 1, fontFamily: modo === "numero" ? F.negrito : F.medio, fontSize: modo === "numero" ? 20 : 15.5, color: c.texto }}
+            />
+          </View>
+          <Pressable onPress={() => { setModo(modo === "numero" ? "texto" : "numero"); setBusca(""); }} style={{ width: 52, height: 52, borderWidth: 1, borderColor: c.borda, alignItems: "center", justifyContent: "center" }}>
+            {modo === "numero" ? <Search size={20} color={c.azul} /> : <Hash size={20} color={c.azul} />}
+          </Pressable>
         </View>
+        {exato ? (
+          <Pressable onPress={() => abrir(exato.numero)} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, backgroundColor: AZUL }}>
+            <Text style={{ fontFamily: F.extra, fontSize: 22, color: "#fff", minWidth: 44 }}>{exato.numero}</Text>
+            <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.negrito, fontSize: 16, color: "#fff" }}>{exato.titulo}</Text>
+            <ArrowRight size={20} color="#fff" />
+          </Pressable>
+        ) : null}
+        {!busca && recentes.length ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {recentes.map((n) => { const h = acharHino(n); return h ? (
+              <Pressable key={n} onPress={() => abrir(n)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 11, paddingVertical: 8, borderWidth: 1, borderColor: c.borda }}>
+                <Clock size={13} color={c.suave} /><Text style={{ fontFamily: F.extra, fontSize: 13, color: c.azul }}>{n}</Text><Text numberOfLines={1} style={{ fontFamily: F.semi, fontSize: 13, color: c.texto, maxWidth: 140 }}>{h.titulo}</Text>
+              </Pressable>
+            ) : null; })}
+          </ScrollView>
+        ) : null}
         <View style={{ flexDirection: "row", gap: 8 }}>
           {(["todos", "favoritos"] as const).map((x) => (
             <Pressable key={x} onPress={() => setSo(x)} style={{ paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: so === x ? AZUL : c.borda, backgroundColor: so === x ? AZUL : "transparent" }}>
@@ -40,7 +78,7 @@ export default function Hinario() {
         contentContainerStyle={{ paddingBottom: 120 }}
         ListEmptyComponent={<Aviso texto={so === "favoritos" ? "Toque no coração de um hino para guardá-lo aqui." : "Nenhum hino encontrado."} />}
         renderItem={({ item: h }) => (
-          <Pressable onPress={() => router.push(`/hino/${h.numero}`)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 18, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: c.borda, backgroundColor: pressed ? c.realce : c.sup })}>
+          <Pressable onPress={() => abrir(h.numero)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 18, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: c.borda, backgroundColor: pressed ? c.realce : c.sup })}>
             <Text style={{ width: 48, fontFamily: F.extra, fontSize: 20, color: c.azul, fontVariant: ["tabular-nums"] }}>{h.numero}</Text>
             <View style={{ flex: 1 }}>
               <T f={F.negrito} s={15.5} linhas={1}>{h.titulo}</T>
