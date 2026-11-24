@@ -41,11 +41,9 @@ export const abrirChamado = createServerFn({ method: "POST" })
     const { exigirAcesso } = await import("../server/auth");
     const { alterarChamados, enviarEMarcar } = await import("../server/chamados");
     const { registrar } = await import("../server/armazem");
-    const { LIMITE_MENSAL, doMes } = await import("./chamados");
     const s = await exigirAcesso("suporte");
     const agora = new Date().toISOString();
     const c = await alterarChamados((l) => {
-      if (doMes(l) >= LIMITE_MENSAL) throw new Error(`O limite de ${LIMITE_MENSAL} chamados por mês foi atingido. Se for urgente, fale direto com a GRATIA.`);
       const novo: Chamado = {
         id: novoId(),
         numero: l.reduce((m, x) => Math.max(m, x.numero), 0) + 1,

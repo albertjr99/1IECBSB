@@ -97,8 +97,6 @@ export const CATEGORIA_DICA: Record<Categoria, string> = {
   outros: "Nenhuma das opções acima.",
 };
 
-/** Chamados que podem ser abertos por mês (mesma regra da ACIP). */
-export const LIMITE_MENSAL = 8;
 
 /** Cancelar só antes do recebimento: depois já há trabalho de atendimento em curso. */
 export const podeCancelar = (c: Chamado) => c.situacao === "aberto";

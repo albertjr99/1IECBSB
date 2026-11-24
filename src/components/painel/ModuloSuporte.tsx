@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  CATEGORIA_DICA, CATEGORIA_ROTULO, LIMITE_MENSAL, PRIORIDADE_ROTULO, SITUACAO_ROTULO, doMes, fechado, podeCancelar,
+  CATEGORIA_DICA, CATEGORIA_ROTULO, PRIORIDADE_ROTULO, SITUACAO_ROTULO, doMes, fechado, podeCancelar,
   type Anexo, type Categoria, type Chamado, type Situacao,
 } from "@/lib/chamados";
 import { abrirChamado, cancelarChamado, comentarChamado, listarChamados, sincronizarChamados } from "@/lib/api-chamados";
@@ -167,7 +167,7 @@ export function ModuloSuporte() {
       {vista === "andamento" && <Quadro lista={lista} abrir={setAberto} />}
 
       {atual && <Camada><Detalhe c={atual} fotoDe={fotoDe} eu={dados.eu} fechar={() => setAberto(null)} atualizar={carregar} /></Camada>}
-      {assistente && <Camada><Assistente usados={usados} fechar={() => setAssistente(false)} criado={(id) => { setAssistente(false); carregar().then(() => setAberto(id)); }} /></Camada>}
+      {assistente && <Camada><Assistente fechar={() => setAssistente(false)} criado={(id) => { setAssistente(false); carregar().then(() => setAberto(id)); }} /></Camada>}
     </div>
   );
 }
@@ -182,7 +182,7 @@ function VisaoGeral({ lista, usados, abrir, novo }: { lista: Chamado[]; usados: 
     ["Em andamento", ativos.length, "chamados abertos ou em atendimento"],
     ["Aguardando você", aguardando.length, "a equipe precisa de uma resposta"],
     ["Concluídos", concluidos.length, "desde o início"],
-    ["Neste mês", `${usados}/${LIMITE_MENSAL}`, "chamados usados do limite mensal"],
+    ["Neste mês", usados, usados === 1 ? "chamado aberto este mês" : "chamados abertos este mês"],
   ];
   return (
     <div className="grid gap-6">
@@ -411,14 +411,13 @@ function Detalhe({ c, fotoDe, eu, fechar, atualizar }: { c: Chamado; fotoDe: (e:
 const PASSOS = ["Assunto", "Descrição", "Anexos", "Confirmação"];
 const CATEGORIAS = Object.keys(CATEGORIA_ROTULO) as Categoria[];
 
-function Assistente({ usados, fechar, criado }: { usados: number; fechar: () => void; criado: (id: string) => void }) {
+function Assistente({ fechar, criado }: { fechar: () => void; criado: (id: string) => void }) {
   const [passo, setPasso] = useState(0);
   const [categoria, setCategoria] = useState<Categoria | null>(null);
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [enviando, setEnviando] = useState(false);
   const anexar = useAnexar();
-  const restantes = LIMITE_MENSAL - usados;
   const pode = passo === 0 ? !!categoria : passo === 1 ? titulo.trim().length >= 5 && descricao.trim().length >= 10 : true;
 
   const enviar = async () => {
@@ -495,13 +494,13 @@ function Assistente({ usados, fechar, criado }: { usados: number; fechar: () => 
           )}
         </div>
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-p-borda px-6 py-4 sm:px-8">
-          <span className={cn("ef-num text-[12.5px] font-semibold", restantes <= 2 ? "text-amber-700 dark:text-amber-400" : "text-p-suave")}>{restantes > 0 ? `${restantes} de ${LIMITE_MENSAL} chamados disponíveis neste mês` : "Limite do mês atingido"}</span>
+          <span className="ef-num text-[12.5px] font-semibold text-p-suave">Passo {passo + 1} de {PASSOS.length}</span>
           <div className="flex gap-2">
             {passo > 0 && <button onClick={() => setPasso(passo - 1)} className="ef-btn ef-btn-fantasma"><ArrowLeft size={15} /> Voltar</button>}
             {passo < PASSOS.length - 1 ? (
               <button disabled={!pode} onClick={() => setPasso(passo + 1)} className="ef-btn ef-btn-pri">Continuar <ArrowRight size={15} /></button>
             ) : (
-              <button disabled={enviando || restantes <= 0} onClick={enviar} className="ef-btn ef-btn-pri">{enviando ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Abrir chamado</button>
+              <button disabled={enviando} onClick={enviar} className="ef-btn ef-btn-pri">{enviando ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Abrir chamado</button>
             )}
           </div>
         </footer>
