@@ -23,8 +23,10 @@ export function ConteudoProvider({ inicial, children }: { inicial: Conteudo; chi
       if (e.data?.tipo === CANAL_PREVIA && e.data.conteudo) setConteudo(e.data.conteudo as Conteudo);
     };
     window.addEventListener("message", ouvir);
+    let desfazer = () => {};
+    import("./foco-previa").then((m) => { desfazer = m.instalarFocoPrevia(CANAL_PREVIA); });
     window.parent.postMessage({ tipo: `${CANAL_PREVIA}-pronta` }, window.location.origin);
-    return () => window.removeEventListener("message", ouvir);
+    return () => { window.removeEventListener("message", ouvir); desfazer(); };
   }, []);
 
   return <Ctx.Provider value={conteudo}>{children}</Ctx.Provider>;

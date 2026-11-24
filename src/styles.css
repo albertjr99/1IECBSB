@@ -413,3 +413,21 @@
 .site [data-tilt][data-plano]::after { content: none; }
 .site [data-tilt][data-plano] svg { transition: filter .6s; }
 .site [data-tilt][data-plano].inclinando svg { filter: drop-shadow(0 26px 26px rgba(0, 42, 71, 0.22)); }
+
+/* ─── Agenda (calendário de eventos): calendário de parede da igreja ─── */
+.agenda-cal { box-shadow: 0 1px 2px rgba(0, 42, 71, 0.06), 0 30px 60px -40px rgba(0, 42, 71, 0.45); }
+.agenda-btn-vidro { color: #fff; background: linear-gradient(150deg, rgba(255,255,255,0.16), rgba(255,255,255,0.05)); border: 1px solid rgba(255,255,255,0.24); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: background .2s, color .2s; }
+.agenda-btn-vidro:hover { background: #fff; color: #002a47; }
+.agenda-dia { transition: background-color .2s, transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; animation: cal-dia-entra .45s cubic-bezier(.2,.8,.2,1) both; }
+.agenda-dia:hover { background: #f3f6f9; }
+.agenda-dia-fora { background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(217,230,239,0.35) 6px 7px); }
+.agenda-dia-fora > * { opacity: 0.45; }
+.agenda-chip { display: block; padding: 2px 5px; font-size: 10.5px; font-weight: 600; line-height: 1.25; color: #00436f; background: #d9e6ef; border-left: 3px solid #00436f; }
+.agenda-chip-forte { color: #fff; background: #00436f; border-left-color: #cc2127; }
+.agenda-dia-sel { z-index: 2; background: #00436f !important; transform: translateZ(28px) scale(1.04); box-shadow: 0 18px 34px -14px rgba(0, 42, 71, 0.65); }
+.agenda-dia-sel .agenda-chip { color: #fff; background: rgba(255,255,255,0.16); border-left-color: #fff; }
+.agenda-dia-sel .agenda-chip-forte { background: rgba(255,255,255,0.24); border-left-color: #cc2127; }
+.agenda-cruz { display: inline-block; width: 7px; height: 12px; background: var(--cruz) center / contain no-repeat; }
+.agenda-cartao { border-top: 4px solid #00436f; box-shadow: 0 1px 2px rgba(0,42,71,0.08), 0 26px 50px -28px rgba(0,42,71,0.55); animation: cal-cartao-entra .6s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
+.agenda-cartao:hover .cal-reflexo { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .agenda-dia, .agenda-cartao { animation: none !important; } .agenda-dia-sel { transform: none; } }

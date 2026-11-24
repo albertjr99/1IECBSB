@@ -250,6 +250,24 @@ export const trocarMinhaSenha = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Foto de perfil de quem está usando (vazia = tirar a foto). */
+export const definirMinhaFoto = createServerFn({ method: "POST" })
+  .validator((d: { foto: string }) => {
+    if (d.foto && (!/^data:image\/(jpeg|png|webp);base64,/.test(d.foto) || d.foto.length > 400_000)) throw new Error("Foto inválida ou grande demais.");
+    return d;
+  })
+  .handler(async ({ data }) => {
+    const { exigirSessao, listarUsuarios: lu, salvarUsuarios } = await import("../server/auth");
+    const s = exigirSessao();
+    const lista = await lu();
+    const u = lista.find((x) => x.usuario === s.usuario);
+    if (!u) throw new Error("Usuário não encontrado.");
+    if (data.foto) u.foto = data.foto;
+    else delete u.foto;
+    await salvarUsuarios(lista);
+    return { ok: true };
+  });
+
 /** Primeiro acesso com senha provisória: a pessoa cria a própria senha (já entrou com a provisória). */
 export const criarMinhaSenha = createServerFn({ method: "POST" })
   .validator((d: { nova: string }) => {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import {
   AlertTriangle, Check, ChevronsLeft, ChevronsRight, CircleDot, Command, ExternalLink, Eye, EyeOff, Gavel, History, Landmark, Loader2,
-  KeyRound, Lock, LogOut, Sparkles, Menu, Monitor, Moon, Newspaper, RotateCw, Search, Smartphone, Sun, Tablet, Undo2, Upload, Users, X, type LucideIcon,
+  KeyRound, LifeBuoy, Lock, LogOut, PenTool, Menu, Monitor, Moon, Newspaper, RotateCw, Search, Smartphone, Sun, Tablet, Undo2, Upload, Users, X, type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Conteudo } from "@/lib/conteudo";
@@ -11,7 +11,9 @@ import { criarMinhaSenha, descartarRascunho, obterPainel, obterSessao, publicar,
 import { areaDoItem, pode, rotuloPapel, telaInicial } from "@/lib/permissoes";
 import { cn } from "@/lib/utils";
 import { SECOES } from "@/components/painel/editores";
-import { JanelaMinhaSenha, PainelUsuarios, PainelVersoes } from "@/components/painel/Extras";
+import { JanelaPerfil, PainelUsuarios, PainelVersoes } from "@/components/painel/Extras";
+import { ModuloSuporte } from "@/components/painel/ModuloSuporte";
+import { Avatar } from "@/components/painel/Avatar";
 import { ModuloBoletim } from "@/components/painel/boletim/ModuloBoletim";
 import { Contorno, ModuloAgentes, ModuloDeliberacao, ModuloFinancas } from "@/components/painel/Modulos";
 import "@/components/painel/boletim/editor.css";
@@ -39,9 +41,10 @@ const MODULOS: ItemNav[] = [
   { id: "financas", rotulo: "Finanças", Icone: Landmark, breve: true, descricao: "Controle financeiro da igreja." },
 ];
 const CRIACAO: ItemNav[] = [
-  { id: "agentes", rotulo: "Agentes de IA", Icone: Sparkles, breve: true, descricao: "Gratia Ars: artes no padrão visual da igreja." },
+  { id: "agentes", rotulo: "Agentes de IA", Icone: PenTool, breve: true, descricao: "Gratia Ars: artes no padrão visual da igreja." },
 ];
 const SISTEMA: ItemNav[] = [
+  { id: "suporte", rotulo: "Suporte de TI", Icone: LifeBuoy, descricao: "Chamados para a equipe da GRATIA." },
   { id: "alteracoes", rotulo: "Controle de alterações", Icone: History, descricao: "Publicações, restauração e registro de atividades." },
   { id: "usuarios", rotulo: "Usuários", Icone: Users, descricao: "Quem acessa o painel e as permissões." },
 ];
@@ -137,6 +140,53 @@ function Painel() {
     document.querySelectorAll<HTMLIFrameElement>("iframe[data-previa]").forEach((f) => f.contentWindow?.postMessage({ tipo: CANAL_PREVIA, conteudo: cRef.current }, window.location.origin));
   }, []);
   useEffect(() => { enviarPrevia(); }, [c, enviarPrevia]);
+  // a prévia acompanha o campo em edição: rola, destaca e aproxima
+  const [foco, setFoco] = useState<Foco | null>(null);
+  const formulario = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const raiz = formulario.current;
+    if (!raiz) return;
+    let t = 0;
+    let soltar = 0;
+    const mandar = (dados: Record<string, string>) => document.querySelectorAll<HTMLIFrameElement>("iframe[data-previa]").forEach((f) => f.contentWindow?.postMessage({ tipo: `${CANAL_PREVIA}-foco`, ...dados }, window.location.origin));
+    const ler = (el: EventTarget | null) => {
+      const e = el as HTMLElement | null;
+      if (!e) return null;
+      if (e instanceof HTMLInputElement && ["text", "email", "url", "search", ""].includes(e.type)) return e.value;
+      if (e instanceof HTMLTextAreaElement) return e.value;
+      if (e.isContentEditable) return e.textContent ?? "";
+      return null;
+    };
+    const aoMexer = (ev: Event) => {
+      const v = ler(ev.target);
+      const img = (ev.target as HTMLElement | null)?.closest?.("[data-imagem-campo]")?.getAttribute("data-imagem-campo");
+      if (v === null && !img) return;
+      clearTimeout(soltar);
+      clearTimeout(t);
+      const linha = (v ?? "").split("\n").map((x) => x.trim()).find((x) => x.length >= 3) ?? "";
+      t = window.setTimeout(() => mandar(img ? { imagem: img } : { texto: linha }), ev.type === "input" ? 260 : 60);
+    };
+    const aoSair = () => {
+      clearTimeout(soltar);
+      soltar = window.setTimeout(() => {
+        if (raiz.contains(document.activeElement) && ler(document.activeElement) !== null) return;
+        setFoco(null);
+        document.querySelectorAll<HTMLIFrameElement>("iframe[data-previa]").forEach((f) => f.contentWindow?.postMessage({ tipo: `${CANAL_PREVIA}-solta` }, window.location.origin));
+      }, 1500);
+    };
+    raiz.addEventListener("focusin", aoMexer);
+    raiz.addEventListener("input", aoMexer);
+    raiz.addEventListener("pointerenter", aoMexer, true);
+    raiz.addEventListener("focusout", aoSair);
+    return () => { raiz.removeEventListener("focusin", aoMexer); raiz.removeEventListener("input", aoMexer); raiz.removeEventListener("pointerenter", aoMexer, true); raiz.removeEventListener("focusout", aoSair); };
+  }, [secao]);
+  useEffect(() => {
+    const f = (e: MessageEvent) => { if (e.origin === window.location.origin && e.data?.tipo === `${CANAL_PREVIA}-posicao`) setFoco({ x: e.data.x, y: e.data.y, w: e.data.w, h: e.data.h }); };
+    window.addEventListener("message", f);
+    return () => window.removeEventListener("message", f);
+  }, []);
+  useEffect(() => setFoco(null), [secao]);
+
   useEffect(() => {
     const f = (e: MessageEvent) => { if (e.origin === window.location.origin && e.data?.tipo === `${CANAL_PREVIA}-pronta`) enviarPrevia(); };
     window.addEventListener("message", f);
@@ -149,7 +199,7 @@ function Painel() {
   const caminhoPrevia = def?.previa ?? "/";
   const [base, ancora] = caminhoPrevia.split("#");
   const srcPrevia = `${base}?previa=1${ancora ? `#${ancora}` : ""}`;
-  const ehModulo = [...MODULOS, ...CRIACAO].some((m) => m.id === secao);
+  const ehModulo = [...MODULOS, ...CRIACAO].some((m) => m.id === secao) || secao === "suporte";
   const mostrarPrevia = !!def && previaVisivel === "sim";
 
   const fazerPublicacao = async () => {
@@ -175,7 +225,11 @@ function Painel() {
   };
 
   const ir = (id: string) => { if (!liberado(id)) return; setSecao(id); setGaveta(false); setBusca(false); };
-  const menuRecolhido = recolhida === "sim";
+  // telas que usam a largura toda (boletim, edição com prévia) recolhem o menu sozinhas
+  const telaLarga = secao === "boletim" || (!!def && mostrarPrevia);
+  const [abertoNaMarra, setAbertoNaMarra] = useState(false);
+  useEffect(() => setAbertoNaMarra(false), [secao]);
+  const menuRecolhido = recolhida === "sim" || (telaLarga && !abertoNaMarra);
 
   return (
     <div className={cn("painel ef flex h-screen overflow-hidden bg-p-fundo text-p-texto print:block print:h-auto", tema === "escuro" && "tema-escuro")} style={{ fontFamily: "var(--font-texto)" }}>
@@ -183,7 +237,10 @@ function Painel() {
       <Lateral
         className="hidden lg:flex"
         recolhida={menuRecolhido}
-        aoRecolher={() => setRecolhida(menuRecolhido ? "nao" : "sim")}
+        aoRecolher={() => {
+          if (telaLarga) { setAbertoNaMarra(menuRecolhido); return; }
+          setRecolhida(menuRecolhido ? "nao" : "sim");
+        }}
         secao={secao}
         ir={ir}
         alteradas={alteradas}
@@ -228,6 +285,13 @@ function Painel() {
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5">
+            <button onClick={() => setMinhaSenha(true)} title="Meu perfil" className="order-last ml-2 hidden items-center gap-2.5 border-l border-p-borda pl-4 text-left md:flex">
+              <span className="leading-tight">
+                <span className="block max-w-[160px] truncate text-[13px] font-bold text-p-texto">{dados.sessao.nome}</span>
+                <span className="block text-[11px] text-p-suave">{rotuloPapel(papel)}</span>
+              </span>
+              <Avatar nome={dados.sessao.nome} foto={dados.sessao.foto} tamanho={34} />
+            </button>
             {!ehModulo && pode(papel, "site") && (
               <>
                 <StatusSite estado={estado} alteradas={alteradas.size} />
@@ -269,13 +333,14 @@ function Painel() {
           {ehModulo ? (
             <main className="ef-mesa relative min-w-0 flex-1 overflow-y-auto">
               {secao === "agentes" && liberado("agentes") && <ModuloAgentes />}
+              {secao === "suporte" && liberado("suporte") && <ModuloSuporte />}
               {secao === "boletim" && liberado("boletim") && <ModuloBoletim />}
               {secao === "deliberacao" && liberado("deliberacao") && <Contorno><ModuloDeliberacao /></Contorno>}
               {secao === "financas" && liberado("financas") && <Contorno><ModuloFinancas /></Contorno>}
             </main>
           ) : (
             <>
-              <main className={cn("ef-mesa @container min-w-0 overflow-y-auto", mostrarPrevia ? "flex-1 xl:w-[560px] xl:flex-none 2xl:w-[620px]" : "flex-1")}>
+              <main ref={formulario} className={cn("ef-mesa @container min-w-0 overflow-y-auto", mostrarPrevia ? "flex-1 xl:w-[560px] xl:flex-none 2xl:w-[620px]" : "flex-1")}>
                 <div className={cn("grid grid-cols-[minmax(0,1fr)] gap-5 p-4 sm:p-6", !mostrarPrevia && "mx-auto max-w-3xl sm:p-8")}>
                   <header className="px-1 pb-1 pt-1">
                     <p className="ef-sobre">{grupoAtual}</p>
@@ -293,7 +358,7 @@ function Painel() {
               {mostrarPrevia && (
                 <section className="ef-palco hidden min-w-0 flex-1 flex-col xl:flex">
                   <BarraPrevia caminho={base ?? "/"} dispositivo={dispositivo} setDispositivo={setDispositivo} aoRecarregar={() => setChavePrevia((k) => k + 1)} aoAmpliar={() => setPreviaCheia(true)} />
-                  <Previa key={`${srcPrevia}-${chavePrevia}-${dispositivo}`} ref={iframe} src={srcPrevia} dispositivo={dispositivo} />
+                  <Previa key={`${srcPrevia}-${chavePrevia}-${dispositivo}`} ref={iframe} src={srcPrevia} dispositivo={dispositivo} foco={foco} />
                 </section>
               )}
             </>
@@ -305,12 +370,12 @@ function Painel() {
       {previaCheia && def && (
         <div className="ef-palco fixed inset-0 z-50 flex flex-col">
           <BarraPrevia caminho={base ?? "/"} dispositivo={dispositivo} setDispositivo={setDispositivo} aoRecarregar={() => setChavePrevia((k) => k + 1)} aoFechar={() => setPreviaCheia(false)} />
-          <Previa key={`cheia-${srcPrevia}-${chavePrevia}-${dispositivo}`} src={srcPrevia} dispositivo={dispositivo} />
+          <Previa key={`cheia-${srcPrevia}-${chavePrevia}-${dispositivo}`} src={srcPrevia} dispositivo={dispositivo} foco={foco} />
         </div>
       )}
 
       {busca && <PaletaBusca aoFechar={() => setBusca(false)} ir={ir} alteradas={alteradas} liberado={liberado} />}
-      {minhaSenha && <JanelaMinhaSenha aoFechar={() => setMinhaSenha(false)} />}
+      {minhaSenha && <JanelaPerfil nome={dados.sessao.nome} papel={dados.sessao.papel} usuario={dados.sessao.usuario} foto={dados.sessao.foto ?? null} aoFechar={() => setMinhaSenha(false)} aoMudarFoto={() => router.invalidate()} />}
       {dados.sessao.trocarSenha && <CriarSenha nome={dados.sessao.nome} aoConcluir={() => router.invalidate()} />}
 
       {dialogo && (
@@ -359,7 +424,7 @@ function Lateral({
   className, recolhida, aoRecolher, secao, ir, alteradas, sessao, tema, aoTema, aoSair, aoBuscar, liberado, aoMinhaSenha,
 }: {
   className?: string; recolhida: boolean; aoRecolher?: () => void; secao: string; ir: (id: string) => void; alteradas: Set<string>;
-  sessao: { nome: string; papel: string }; tema: "claro" | "escuro"; aoTema: () => void; aoSair: () => void; aoBuscar: () => void;
+  sessao: { nome: string; papel: string; foto?: string }; tema: "claro" | "escuro"; aoTema: () => void; aoSair: () => void; aoBuscar: () => void;
   liberado: (id: string) => boolean; aoMinhaSenha: () => void;
 }) {
   const grupos: { titulo: string; itens: ItemNav[] }[] = [
@@ -368,7 +433,6 @@ function Lateral({
     { titulo: "Conteúdo do site", itens: SECOES },
     { titulo: "Sistema", itens: SISTEMA },
   ];
-  const iniciais = sessao.nome.split(" ").filter((p) => !/^(pr|pb|dc|dca|sem)\.?$/i.test(p)).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
 
   return (
     <aside className={cn("relative shrink-0 flex-col bg-p-lateral text-white/80 transition-[width] duration-200 print:hidden", recolhida ? "w-[68px]" : "w-[252px]", className)}>
@@ -430,21 +494,29 @@ function Lateral({
 
       {/* pessoa e ações */}
       <div className={cn("shrink-0 border-t border-white/[0.07]", recolhida ? "px-2.5 py-2.5" : "px-3 py-2.5")}>
-        {!recolhida && (
-          <div className="mb-2 flex items-center gap-2.5 px-1 [@media(max-height:760px)]:hidden">
-            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-[12px] font-semibold text-white">{iniciais || "?"}</span>
+        <button onClick={aoMinhaSenha} title="Meu perfil: foto e senha" className={cn("mb-2 flex w-full items-center gap-2.5 rounded-md text-left transition hover:bg-white/[0.06]", recolhida ? "justify-center py-1" : "px-1 py-1")}>
+          <Avatar nome={sessao.nome} foto={sessao.foto} tamanho={recolhida ? 34 : 36} className="ring-2 ring-white/15" />
+          {!recolhida && (
             <span className="min-w-0 leading-tight">
-              <span className="block truncate text-[13px] font-medium text-white">{sessao.nome}</span>
-              <span className="block text-[11.5px] text-white/45">{rotuloPapel(sessao.papel)}</span>
+              <span className="block truncate text-[13.5px] font-semibold text-white">{sessao.nome}</span>
+              <span className="block text-[11.5px] text-white/50">{rotuloPapel(sessao.papel)}</span>
             </span>
-          </div>
-        )}
+          )}
+        </button>
         <div className={cn("flex gap-1", recolhida && "flex-col")}>
           <a href="/" target="_blank" rel="noopener" title="Ver o site" className="grid h-8 flex-1 place-items-center rounded-md text-white/60 hover:bg-white/[0.08] hover:text-white"><ExternalLink size={15} /></a>
-          <button onClick={aoMinhaSenha} title="Minha senha" className="grid h-8 flex-1 place-items-center rounded-md text-white/60 hover:bg-white/[0.08] hover:text-white"><KeyRound size={15} /></button>
+          <button onClick={aoMinhaSenha} title="Meu perfil: foto e senha" className="grid h-8 flex-1 place-items-center rounded-md text-white/60 hover:bg-white/[0.08] hover:text-white"><KeyRound size={15} /></button>
           <button onClick={aoTema} title={tema === "escuro" ? "Modo claro" : "Modo escuro"} className="grid h-8 flex-1 place-items-center rounded-md text-white/60 hover:bg-white/[0.08] hover:text-white">{tema === "escuro" ? <Sun size={15} /> : <Moon size={15} />}</button>
           <button onClick={aoSair} title="Sair" className="grid h-8 flex-1 place-items-center rounded-md text-white/60 hover:bg-white/[0.08] hover:text-white"><LogOut size={15} /></button>
         </div>
+        <a
+          href="mailto:contato.gratiast@gmail.com?subject=Painel%20da%201%C2%AA%20IEC%20Bras%C3%ADlia"
+          title="GRATIA Software e Tecnologia"
+          className={cn("group mt-2.5 flex items-center border-t border-white/[0.07] pt-2.5 opacity-45 transition-opacity hover:opacity-90", recolhida ? "justify-center" : "justify-between px-1")}
+        >
+          {!recolhida && <span className="text-[9.5px] font-semibold uppercase tracking-[0.2em] text-white/70">Produzido por</span>}
+          <img src="/logo-gratia-branco.svg" alt="GRATIA" className={cn("w-auto", recolhida ? "h-3" : "h-3.5")} />
+        </a>
       </div>
 
       {aoRecolher && (
@@ -598,10 +670,13 @@ function BarraPrevia({ caminho, dispositivo, setDispositivo, aoRecarregar, aoAmp
 const LARGURA_DISPOSITIVO: Record<Dispositivo, number> = { computador: 1366, tablet: 820, celular: 390 };
 
 /** A página real do site, encolhida para caber na área da prévia. */
-const Previa = ({ src, dispositivo, ref }: { src: string; dispositivo: Dispositivo; ref?: React.Ref<HTMLIFrameElement> }) => {
+type Foco = { x: number; y: number; w: number; h: number };
+
+const Previa = ({ src, dispositivo, ref, foco }: { src: string; dispositivo: Dispositivo; ref?: React.Ref<HTMLIFrameElement>; foco?: Foco | null }) => {
   const caixa = useRef<HTMLDivElement>(null);
   const [escala, setEscala] = useState(1);
   const [altura, setAltura] = useState(800);
+  const [area, setArea] = useState({ w: 800, h: 600 });
   const largura = LARGURA_DISPOSITIVO[dispositivo];
 
   useEffect(() => {
@@ -612,6 +687,7 @@ const Previa = ({ src, dispositivo, ref }: { src: string; dispositivo: Dispositi
       const e = Math.min(1, disponivel / largura);
       setEscala(e);
       setAltura((el.clientHeight - 32) / e);
+      setArea({ w: el.clientWidth, h: el.clientHeight });
     };
     ajustar();
     const ro = new ResizeObserver(ajustar);
@@ -622,8 +698,23 @@ const Previa = ({ src, dispositivo, ref }: { src: string; dispositivo: Dispositi
   return (
     <div ref={caixa} className="relative min-h-0 flex-1 overflow-hidden">
       <div
-        className={cn("absolute left-1/2 top-4 origin-top overflow-hidden bg-white shadow-[0_1px_1px_rgba(0,0,0,0.25),0_18px_30px_-18px_rgba(0,0,0,0.6),0_60px_90px_-50px_rgba(0,0,0,0.85)]", dispositivo === "computador" ? "" : "!rounded-[22px] ring-[6px] ring-[#0b1620]")}
-        style={{ width: largura, height: altura, transform: `translateX(-50%) scale(${escala})` }}
+        className={cn("absolute overflow-hidden bg-white shadow-[0_1px_1px_rgba(0,0,0,0.25),0_18px_30px_-18px_rgba(0,0,0,0.6),0_60px_90px_-50px_rgba(0,0,0,0.85)]", dispositivo === "computador" ? "" : "!rounded-[22px] ring-[6px] ring-[#0b1620]")}
+        style={(() => {
+          // aproxima o trecho em edição (até 2x) e o traz para o centro da prévia
+          const base = escala;
+          let S = base;
+          let tx = (area.w - largura * base) / 2;
+          let ty = 16;
+          if (foco && foco.w > 0) {
+            const z = Math.min(2, ((area.w / base) * 0.8) / foco.w, ((area.h / base) * 0.72) / Math.max(foco.h, 1));
+            if (z >= 1.12) {
+              S = base * z;
+              tx = Math.min(0, Math.max(area.w - largura * S, area.w / 2 - (foco.x + foco.w / 2) * S));
+              ty = Math.min(16, Math.max(area.h - altura * S, area.h / 2 - (foco.y + foco.h / 2) * S));
+            }
+          }
+          return { width: largura, height: altura, left: 0, top: 0, transformOrigin: "0 0", transform: `translate(${tx}px, ${ty}px) scale(${S})`, transition: "transform .55s cubic-bezier(.2,.8,.2,1)" };
+        })()}
       >
         <iframe ref={ref} data-previa src={src} title="Prévia do site" className="size-full border-0" />
       </div>

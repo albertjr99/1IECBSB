@@ -26,6 +26,8 @@ import { Route as AdminEntrarRouteImport } from './routes/admin/entrar'
 import { Route as VotarTokenRouteImport } from './routes/votar.$token'
 import { Route as SiteBoletimDataRouteImport } from './routes/_site/boletim.$data'
 import { Route as SiteMinisteriosIdRouteImport } from './routes/_site/ministerios_.$id'
+import { Route as ApiHubRetornoRouteImport } from './routes/api/hub.retorno'
+import { Route as ApiHubSincronizarRouteImport } from './routes/api/hub.sincronizar'
 import { Route as ImpressaoBoletimIdRouteImport } from './routes/impressao.boletim.$id'
 import { Route as ApiBoletimIdPdfRouteImport } from './routes/api/boletim.$id.pdf'
 
@@ -113,6 +115,16 @@ const SiteMinisteriosIdRoute = SiteMinisteriosIdRouteImport.update({
   path: '/ministerios/$id',
   getParentRoute: () => SiteRoute,
 } as any)
+const ApiHubRetornoRoute = ApiHubRetornoRouteImport.update({
+  id: '/api/hub/retorno',
+  path: '/api/hub/retorno',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHubSincronizarRoute = ApiHubSincronizarRouteImport.update({
+  id: '/api/hub/sincronizar',
+  path: '/api/hub/sincronizar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ImpressaoBoletimIdRoute = ImpressaoBoletimIdRouteImport.update({
   id: '/impressao/boletim/$id',
   path: '/impressao/boletim/$id',
@@ -141,6 +153,8 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/boletim/$data': typeof SiteBoletimDataRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
+  '/api/hub/retorno': typeof ApiHubRetornoRoute
+  '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
@@ -161,6 +175,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/boletim/$data': typeof SiteBoletimDataRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
+  '/api/hub/retorno': typeof ApiHubRetornoRoute
+  '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
@@ -183,6 +199,8 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/_site/boletim/$data': typeof SiteBoletimDataRoute
   '/_site/ministerios_/$id': typeof SiteMinisteriosIdRoute
+  '/api/hub/retorno': typeof ApiHubRetornoRoute
+  '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
@@ -205,6 +223,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/boletim/$data'
     | '/ministerios/$id'
+    | '/api/hub/retorno'
+    | '/api/hub/sincronizar'
     | '/impressao/boletim/$id'
     | '/api/boletim/$id/pdf'
   fileRoutesByTo: FileRoutesByTo
@@ -225,6 +245,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/boletim/$data'
     | '/ministerios/$id'
+    | '/api/hub/retorno'
+    | '/api/hub/sincronizar'
     | '/impressao/boletim/$id'
     | '/api/boletim/$id/pdf'
   id:
@@ -246,6 +268,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/_site/boletim/$data'
     | '/_site/ministerios_/$id'
+    | '/api/hub/retorno'
+    | '/api/hub/sincronizar'
     | '/impressao/boletim/$id'
     | '/api/boletim/$id/pdf'
   fileRoutesById: FileRoutesById
@@ -255,6 +279,8 @@ export interface RootRouteChildren {
   AdminEntrarRoute: typeof AdminEntrarRoute
   VotarTokenRoute: typeof VotarTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  ApiHubRetornoRoute: typeof ApiHubRetornoRoute
+  ApiHubSincronizarRoute: typeof ApiHubSincronizarRoute
   ImpressaoBoletimIdRoute: typeof ImpressaoBoletimIdRoute
   ApiBoletimIdPdfRoute: typeof ApiBoletimIdPdfRoute
 }
@@ -380,6 +406,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteMinisteriosIdRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/api/hub/retorno': {
+      id: '/api/hub/retorno'
+      path: '/api/hub/retorno'
+      fullPath: '/api/hub/retorno'
+      preLoaderRoute: typeof ApiHubRetornoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/hub/sincronizar': {
+      id: '/api/hub/sincronizar'
+      path: '/api/hub/sincronizar'
+      fullPath: '/api/hub/sincronizar'
+      preLoaderRoute: typeof ApiHubSincronizarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/impressao/boletim/$id': {
       id: '/impressao/boletim/$id'
       path: '/impressao/boletim/$id'
@@ -436,6 +476,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminEntrarRoute: AdminEntrarRoute,
   VotarTokenRoute: VotarTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
+  ApiHubRetornoRoute: ApiHubRetornoRoute,
+  ApiHubSincronizarRoute: ApiHubSincronizarRoute,
   ImpressaoBoletimIdRoute: ImpressaoBoletimIdRoute,
   ApiBoletimIdPdfRoute: ApiBoletimIdPdfRoute,
 }

@@ -1,11 +1,13 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Check, Copy, History, KeyRound, Loader2, RotateCcw, Trash2, UserPlus, X } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Camera, Check, Copy, History, KeyRound, Loader2, RotateCcw, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Conteudo } from "@/lib/conteudo";
-import { carregarVersao, gerarSenhaProvisoria, listarUsuarios, listarVersoes, removerUsuario, salvarUsuario, trocarMinhaSenha } from "@/lib/api";
+import { carregarVersao, definirMinhaFoto, gerarSenhaProvisoria, listarUsuarios, listarVersoes, removerUsuario, salvarUsuario, trocarMinhaSenha } from "@/lib/api";
 import { PAPEIS, rotuloPapel, type Papel } from "@/lib/permissoes";
 import { cn } from "@/lib/utils";
 import { Campo, Grade, Secao } from "./kit";
+import { Avatar, fotoQuadrada } from "./Avatar";
+import { Camada } from "./Camada";
 
 const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
@@ -119,6 +121,7 @@ export function PainelUsuarios({ meuUsuario }: { meuUsuario: string }) {
               const sit = situacao(u);
               return (
                 <li key={u.usuario} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5">
+                  <Avatar nome={u.nome} foto={u.foto} tamanho={38} />
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-2 text-[14px] font-semibold text-p-texto">
                       {u.nome} {u.usuario === meuUsuario && <span className="text-[12px] font-normal text-p-suave">(você)</span>} <SeloPapel papel={u.papel} />
@@ -176,7 +179,7 @@ export function PainelUsuarios({ meuUsuario }: { meuUsuario: string }) {
         </form>
       </Secao>
 
-      {senha && <JanelaSenha {...senha} aoFechar={() => setSenha(null)} />}
+      {senha && <Camada><JanelaSenha {...senha} aoFechar={() => setSenha(null)} /></Camada>}
     </>
   );
 }
@@ -209,34 +212,72 @@ function JanelaSenha({ nome, usuario, senha, aoFechar }: { nome: string; usuario
   );
 }
 
-/** Troca de senha de quem já tem senha própria (no menu da pessoa). */
-export function JanelaMinhaSenha({ aoFechar }: { aoFechar: () => void }) {
+/** Meu perfil: foto e senha de quem está usando o painel. */
+export function JanelaPerfil({ nome, papel, usuario, foto, aoFechar, aoMudarFoto }: { nome: string; papel: string; usuario: string; foto: string | null; aoFechar: () => void; aoMudarFoto: () => void }) {
   const [atual, setAtual] = useState("");
   const [nova, setNova] = useState("");
   const [confirma, setConfirma] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [minhaFoto, setMinhaFoto] = useState(foto);
+  const [salvandoFoto, setSalvandoFoto] = useState(false);
+  const entrada = useRef<HTMLInputElement>(null);
+
+  const trocarFoto = async (f: File | undefined) => {
+    if (!f) return;
+    setSalvandoFoto(true);
+    try {
+      const dados = await fotoQuadrada(f);
+      await definirMinhaFoto({ data: { foto: dados } });
+      setMinhaFoto(dados);
+      aoMudarFoto();
+      toast.success("Foto atualizada.");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível usar esta foto."); } finally {
+      setSalvandoFoto(false);
+      if (entrada.current) entrada.current.value = "";
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 backdrop-blur-sm" onClick={aoFechar}>
-      <form
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (nova !== confirma) { toast.error("A confirmação não confere com a nova senha."); return; }
-          setEnviando(true);
-          try { await trocarMinhaSenha({ data: { atual, nova } }); toast.success("Senha alterada."); aoFechar(); }
-          catch (err) { toast.error(err instanceof Error ? err.message : "Erro"); } finally { setEnviando(false); }
-        }}
-        className="grid w-full max-w-sm gap-4 rounded-xl border border-p-borda bg-p-superficie p-6 shadow-2xl"
-      >
-        <div className="flex items-start justify-between">
-          <h2 className="text-lg font-semibold text-p-texto">Minha senha</h2>
-          <button type="button" onClick={aoFechar} className="rounded-md p-1 text-p-suave hover:bg-p-hover" aria-label="Fechar"><X size={18} /></button>
+    <div className="ef-janela-fundo fixed inset-0 z-50 grid place-items-center p-4" onClick={aoFechar}>
+      <div onClick={(e) => e.stopPropagation()} className="ef-janela grid w-full max-w-[440px] gap-0" role="dialog" aria-modal="true" aria-label="Meu perfil">
+        <div className="flex items-start justify-between px-7 pt-7">
+          <p className="ef-sobre">Meu perfil</p>
+          <button type="button" onClick={aoFechar} className="-mt-1 p-1 text-p-suave hover:text-p-texto" aria-label="Fechar"><X size={18} /></button>
         </div>
-        <Campo rotulo="Senha atual" tipo="password" valor={atual} onChange={setAtual} />
-        <Campo rotulo="Nova senha" tipo="password" valor={nova} onChange={setNova} dica="Mínimo de 8 caracteres." />
-        <Campo rotulo="Repita a nova senha" tipo="password" valor={confirma} onChange={setConfirma} />
-        <button disabled={enviando} className="ef-btn ef-btn-pri">{enviando && <Loader2 size={15} className="animate-spin" />} Alterar senha</button>
-      </form>
+        <div className="flex items-center gap-5 px-7 pb-6 pt-4">
+          <button type="button" onClick={() => entrada.current?.click()} className="group relative shrink-0" title="Trocar foto">
+            <Avatar nome={nome} foto={minhaFoto} tamanho={84} />
+            <span className="absolute inset-0 grid place-items-center rounded-full bg-[#001d33]/55 text-white opacity-0 transition group-hover:opacity-100">{salvandoFoto ? <Loader2 className="animate-spin" size={20} /> : <Camera size={20} />}</span>
+          </button>
+          <div className="min-w-0">
+            <p className="truncate text-[19px] font-bold leading-tight text-p-texto">{nome}</p>
+            <p className="mt-0.5 text-[13px] text-p-suave">{rotuloPapel(papel)} · entra como <strong className="font-semibold text-p-texto-2">{usuario}</strong></p>
+            <div className="mt-2.5 flex gap-3 text-[12px] font-bold uppercase tracking-[0.12em]">
+              <button type="button" onClick={() => entrada.current?.click()} className="text-p-acento hover:underline">{minhaFoto ? "Trocar foto" : "Colocar foto"}</button>
+              {minhaFoto && <button type="button" onClick={async () => { await definirMinhaFoto({ data: { foto: "" } }); setMinhaFoto(null); aoMudarFoto(); }} className="text-p-suave hover:text-red-600">Tirar</button>}
+            </div>
+          </div>
+          <input ref={entrada} type="file" accept="image/*" hidden onChange={(e) => trocarFoto(e.target.files?.[0])} />
+        </div>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (nova !== confirma) { toast.error("A confirmação não confere com a nova senha."); return; }
+            setEnviando(true);
+            try { await trocarMinhaSenha({ data: { atual, nova } }); toast.success("Senha alterada."); setAtual(""); setNova(""); setConfirma(""); }
+            catch (err) { toast.error(err instanceof Error ? err.message : "Erro"); } finally { setEnviando(false); }
+          }}
+          className="grid gap-4 border-t border-p-borda px-7 py-6"
+        >
+          <p className="ef-h2">Trocar a senha</p>
+          <Campo rotulo="Senha atual" tipo="password" valor={atual} onChange={setAtual} />
+          <Grade>
+            <Campo rotulo="Nova senha" tipo="password" valor={nova} onChange={setNova} dica="Mínimo de 8 caracteres." />
+            <Campo rotulo="Repita a nova senha" tipo="password" valor={confirma} onChange={setConfirma} />
+          </Grade>
+          <button disabled={enviando || !atual || !nova} className="ef-btn ef-btn-pri justify-self-start">{enviando && <Loader2 size={15} className="animate-spin" />} Alterar senha</button>
+        </form>
+      </div>
     </div>
   );
 }

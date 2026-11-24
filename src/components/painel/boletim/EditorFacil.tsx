@@ -21,6 +21,7 @@ import { listarVersoesBoletim, obterBoletimPainel, publicarBoletim, restaurarVer
 import { IconeWhatsapp } from "@/components/site/Icones";
 import { cn } from "@/lib/utils";
 import "./editor.css";
+import { Camada } from "../Camada";
 
 type IdPasso = "inicio" | "pastoral" | "segunda" | "avisos" | "oracao" | "escala" | "agenda" | "semana" | "aniversariantes" | "publicar";
 type Passo = { id: IdPasso; titulo: string; Icone: LucideIcon; ajuda: string };
@@ -435,7 +436,7 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
         </aside>
       </div>
 
-      {conflito && (
+      {conflito && (<Camada>
         <Aviso
           titulo="Este boletim mudou em outro lugar"
           texto={`${conflito} Para não apagar o trabalho de ninguém, escolha o que fazer:`}
@@ -444,7 +445,7 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
             { rotulo: "Manter o que está na minha tela", acao: () => { setConflito(""); salvar(true); } },
           ]}
         />
-      )}
+      </Camada>)}
     </div>
   );
 }

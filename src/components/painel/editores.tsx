@@ -5,7 +5,7 @@
 import type { ReactNode } from "react";
 import { Building2, CalendarClock, CalendarHeart, Church, Eye, EyeOff, HandCoins, HeartHandshake, House, ListTree, Mail, MonitorPlay, Palette, Users, type LucideIcon } from "lucide-react";
 import { ICONES_MARCA, iconeMinisterio, novoId, type Conteudo } from "@/lib/conteudo";
-import { Campo, CampoImagem, Grade, Interruptor, ListaEditavel, ListaTextos, Secao, Selecao } from "./kit";
+import { Campo, CampoDestino, CampoImagem, Grade, Interruptor, ListaEditavel, ListaTextos, PAGINAS_SITE, Secao, Selecao } from "./kit";
 
 export type Mudar = (fn: (c: Conteudo) => void) => void;
 type P = { c: Conteudo; mudar: Mudar };
@@ -102,9 +102,10 @@ export function EditorMenu({ c, mudar }: P) {
     <Secao titulo="Menu do site" descricao="Renomeie, reordene ou esconda itens do menu. As páginas continuam existindo mesmo escondidas.">
       <div className="grid gap-2">
         {c.menu.map((m, i) => (
-          <div key={m.id} className="flex items-center gap-2 rounded-md border border-p-borda bg-p-superficie p-2 pl-3">
-            <input value={m.rotulo} onChange={(e) => mudar((d) => { d.menu[i]!.rotulo = e.target.value; })} className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-[14px] font-semibold outline-none focus:bg-p-sutil" />
-            <span className="hidden text-[12px] text-p-suave sm:block">{m.para}</span>
+          <div key={m.id} className={`flex items-center gap-2 border border-p-borda bg-p-superficie p-2 pl-3 ${m.visivel ? "" : "opacity-60"}`}>
+            <span className="ef-num w-6 shrink-0 text-[12px] font-bold text-p-acento">{String(i + 1).padStart(2, "0")}</span>
+            <input value={m.rotulo} onChange={(e) => mudar((d) => { d.menu[i]!.rotulo = e.target.value; })} aria-label="Nome no menu" className="ef-campo !h-10 min-w-0 flex-1 font-semibold" />
+            <span className="hidden w-[150px] truncate text-[12px] text-p-suave sm:block" title="Página que este item abre">abre: {PAGINAS_SITE.find((p) => p.valor === m.para)?.rotulo ?? "outra página"}</span>
             <button type="button" title="Subir" disabled={i === 0} onClick={() => mudar((d) => { [d.menu[i - 1], d.menu[i]] = [d.menu[i]!, d.menu[i - 1]!]; })} className="rounded-lg px-2 py-1 text-p-suave hover:bg-p-hover disabled:opacity-30">↑</button>
             <button type="button" title="Descer" disabled={i === c.menu.length - 1} onClick={() => mudar((d) => { [d.menu[i + 1], d.menu[i]] = [d.menu[i]!, d.menu[i + 1]!]; })} className="rounded-lg px-2 py-1 text-p-suave hover:bg-p-hover disabled:opacity-30">↓</button>
             <button type="button" title={m.visivel ? "Esconder" : "Mostrar"} onClick={() => mudar((d) => { d.menu[i]!.visivel = !m.visivel; })} className={`rounded-lg p-2 ${m.visivel ? "text-p-acento" : "text-p-borda-forte"} hover:bg-p-hover`}>
@@ -132,17 +133,19 @@ export function EditorInicio({ c, mudar }: P) {
         <Campo rotulo="Título" valor={h.titulo} onChange={(v) => mudar((d) => { d.inicio.hero.titulo = v; })} />
         <Campo rotulo="Subtítulo" valor={h.subtitulo} multilinha linhas={2} onChange={(v) => mudar((d) => { d.inicio.hero.subtitulo = v; })} />
         <CampoImagem rotulo="Foto de fundo (opcional)" valor={h.imagem} onChange={(v) => mudar((d) => { d.inicio.hero.imagem = v; })} dica="Horizontal, de preferência 1920 × 1080. Sem foto, usa o fundo azul com o arco." proporcao="aspect-[16/7]" />
-        <span className="text-[13px] font-semibold text-p-texto-2">Botões</span>
-        {h.botoes.map((bt, i) => (
-          <div key={i} className="grid gap-2 rounded-md bg-p-sutil p-3 sm:grid-cols-[1fr_1fr_auto]">
-            <input value={bt.rotulo} placeholder="Texto do botão" onChange={(e) => mudar((d) => { d.inicio.hero.botoes[i]!.rotulo = e.target.value; })} className="rounded-lg border border-p-borda-forte px-3 py-2 text-[14px]" />
-            <input value={bt.link} placeholder="/programacao ou https://…" onChange={(e) => mudar((d) => { d.inicio.hero.botoes[i]!.link = e.target.value; })} className="rounded-lg border border-p-borda-forte px-3 py-2 text-[14px]" />
-            <button type="button" onClick={() => mudar((d) => { d.inicio.hero.botoes.splice(i, 1); })} className="rounded-lg px-3 text-[13px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10">Remover</button>
-          </div>
-        ))}
-        {h.botoes.length < 3 && (
-          <button type="button" onClick={() => mudar((d) => { d.inicio.hero.botoes.push({ rotulo: "Novo botão", link: "/" }); })} className="justify-self-start text-[13px] font-semibold text-p-acento hover:underline">+ Adicionar botão</button>
-        )}
+        <div className="grid gap-3">
+          <span className="ef-rotulo !text-[13.5px]">Botões</span>
+          {h.botoes.map((bt, i) => (
+            <div key={i} className="grid gap-4 border border-p-borda bg-p-sutil p-4 sm:grid-cols-2">
+              <Campo rotulo={`Texto do botão ${i + 1}`} valor={bt.rotulo} placeholder="Ex.: Planeje sua visita" onChange={(v) => mudar((d) => { d.inicio.hero.botoes[i]!.rotulo = v; })} />
+              <CampoDestino rotulo="Leva para" valor={bt.link} onChange={(v) => mudar((d) => { d.inicio.hero.botoes[i]!.link = v; })} />
+              <button type="button" onClick={() => mudar((d) => { d.inicio.hero.botoes.splice(i, 1); })} className="ef-btn ef-btn-perigo justify-self-start !px-0 sm:col-span-2">Remover este botão</button>
+            </div>
+          ))}
+          {h.botoes.length < 3 && (
+            <button type="button" onClick={() => mudar((d) => { d.inicio.hero.botoes.push({ rotulo: "Novo botão", link: "/" }); })} className="ef-adicionar">+ Adicionar botão</button>
+          )}
+        </div>
       </Secao>
       <Secao titulo="Seções da página inicial" descricao="Ligue ou desligue cada bloco.">
         <div className="grid gap-2 sm:grid-cols-2">
@@ -157,7 +160,7 @@ export function EditorInicio({ c, mudar }: P) {
         <CampoImagem rotulo="Foto" valor={b.imagem} onChange={(v) => mudar((d) => { d.inicio.boasVindas.imagem = v; })} proporcao="aspect-[4/3]" />
         <Grade>
           <Campo rotulo="Texto do botão" valor={b.rotuloBotao} onChange={(v) => mudar((d) => { d.inicio.boasVindas.rotuloBotao = v; })} />
-          <Campo rotulo="Link do botão" valor={b.link} onChange={(v) => mudar((d) => { d.inicio.boasVindas.link = v; })} />
+          <CampoDestino rotulo="O botão leva para" valor={b.link} onChange={(v) => mudar((d) => { d.inicio.boasVindas.link = v; })} />
         </Grade>
       </Secao>
       <Secao titulo="Versículo">
@@ -255,7 +258,7 @@ export function EditorEventos({ c, mudar }: P) {
               <CampoImagem rotulo="Imagem / arte" valor={x.imagem} onChange={(v) => m((d) => { d.imagem = v; })} proporcao="aspect-[16/10]" />
               <Grade>
                 <Campo rotulo="Texto do botão" valor={x.rotuloLink} onChange={(v) => m((d) => { d.rotuloLink = v; })} />
-                <Campo rotulo="Link (inscrição, mais informações)" valor={x.link} onChange={(v) => m((d) => { d.link = v; })} placeholder="https://…" />
+                <CampoDestino rotulo="O botão leva para" valor={x.link} permiteVazio onChange={(v) => m((d) => { d.link = v; })} dica="Ex.: o formulário de inscrição. Escolha “Sem botão” se não houver." />
               </Grade>
               <div className="grid gap-2 sm:grid-cols-2">
                 <Interruptor rotulo="Publicado" valor={x.publicado} onChange={(v) => m((d) => { d.publicado = v; })} dica="Desligado, fica só no painel." />

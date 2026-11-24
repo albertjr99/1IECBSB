@@ -140,6 +140,7 @@ export function CampoImagem({ rotulo, valor, onChange, dica, proporcao = "aspect
     <div className="grid min-w-0 gap-2">
       <span className={estiloRotulo}>{rotulo}</span>
       <div
+        data-imagem-campo={valor ? (valor.startsWith("data:") ? valor.slice(0, 200) : valor) : undefined}
         className={cn("group relative overflow-hidden border border-dashed border-p-borda-forte bg-p-sutil transition hover:border-p-acento", proporcao, valor && "border-solid border-p-borda shadow-sm")}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); escolher(e.dataTransfer.files[0]); }}
@@ -283,5 +284,58 @@ function BotaoIcone({ children, titulo, onClick, desativado, perigo }: { childre
     >
       {children}
     </button>
+  );
+}
+
+/** Páginas do site, pelo nome que o visitante conhece. */
+export const PAGINAS_SITE: { valor: string; rotulo: string }[] = [
+  { valor: "/", rotulo: "Página inicial" },
+  { valor: "/sobre", rotulo: "A Igreja" },
+  { valor: "/lideranca", rotulo: "Liderança" },
+  { valor: "/ministerios", rotulo: "Ministérios" },
+  { valor: "/programacao", rotulo: "Programação e eventos" },
+  { valor: "/mensagens", rotulo: "Mensagens (vídeos)" },
+  { valor: "/ao-vivo", rotulo: "Culto ao vivo" },
+  { valor: "/boletins", rotulo: "Boletins" },
+  { valor: "/contribua", rotulo: "Contribua (dízimos e ofertas)" },
+  { valor: "/contato", rotulo: "Contato e localização" },
+];
+
+/**
+ * Para onde um botão leva — sem a pessoa precisar saber "caminhos" (/contato):
+ * escolhe a página do site pelo nome, ou cola o endereço de outro site.
+ */
+export function CampoDestino({ rotulo, valor, onChange, dica, permiteVazio }: { rotulo: string; valor: string; onChange: (v: string) => void; dica?: string; permiteVazio?: boolean }) {
+  const id = useId();
+  const pagina = PAGINAS_SITE.find((p) => p.valor === valor);
+  const [externo, setExterno] = useState(!pagina && !!valor);
+  const escolha = !valor && !externo ? "" : pagina && !externo ? valor : "__externo";
+  return (
+    <div className="grid min-w-0 gap-2">
+      <label htmlFor={id} className={estiloRotulo}>{rotulo}</label>
+      <select
+        id={id}
+        value={escolha}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v === "__externo") { setExterno(true); if (pagina) onChange(""); return; }
+          setExterno(false);
+          onChange(v);
+        }}
+        className={estiloCampo}
+      >
+        {(permiteVazio || !valor) && <option value="">{permiteVazio ? "Sem botão" : "Escolha…"}</option>}
+        <optgroup label="Páginas do site">
+          {PAGINAS_SITE.map((p) => <option key={p.valor} value={p.valor}>{p.rotulo}</option>)}
+        </optgroup>
+        <optgroup label="Fora do site">
+          <option value="__externo">Outro site (inscrição, formulário, WhatsApp…)</option>
+        </optgroup>
+      </select>
+      {escolha === "__externo" && (
+        <input value={valor} onChange={(e) => onChange(e.target.value)} placeholder="Cole aqui o endereço, ex.: https://forms.gle/…" className={estiloCampo} aria-label="Endereço do outro site" />
+      )}
+      {dica && <p className={estiloDica}>{dica}</p>}
+    </div>
   );
 }

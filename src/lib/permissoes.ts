@@ -8,20 +8,20 @@
 export type Papel = "admin" | "pastor" | "comunicacao" | "editor";
 
 /** Áreas do painel. "site" = todas as seções de edição do site. */
-export type Area = "site" | "boletim" | "deliberacao" | "financas" | "agentes" | "alteracoes" | "usuarios";
+export type Area = "site" | "boletim" | "deliberacao" | "financas" | "agentes" | "alteracoes" | "usuarios" | "suporte";
 
 export const PERMISSOES: Record<Papel, readonly Area[]> = {
-  admin: ["site", "boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios"],
-  pastor: ["boletim", "deliberacao", "alteracoes"],
-  comunicacao: ["site", "agentes"],
+  admin: ["site", "boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios", "suporte"],
+  pastor: ["boletim", "deliberacao", "alteracoes", "suporte"],
+  comunicacao: ["site", "agentes", "suporte"],
   // perfil antigo ("Editor"): equivale à comunicação
-  editor: ["site", "agentes"],
+  editor: ["site", "agentes", "suporte"],
 };
 
 export const PAPEIS: { valor: Exclude<Papel, "editor">; rotulo: string; descricao: string }[] = [
   { valor: "admin", rotulo: "Administrador", descricao: "Acesso a tudo, inclusive usuários." },
-  { valor: "pastor", rotulo: "Pastor", descricao: "Boletim, deliberações e controle de alterações." },
-  { valor: "comunicacao", rotulo: "Comunicação", descricao: "Toda a edição do site e os Agentes de IA. Sem boletim, deliberações e controle de alterações." },
+  { valor: "pastor", rotulo: "Pastor", descricao: "Boletim, deliberações, controle de alterações e suporte de TI." },
+  { valor: "comunicacao", rotulo: "Comunicação", descricao: "Toda a edição do site, Agentes de IA e suporte de TI. Sem boletim, deliberações e controle de alterações." },
 ];
 
 export function rotuloPapel(p: string) {
@@ -34,7 +34,7 @@ export function pode(papel: string | undefined, area: Area) {
 
 /** Área de cada item do menu do painel. */
 export function areaDoItem(id: string): Area {
-  if (id === "boletim" || id === "deliberacao" || id === "financas" || id === "agentes" || id === "alteracoes" || id === "usuarios") return id;
+  if (id === "boletim" || id === "deliberacao" || id === "financas" || id === "agentes" || id === "alteracoes" || id === "usuarios" || id === "suporte") return id;
   return "site";
 }
 

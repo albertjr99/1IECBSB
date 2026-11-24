@@ -28,8 +28,10 @@ export type Usuario = {
   apelidos?: string[];
   /** senha provisória: a pessoa cria a própria senha no primeiro acesso */
   trocarSenha?: boolean;
+  /** foto de perfil (data URL, já reduzida no navegador) */
+  foto?: string;
 };
-export type Sessao = { usuario: string; nome: string; papel: Papel; exp: number; trocarSenha?: boolean };
+export type Sessao = { usuario: string; nome: string; papel: Papel; exp: number; trocarSenha?: boolean; foto?: string };
 
 /** "Hilário" → "hilario": é assim que o nome de acesso é guardado e comparado. */
 export function normalizarUsuario(t: string) {
@@ -178,7 +180,7 @@ export async function sessaoFresca(): Promise<Sessao | null> {
   if (!s) return null;
   const u = (await listarUsuarios()).find((x) => x.usuario === s.usuario);
   if (!u) return null;
-  return { ...s, nome: u.nome, papel: u.papel, ...(u.trocarSenha ? { trocarSenha: true } : { trocarSenha: false }) };
+  return { ...s, nome: u.nome, papel: u.papel, ...(u.trocarSenha ? { trocarSenha: true } : { trocarSenha: false }), ...(u.foto ? { foto: u.foto } : {}) };
 }
 
 /** Exige sessão e acesso à área; a pessoa com senha provisória só pode criar a própria senha. */

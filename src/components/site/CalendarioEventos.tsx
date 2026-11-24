@@ -110,34 +110,36 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
     escolher(dia);
   };
 
+  const mesTitulo = MESES[mes.m]!;
   return (
-    <div className="cal-palco relative isolate overflow-hidden bg-marca-funda text-white">
-      {/* luzes de fundo e o grafismo do monte */}
-      <span aria-hidden className="cal-orbe cal-orbe-1" />
-      <span aria-hidden className="cal-orbe cal-orbe-2" />
-      <span aria-hidden className="cal-orbe cal-orbe-3" />
-      <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-[url('/marca/grafismo-monte-transparente-branco.svg')] bg-[length:1400px_auto] bg-[position:right_-300px_bottom_-80px] bg-no-repeat opacity-[0.07]" />
-
-      <div className="grid gap-6 p-4 sm:p-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-8">
-        {/* ── o mês ── */}
-        <div className="cal-vidro p-4 sm:p-6">
-          <div className="mb-6 flex items-end justify-between gap-3">
-            <div key={`${mes.a}-${mes.m}`} className={direcao > 0 ? "cal-entra-dir" : "cal-entra-esq"}>
-              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">{mes.a}</p>
-              <h3 className="text-[2rem] font-bold leading-none tracking-[-0.03em] sm:text-[2.6rem]">{MESES[mes.m]}</h3>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <button type="button" onClick={() => irPara(hoje)} className="cal-botao h-10 px-4 text-[11.5px] font-bold uppercase tracking-[0.16em]">Hoje</button>
-              <button type="button" onClick={() => mover(-1)} className="cal-botao grid size-10 place-items-center" aria-label="Mês anterior"><ChevronLeft size={18} /></button>
-              <button type="button" onClick={() => mover(1)} className="cal-botao grid size-10 place-items-center" aria-label="Próximo mês"><ChevronRight size={18} /></button>
-            </div>
+    <div className="agenda-cal overflow-hidden border border-linha bg-white text-tinta">
+      {/* ── faixa do mês ── */}
+      <div className="relative isolate overflow-hidden bg-marca-funda px-5 pb-6 pt-6 text-white sm:px-8 sm:pt-8">
+        <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-[url('/marca/grafismo-monte-transparente-branco.svg')] bg-[length:1100px_auto] bg-[position:right_-260px_bottom_-150px] bg-no-repeat opacity-[0.12]" />
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div key={`${mes.a}-${mes.m}`} className={direcao > 0 ? "cal-entra-dir" : "cal-entra-esq"}>
+            <p className="rotulo-secao !text-white/75">Agenda da igreja · {mes.a}</p>
+            <h3 className="mt-2 text-[2.4rem] font-bold leading-none tracking-[-0.035em] sm:text-[3.4rem]">{mesTitulo}</h3>
           </div>
-
-          <div className="grid grid-cols-7 gap-1.5 pb-2">
-            {SEMANA.map((s) => <div key={s} className="text-center text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/45">{s}</div>)}
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={() => irPara(hoje)} className="agenda-btn-vidro h-10 px-4 text-[11.5px] font-bold uppercase tracking-[0.16em]">Hoje</button>
+            <button type="button" onClick={() => mover(-1)} className="agenda-btn-vidro grid size-10 place-items-center" aria-label="Mês anterior"><ChevronLeft size={18} /></button>
+            <button type="button" onClick={() => mover(1)} className="agenda-btn-vidro grid size-10 place-items-center" aria-label="Próximo mês"><ChevronRight size={18} /></button>
           </div>
+        </div>
+        <p className="mt-4 text-[13px] text-white/65">
+          {doMes.length ? `${doMes.length} ${doMes.length === 1 ? "evento" : "eventos"} em ${mesTitulo.toLowerCase()}. Toque num dia para ver os detalhes.` : `Nenhum evento em ${mesTitulo.toLowerCase()} até agora.`}
+        </p>
+      </div>
+      <div aria-hidden className="h-[3px] bg-marca" />
 
-          <div key={`g${mes.a}-${mes.m}`} className={cn("grid grid-cols-7 gap-1.5 [perspective:900px]", direcao > 0 ? "cal-grade-dir" : "cal-grade-esq")}>
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_400px]">
+        {/* ── grade do mês ── */}
+        <div className="border-linha p-3 sm:p-6 lg:border-r">
+          <div className="grid grid-cols-7 border-b-2 border-marca pb-2">
+            {SEMANA.map((d, i) => <div key={d} className={cn("text-center text-[10.5px] font-bold uppercase tracking-[0.2em]", i === 0 ? "text-marca" : "text-tinta-suave")}>{d}</div>)}
+          </div>
+          <div key={`g${mes.a}-${mes.m}`} className={cn("grid grid-cols-7 border-l border-linha [perspective:1200px]", direcao > 0 ? "cal-grade-dir" : "cal-grade-esq")}>
             {celulas.map((c, i) => {
               const sel = c.dia === selecionado;
               const ehHoje = c.dia === hoje;
@@ -150,24 +152,27 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
                   onClick={() => escolher(c.dia)}
                   aria-pressed={sel}
                   aria-label={`${diaPorExtenso(c.dia)}${tem ? `, ${c.eventos.length} evento${c.eventos.length > 1 ? "s" : ""}` : ""}`}
-                  style={{ animationDelay: `${i * 12}ms` }}
+                  style={{ animationDelay: `${i * 10}ms` }}
                   className={cn(
-                    "cal-dia group relative flex min-h-[50px] flex-col p-1.5 text-left sm:min-h-[88px] sm:p-2",
-                    !c.doMes && "opacity-30",
-                    tem && "cal-dia-evento",
-                    destaque && "cal-dia-destaque",
-                    sel && "cal-dia-sel",
+                    "agenda-dia group relative flex min-h-[54px] flex-col border-b border-r border-linha p-1.5 text-left sm:min-h-[92px] sm:p-2",
+                    !c.doMes && "agenda-dia-fora",
+                    c.semana === 0 && c.doMes && "bg-nevoa/60",
+                    tem && "agenda-dia-evento",
+                    sel && "agenda-dia-sel",
                   )}
                 >
-                  <span className={cn("grid size-7 place-items-center text-[13px] font-semibold tabular-nums", ehHoje && "rounded-full bg-white text-marca-funda shadow-[0_0_0_4px_rgba(255,255,255,0.15)]")}>{c.n}</span>
+                  <span className="flex items-center gap-1">
+                    <span className={cn("text-[13px] font-bold tabular-nums sm:text-[15px]", sel ? "text-white" : c.doMes ? "text-tinta" : "text-tinta-suave")}>{c.n}</span>
+                    {ehHoje && <span className="agenda-cruz" title="Hoje" />}
+                  </span>
                   {tem && (
                     <>
-                      <span className="mt-auto flex gap-1 sm:hidden">{c.eventos.slice(0, 3).map((e) => <span key={e.id} className="size-1.5 rounded-full bg-white" />)}</span>
-                      <span className="mt-1 hidden min-w-0 flex-col gap-0.5 sm:flex">
+                      <span className="mt-auto flex gap-1 sm:hidden">{c.eventos.slice(0, 3).map((e) => <span key={e.id} className={cn("size-1.5", sel ? "bg-white" : "bg-marca")} />)}</span>
+                      <span className="mt-1.5 hidden min-w-0 flex-col gap-1 sm:flex">
                         {c.eventos.slice(0, 2).map((e) => (
-                          <span key={e.id} className="line-clamp-2 text-[10.5px] font-semibold leading-tight text-white/95">{e.data === c.dia || c.semana === 0 ? e.titulo : "↳ continua"}</span>
+                          <span key={e.id} className={cn("agenda-chip line-clamp-2", e.destaque || destaque ? "agenda-chip-forte" : "")}>{e.data === c.dia || c.semana === 0 ? e.titulo : "continua"}</span>
                         ))}
-                        {c.eventos.length > 2 && <span className="text-[10px] text-white/60">+{c.eventos.length - 2}</span>}
+                        {c.eventos.length > 2 && <span className={cn("text-[10px] font-semibold", sel ? "text-white/75" : "text-tinta-suave")}>+{c.eventos.length - 2}</span>}
                       </span>
                     </>
                   )}
@@ -175,33 +180,39 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
               );
             })}
           </div>
-          <p className="mt-4 min-h-5 text-center text-[13px] text-white/55">
-            {doMes.length ? `${doMes.length} ${doMes.length === 1 ? "evento" : "eventos"} em ${MESES[mes.m].toLowerCase()}` : `Nenhum evento em ${MESES[mes.m].toLowerCase()}`}
+          <p className="mt-3 flex items-center gap-4 text-[11.5px] text-tinta-suave">
+            <span className="inline-flex items-center gap-1.5"><span className="agenda-cruz" /> Hoje</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 bg-marca" /> Evento em destaque</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 border-l-[3px] border-marca bg-marca-suave" /> Evento</span>
           </p>
         </div>
 
-        {/* ── o evento ── */}
-        <div className="flex flex-col gap-4 [perspective:1100px]">
-          <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/55 first-letter:uppercase">{diaPorExtenso(selecionado)}</p>
+        {/* ── o dia escolhido ── */}
+        <div className="flex flex-col gap-4 bg-nevoa/70 p-4 sm:p-6 [perspective:1100px]">
+          <p className="rotulo-secao first-letter:uppercase">{diaPorExtenso(selecionado)}</p>
           {ev ? (
-            <article key={ev.id + selecionado} {...inclinar.eventos} style={inclinar.estilo} className={cn("cal-cartao relative flex-1 overflow-hidden bg-white text-tinta transition-transform duration-200 ease-out will-change-transform", inclinar.ativo && "duration-75")}>
+            <article key={ev.id + selecionado} {...inclinar.eventos} style={inclinar.estilo} className={cn("agenda-cartao relative flex-1 overflow-hidden bg-white transition-transform duration-200 ease-out will-change-transform", inclinar.ativo && "duration-75")}>
               <span aria-hidden className="cal-reflexo" />
               {ev.imagem ? (
-                <img src={ev.imagem} alt="" className="aspect-[16/9] w-full object-cover" />
+                <div className="relative">
+                  <img src={ev.imagem} alt="" className="aspect-[16/9] w-full object-cover" />
+                  <span className="absolute bottom-3 left-3 bg-white px-3 py-2 text-marca shadow-lg"><span className="block text-[1.6rem] font-bold leading-none tabular-nums">{ev.data.slice(8, 10)}</span><span className="block text-[9.5px] font-bold uppercase tracking-[0.2em]">{MESES[Number(ev.data.slice(5, 7)) - 1]!.slice(0, 3)}</span></span>
+                </div>
               ) : (
-                <div className="relative flex items-end justify-between overflow-hidden bg-marca px-6 pb-5 pt-8 text-white">
-                  <span aria-hidden className="absolute inset-0 bg-[url('/marca/grafismo-monte-transparente-branco.svg')] bg-[length:900px_auto] bg-[position:right_-180px_bottom_-40px] bg-no-repeat opacity-[0.12]" />
-                  <div className="relative">
-                    <span className="block text-[4.2rem] font-bold leading-[0.85] tracking-[-0.04em] tabular-nums">{ev.data.slice(8, 10)}</span>
-                    <span className="mt-1 block text-[12px] font-bold uppercase tracking-[0.24em] text-white/75">{MESES[Number(ev.data.slice(5, 7)) - 1]}</span>
+                <div className="flex items-stretch border-b border-linha">
+                  <div className="flex w-[108px] shrink-0 flex-col items-center justify-center bg-marca py-5 text-white">
+                    <span className="text-[3.2rem] font-bold leading-[0.85] tracking-[-0.04em] tabular-nums">{ev.data.slice(8, 10)}</span>
+                    <span className="mt-1.5 text-[10.5px] font-bold uppercase tracking-[0.22em] text-white/75">{MESES[Number(ev.data.slice(5, 7)) - 1]!.slice(0, 3)}</span>
                   </div>
-                  <span className="relative bg-white/15 px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.18em] backdrop-blur">{quando(ev, hoje)}</span>
+                  <div className="flex flex-1 items-center bg-[url('/marca/grafismo-monte-transparente-azul.svg')] bg-[length:520px_auto] bg-[position:right_-160px_bottom_-60px] bg-no-repeat px-5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-marca">{quando(ev, hoje)}</span>
+                  </div>
                 </div>
               )}
               <div className="relative p-6">
                 {ev.destaque && <p className="rotulo-secao mb-3 !text-[11px]">Destaque</p>}
-                <h4 className="text-[1.3rem] font-bold leading-snug text-marca">{ev.titulo}</h4>
-                <ul className="mt-4 grid gap-2 text-[14px] text-tinta">
+                <h4 className="text-[1.35rem] font-bold leading-snug tracking-[-0.01em] text-marca">{ev.titulo}</h4>
+                <ul className="mt-4 grid gap-2 border-l-2 border-marca-suave pl-3 text-[14px] text-tinta">
                   <li className="flex gap-2.5"><Clock size={16} className="mt-[3px] shrink-0 text-marca" />{periodo(ev.data, ev.dataFim)}{ev.horario && ` · ${ev.horario}`}</li>
                   {ev.local && <li className="flex gap-2.5"><MapPin size={16} className="mt-[3px] shrink-0 text-marca" />{ev.local}</li>}
                 </ul>
@@ -218,18 +229,18 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
               )}
             </article>
           ) : (
-            <div className="cal-vidro flex flex-1 flex-col p-6">
-              <p className="text-[15px] text-white/80">Nenhum evento neste dia.</p>
+            <div className="flex flex-1 flex-col border border-linha bg-white p-6">
+              <p className="text-[15px] text-tinta">Nenhum evento neste dia.</p>
               {seguintes.length > 0 && (
                 <>
-                  <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.24em] text-white/55">A seguir</p>
-                  <ul className="mt-3 grid gap-2">
+                  <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.22em] text-tinta-suave">A seguir</p>
+                  <ul className="mt-3 divide-y divide-linha border-y border-linha">
                     {seguintes.slice(0, 4).map((e) => (
                       <li key={e.id}>
-                        <button type="button" onClick={() => irPara(e.data < hoje ? hoje : e.data)} className="cal-botao group flex w-full items-center gap-4 p-3 text-left">
-                          <span className="w-11 shrink-0 text-center"><span className="block text-[1.35rem] font-bold leading-none tabular-nums">{e.data.slice(8, 10)}</span><span className="block text-[9.5px] font-bold uppercase tracking-[0.18em] text-white/60">{MESES[Number(e.data.slice(5, 7)) - 1]!.slice(0, 3)}</span></span>
-                          <span className="min-w-0 flex-1 text-[14px] font-semibold leading-snug">{e.titulo}</span>
-                          <ChevronRight size={16} className="text-white/50 transition-transform group-hover:translate-x-1" />
+                        <button type="button" onClick={() => irPara(e.data < hoje ? hoje : e.data)} className="group flex w-full items-center gap-4 py-3 text-left">
+                          <span className="w-11 shrink-0 text-center text-marca"><span className="block text-[1.35rem] font-bold leading-none tabular-nums">{e.data.slice(8, 10)}</span><span className="block text-[9.5px] font-bold uppercase tracking-[0.18em]">{MESES[Number(e.data.slice(5, 7)) - 1]!.slice(0, 3)}</span></span>
+                          <span className="min-w-0 flex-1 text-[14px] font-semibold leading-snug text-tinta">{e.titulo}</span>
+                          <ChevronRight size={16} className="text-marca transition-transform group-hover:translate-x-1" />
                         </button>
                       </li>
                     ))}
@@ -241,13 +252,13 @@ export function CalendarioEventos({ eventos }: { eventos: Evento[] }) {
         </div>
       </div>
 
-      {/* faixa dos próximos */}
+      {/* próximos */}
       {seguintes.length > 0 && (
-        <div className="border-t border-white/10 px-4 py-4 sm:px-8">
-          <div className="flex items-center gap-3 overflow-x-auto pb-1 [scrollbar-width:none]">
-            <span className="shrink-0 text-[10.5px] font-bold uppercase tracking-[0.24em] text-white/50">Próximos</span>
+        <div className="border-t border-linha bg-white px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+            <span className="rotulo-secao mr-2 shrink-0 !text-[10.5px]">Próximos</span>
             {seguintes.map((e) => (
-              <button key={e.id} type="button" onClick={() => irPara(e.data < hoje ? hoje : e.data)} className={cn("cal-botao flex shrink-0 items-center gap-2.5 px-3 py-2 text-[13px]", ocorreEm(e, selecionado) && "!bg-white !text-marca-funda")}>
+              <button key={e.id} type="button" onClick={() => irPara(e.data < hoje ? hoje : e.data)} className={cn("flex shrink-0 items-center gap-2.5 border px-3 py-2 text-[13px] transition", ocorreEm(e, selecionado) ? "border-marca bg-marca text-white" : "border-linha text-tinta hover:border-marca hover:text-marca")}>
                 <span className="font-bold tabular-nums">{e.data.slice(8, 10)}/{e.data.slice(5, 7)}</span>
                 <span className="max-w-[220px] truncate">{e.titulo}</span>
               </button>
