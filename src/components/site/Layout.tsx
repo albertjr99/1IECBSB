@@ -4,6 +4,7 @@ import { ArrowRight, Clock, LockKeyhole, Mail, MapPin, Menu, Phone, X } from "lu
 import { useConteudo } from "@/lib/contexto";
 import { useAoVivo } from "@/lib/ao-vivo";
 import { AvisoCookies } from "./AvisoCookies";
+import { Efeitos } from "./Efeitos";
 import { abrirPreferenciasCookies } from "@/lib/consentimento";
 import { cn, linkTelefone, linkWhatsapp } from "@/lib/utils";
 import { LinkSite } from "./Link";
@@ -119,7 +120,7 @@ function Cabecalho() {
           </div>
         </div>
       )}
-      <div className={cn("border-b bg-white/95 backdrop-blur transition-shadow", rolou ? "border-linha shadow-[0_6px_24px_-18px_rgba(0,0,0,0.4)]" : "border-transparent")}>
+      <div className={cn("cabecalho-vidro border-b transition-[background-color,box-shadow,border-color] duration-300", rolou ? "border-white/60 bg-white/85 shadow-[0_10px_30px_-18px_rgba(0,42,71,0.45)] backdrop-blur-xl backdrop-saturate-150" : "border-transparent bg-white")}>
         <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center gap-6 px-5 sm:px-8 xl:h-[88px] xl:px-10 2xl:px-14">
           <Link to="/" aria-label="Página inicial" className="shrink-0"><Marca className="sm:w-[290px] 2xl:w-[320px]" /></Link>
 
@@ -161,7 +162,7 @@ function Cabecalho() {
       </div>
 
       {aberto && (
-        <div className="border-b border-linha bg-white shadow-lg xl:hidden">
+        <div className="menu-movel border-b border-white/60 bg-white/80 shadow-[0_24px_40px_-20px_rgba(0,42,71,0.45)] backdrop-blur-2xl backdrop-saturate-150 xl:hidden">
           <nav className="container-site flex flex-col py-3">
             {itens.map((m) => (
               <LinkSite
@@ -242,6 +243,7 @@ export function LayoutSite({ children }: { children: ReactNode }) {
       <main id="conteudo" className="flex-1">{children}</main>
       <Rodape />
       <AvisoCookies />
+      <Efeitos />
       <AvisoEvento />
     </div>
   );
@@ -268,8 +270,8 @@ export function CabecalhoSecao({ rotulo, titulo, texto, link, rotuloLink, claro 
 /** Cabeçalho das páginas internas: azul-noite com o grafismo Monte ao fundo. */
 export function CapaPagina({ rotulo, titulo, texto }: { rotulo?: string; titulo: string; texto?: string }) {
   return (
-    <section className="grafismo-monte-escuro overflow-hidden bg-marca-funda text-white">
-      <div className="container-site py-16 sm:py-20">
+    <section className="capa-pagina grafismo-monte-escuro overflow-hidden bg-marca-funda text-white">
+      <div className="container-site py-16 sm:py-20" data-sem-revelar>
         {rotulo && <p className="rotulo-secao mb-4 !text-white">{rotulo}</p>}
         <h1 className="max-w-3xl text-[2.3rem] font-bold leading-[1.08] tracking-[-0.02em] sm:text-[3rem]">{titulo}</h1>
         {texto && <p className="texto-justificado mt-4 max-w-2xl text-[16.5px] leading-relaxed text-white/75">{texto}</p>}

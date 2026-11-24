@@ -19,9 +19,9 @@ function Lideranca() {
             <h2 className="titulo-secao">{g.nome}</h2>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {g.membros.map((m) => (
-                <article key={m.id} className="overflow-hidden border border-linha bg-white">
+                <article key={m.id} data-tilt="6" className="group overflow-hidden border border-linha bg-white hover:border-marca-media/60">
                   {m.foto ? (
-                    <img src={m.foto} alt={m.nome} className="aspect-[4/4.2] w-full object-cover object-top" loading="lazy" />
+                    <div className="relative overflow-hidden"><img src={m.foto} alt={m.nome} className="zoom-foto aspect-[4/4.2] w-full object-cover object-top" loading="lazy" /><span aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-marca-funda/35 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" /></div>
                   ) : (
                     <div className="grid aspect-[4/4.2] place-items-center bg-papel text-4xl font-bold tracking-[0.04em] text-marca/30">{iniciais(m.nome)}</div>
                   )}

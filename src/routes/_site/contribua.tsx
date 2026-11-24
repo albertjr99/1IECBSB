@@ -35,7 +35,7 @@ function Contribua() {
         </div>
         <div className="grid content-start gap-5">
           {c.pixChave && (
-            <div className="rounded-lg bg-white p-8 border border-linha">
+            <div data-tilt="4" className="border border-linha border-t-[3px] border-t-marca bg-white p-8">
               <h2 className="text-lg font-bold text-marca">PIX</h2>
               <p className="mt-2 text-sm text-tinta-suave">Chave {c.pixTipo}</p>
               <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
@@ -46,7 +46,7 @@ function Contribua() {
             </div>
           )}
           {c.contas.map((k) => (
-            <div key={k.id} className="flex gap-5 rounded-lg border border-linha bg-white p-8">
+            <div key={k.id} data-tilt="4" className="flex gap-5 border border-linha bg-white p-8">
               <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-2 text-[15px]">
                 <dt className="col-span-2 text-lg font-bold text-marca">{k.banco}</dt>
                 {k.agencia && <><dt className="text-tinta-suave">Agência</dt><dd className="font-semibold">{k.agencia}</dd></>}

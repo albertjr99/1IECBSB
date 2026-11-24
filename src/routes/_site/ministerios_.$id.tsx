@@ -36,7 +36,7 @@ function Ministerio() {
             <ArrowLeft size={15} /> Ministérios
           </Link>
           <div className="mt-8 flex flex-col gap-7 sm:flex-row sm:items-center">
-            <span className="grid size-24 shrink-0 place-items-center rounded-full bg-white/10 ring-1 ring-white/25 backdrop-blur">
+            <span className="vidro flutua grid size-24 shrink-0 place-items-center rounded-full">
               <img src={`/marca/icones/icone-${iconeMinisterio(x)}-branco.svg`} alt="" className="size-12" />
             </span>
             <div>
@@ -53,7 +53,7 @@ function Ministerio() {
           <p className="rotulo-secao">Sobre</p>
           <p className="texto-justificado mt-4 text-[17px] leading-relaxed text-tinta">{x.descricao}</p>
         </div>
-        <aside className="h-fit border-t-[3px] border-marca bg-papel p-7">
+        <aside data-tilt="3" className="vidro-claro h-fit border-t-[3px] !border-t-marca p-7">
           <dl className="grid gap-5">
             <div className="flex gap-4">
               <Clock size={20} className="mt-0.5 shrink-0 text-marca" />
@@ -79,7 +79,7 @@ function Ministerio() {
           <p className="texto-justificado mt-3 max-w-2xl text-tinta">Estamos preparando um espaço próprio deste ministério, com conteúdos pensados para quem participa.</p>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {AMBIENTES.map((a) => (
-              <div key={a.titulo} className="relative flex flex-col border border-dashed border-marca-media/40 bg-white/70 p-6">
+              <div key={a.titulo} data-tilt="8" className="vidro-claro relative flex flex-col p-6">
                 <span className="absolute right-4 top-4 bg-marca-suave px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-marca">Em breve</span>
                 <a.icone size={26} strokeWidth={1.75} className="text-marca/70" />
                 <h3 className="mt-5 text-[1.05rem] font-bold text-marca/80">{a.titulo}</h3>

@@ -23,10 +23,10 @@ export function MonteFoto({ imagem, className, cruz = true, horizonte = true }: 
           {imagem ? (
             <image href={imagem} width="1000" height="640" preserveAspectRatio="xMidYMid slice" />
           ) : (
-            <image href="/marca/grafismo-monte-transparente-branco.svg" x="-250" y="40" width="1500" height="650" opacity="0.14" preserveAspectRatio="xMidYMax meet" />
+            <image className="monte-linhas" href="/marca/grafismo-monte-transparente-branco.svg" x="-250" y="40" width="1500" height="650" opacity="0.14" preserveAspectRatio="xMidYMax meet" />
           )}
         </g>
-        {cruz && <path d={CRUZ} fill="#CC2127" transform="translate(812 262) scale(1.587) translate(-206 -1)" />}
+        {cruz && <g className="cruz-monte"><path d={CRUZ} fill="#CC2127" transform="translate(812 262) scale(1.587) translate(-206 -1)" /></g>}
         {horizonte && <rect x="0" y="658" width="1000" height="6" fill="#00436F" />}
       </svg>
     </div>

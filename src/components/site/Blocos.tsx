@@ -11,8 +11,8 @@ import { LinkSite } from "./Link";
 export function CartaoEvento({ ev }: { ev: Evento }) {
   const { dia, mes } = diaMes(ev.data);
   return (
-    <article className="flex flex-col overflow-hidden border border-linha border-t-[3px] border-t-marca bg-white">
-      {ev.imagem && <img src={ev.imagem} alt="" loading="lazy" className="aspect-[16/10] w-full object-cover" />}
+    <article data-tilt="5" className="flex flex-col overflow-hidden border border-linha border-t-[3px] border-t-marca bg-white hover:border-marca-media/60">
+      {ev.imagem && <div className="overflow-hidden"><img src={ev.imagem} alt="" loading="lazy" className="zoom-foto aspect-[16/10] w-full object-cover" /></div>}
       <div className="flex flex-1 gap-5 p-6">
         <div className="w-12 shrink-0 border-r border-linha pr-4 text-center">
           <div className="text-[1.7rem] font-semibold leading-none text-marca-funda tabular-nums">{dia}</div>
@@ -39,10 +39,13 @@ export function CartaoEvento({ ev }: { ev: Evento }) {
 export function CartaoVideo({ v, onAbrir }: { v: Video; onAbrir: (v: Video) => void }) {
   return (
     <button type="button" onClick={() => onAbrir(v)} className="group flex flex-col text-left">
-      <div className="relative aspect-video overflow-hidden rounded-md bg-marca-funda">
-        {v.thumb && <img src={v.thumb} alt="" loading="lazy" className="size-full object-cover" />}
-        <span className="absolute inset-0 grid place-items-center bg-black/0 transition-colors group-hover:bg-black/25">
-          <Play size={34} fill="white" className="text-white opacity-0 drop-shadow transition-opacity group-hover:opacity-100" />
+      <div data-tilt="9" className="relative aspect-video overflow-hidden rounded-md bg-marca-funda">
+        {v.thumb && <img src={v.thumb} alt="" loading="lazy" className="zoom-foto size-full object-cover" />}
+        <span className="absolute inset-0 bg-gradient-to-t from-marca-funda/60 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+        <span className="absolute inset-0 grid place-items-center">
+          <span className="vidro grid size-16 scale-75 place-items-center rounded-full opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100">
+            <Play size={26} fill="white" className="ml-1 text-white" />
+          </span>
         </span>
         {v.duracao > 0 && <span className="absolute bottom-2 right-2 rounded bg-black/75 px-1.5 py-0.5 text-[12px] font-medium text-white tabular-nums">{duracaoTexto(v.duracao)}</span>}
       </div>
@@ -62,8 +65,8 @@ export function PlayerVideo({ v, onFechar }: { v: Video | null; onFechar: () => 
   }, [v, onFechar]);
   if (!v) return null;
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/85 p-3 sm:p-8" onClick={onFechar} role="dialog" aria-modal="true" aria-label={v.titulo}>
-      <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fundo-vidro fixed inset-0 z-50 grid place-items-center bg-[#001626]/80 p-3 sm:p-8" onClick={onFechar} role="dialog" aria-modal="true" aria-label={v.titulo}>
+      <div className="modal-3d w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-start justify-between gap-4 text-white">
           <h3 className="text-lg font-semibold">{v.titulo}</h3>
           <button onClick={onFechar} className="grid size-10 shrink-0 place-items-center rounded-full bg-white/10 hover:bg-white/20" aria-label="Fechar"><X size={20} /></button>

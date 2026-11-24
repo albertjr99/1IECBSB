@@ -17,12 +17,13 @@ function Ministerios() {
             key={x.id}
             to="/ministerios/$id"
             params={{ id: x.id }}
-            className="group relative flex flex-col overflow-hidden border border-linha bg-white transition duration-300 hover:-translate-y-1 hover:border-marca hover:shadow-[0_22px_44px_-24px_rgba(0,42,71,0.45)]"
+            data-tilt="7"
+            className="group relative flex flex-col overflow-hidden border border-linha bg-white hover:border-marca"
           >
             <div className="h-1 bg-marca transition-all duration-300 group-hover:h-1.5" />
-            {x.imagem && <img src={x.imagem} alt="" className="aspect-[16/9] w-full object-cover" loading="lazy" />}
+            {x.imagem && <div className="overflow-hidden"><img src={x.imagem} alt="" className="zoom-foto aspect-[16/9] w-full object-cover" loading="lazy" /></div>}
             <div className="flex flex-1 flex-col p-7">
-              <span className="grid size-14 place-items-center rounded-full bg-marca transition-transform duration-300 group-hover:scale-105">
+              <span data-z style={{ "--z": "36px" } as React.CSSProperties} className="grid size-14 place-items-center rounded-full bg-marca shadow-[0_12px_24px_-10px_rgba(0,67,111,0.7)] transition-transform duration-300 group-hover:scale-110">
                 <img src={`/marca/icones/icone-${iconeMinisterio(x)}-branco.svg`} alt="" className="size-8" />
               </span>
               <h2 className="mt-6 text-[1.25rem] font-bold leading-snug text-marca">{x.nome}</h2>

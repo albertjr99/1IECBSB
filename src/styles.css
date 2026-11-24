@@ -332,3 +332,83 @@
 .group:hover .capa-3d { transform: perspective(1200px) rotateY(-4deg) rotateX(1deg) translateY(-4px); box-shadow: 20px 30px 50px -28px rgba(0,30,50,0.6); }
 @media (prefers-reduced-motion: reduce) { .leitor-vira-dir, .leitor-vira-esq { animation: none; } }
 @media (max-width: 639px) { .leitor-seta { width: 40px; height: 40px; background: rgba(0,22,38,0.55); } }
+
+/* ═══ Efeitos do site: profundidade, vidro e movimento ═══════════════════ */
+/* barra de leitura no topo */
+.barra-progresso { position: fixed; inset: 0 0 auto 0; z-index: 60; height: 3px; background: linear-gradient(90deg, #00436f, #5b7f99); transform-origin: left; transform: scaleX(var(--progresso, 0)); pointer-events: none; }
+
+/* cartões que inclinam em 3D com reflexo de luz */
+.site [data-tilt] { position: relative; transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transform-style: preserve-3d; transition: transform .6s cubic-bezier(.2,.8,.2,1), box-shadow .4s, border-color .3s; will-change: transform; }
+.site [data-tilt].inclinando { transition: transform .1s linear, box-shadow .4s, border-color .3s; box-shadow: 0 28px 50px -28px rgba(0, 42, 71, 0.5); }
+.site [data-tilt]::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.45), transparent 42%); mix-blend-mode: soft-light; opacity: 0; transition: opacity .35s; }
+.site [data-tilt].inclinando::after { opacity: 1; }
+/* camada que "sai" do cartão */
+.site [data-tilt] [data-z] { transform: translateZ(var(--z, 24px)); transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+
+/* luz que acompanha o cursor nas áreas azuis */
+.grafismo-monte-escuro::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(520px circle at var(--sx, 70%) var(--sy, 30%), rgba(143, 182, 211, 0.22), transparent 45%); transition: opacity .4s; }
+
+/* botões: brilho que atravessa e leve efeito magnético */
+.site :is(.btn-primario, .btn-destaque, .btn-contorno, .btn-branco, .btn-claro) { position: relative; overflow: hidden; isolation: isolate; translate: var(--bx, 0) var(--by, 0); transition: background-color .2s, color .2s, border-color .2s, translate .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s; }
+.site :is(.btn-primario, .btn-destaque, .btn-contorno, .btn-branco, .btn-claro)::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.38) 50%, transparent 70%); transform: translateX(-130%); transition: transform .8s cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+.site :is(.btn-primario, .btn-destaque, .btn-contorno, .btn-branco, .btn-claro):hover::after { transform: translateX(130%); }
+.site :is(.btn-primario, .btn-destaque):hover { box-shadow: 0 14px 28px -14px rgba(0, 67, 111, 0.75); }
+.site .btn-branco:hover { box-shadow: 0 14px 28px -14px rgba(0, 0, 0, 0.45); }
+.site :is(.btn-primario, .btn-destaque, .btn-contorno, .btn-branco, .btn-claro):active { scale: 0.97; }
+
+/* entrada dos blocos ao rolar (usa translate/opacity: não briga com o 3D) */
+.efeitos .revelar { opacity: 0; translate: 0 28px; filter: blur(6px); transition: opacity .9s cubic-bezier(.2,.8,.2,1), translate .9s cubic-bezier(.2,.8,.2,1), filter .9s; transition-delay: var(--atraso, 0ms); }
+.efeitos .revelar.visivel { opacity: 1; translate: none; filter: none; }
+
+/* capas das páginas internas: título sobe, sobretítulo desenha */
+@keyframes subir-entra { from { opacity: 0; translate: 0 22px; filter: blur(8px); } }
+@keyframes linha-entra { from { transform: scaleX(0); } }
+.capa-pagina :is(h1, p) { animation: subir-entra 1s cubic-bezier(.2,.8,.2,1) both; }
+.capa-pagina h1 { animation-delay: .08s; }
+.capa-pagina p + p, .capa-pagina h1 + p { animation-delay: .18s; }
+
+/* vidro: utilitários */
+@utility vidro { background: linear-gradient(150deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06)); border: 1px solid rgba(255,255,255,0.22); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 24px 50px -28px rgba(0,0,0,0.55); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); }
+@utility vidro-claro { background: rgba(255,255,255,0.72); border: 1px solid rgba(255,255,255,0.8); box-shadow: inset 0 1px 0 #fff, 0 24px 50px -30px rgba(0,42,71,0.4); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); }
+
+/* modais: abrem em 3D sobre fundo de vidro */
+@keyframes modal-3d { from { opacity: 0; transform: perspective(1200px) rotateX(14deg) translateY(30px) scale(.96); } }
+@keyframes fundo-vidro { from { opacity: 0; backdrop-filter: blur(0); } }
+.modal-3d { animation: modal-3d .6s cubic-bezier(.2,.8,.2,1) both; transform-origin: 50% 100%; }
+.fundo-vidro { animation: fundo-vidro .35s ease-out both; backdrop-filter: blur(10px) saturate(130%); -webkit-backdrop-filter: blur(10px) saturate(130%); }
+.menu-movel { animation: subir-entra .4s cubic-bezier(.2,.8,.2,1) both; }
+
+/* primeira dobra: monte com profundidade, horizonte que se desenha, cruz que acende */
+.monte-palco { transform-style: preserve-3d; }
+.monte-palco svg rect[data-horizonte] { transform-origin: left; animation: linha-entra 1.4s cubic-bezier(.2,.8,.2,1) .3s both; }
+.horizonte-anim { transform-origin: left; animation: linha-entra 1.4s cubic-bezier(.2,.8,.2,1) .2s both; }
+@keyframes cruz-acende { from { opacity: 0; transform: translateY(-14px); } }
+.monte-palco .cruz-monte { animation: cruz-acende 1s cubic-bezier(.2,.8,.2,1) .9s both; transform-box: fill-box; }
+@keyframes monte-respira { 50% { transform: translateY(-6px); } }
+.flutua { animation: monte-respira 7s ease-in-out infinite; }
+
+/* foto que aproxima dentro do cartão */
+.site [data-tilt] .zoom-foto { transition: scale .9s cubic-bezier(.2,.8,.2,1); }
+.site [data-tilt]:hover .zoom-foto { scale: 1.06; }
+
+@media (prefers-reduced-motion: reduce) {
+  .site [data-tilt] { transform: none !important; }
+  .efeitos .revelar { opacity: 1; translate: none; filter: none; }
+  .capa-pagina :is(h1, p), .modal-3d, .fundo-vidro, .menu-movel, .flutua, .monte-palco *, .horizonte-anim { animation: none !important; }
+  .site :is(.btn-primario, .btn-destaque, .btn-contorno, .btn-branco, .btn-claro) { translate: none; }
+}
+.hero-entra > * { animation: subir-entra 1s cubic-bezier(.2,.8,.2,1) both; }
+.hero-entra > :nth-child(2) { animation-delay: .1s; }
+.hero-entra > :nth-child(3) { animation-delay: .2s; }
+.hero-entra > :nth-child(4) { animation-delay: .3s; }
+.hero-entra > :nth-child(5) { animation-delay: .4s; }
+@keyframes chip-entra { from { opacity: 0; translate: 0 24px; } }
+.hero-chip { animation: chip-entra .9s cubic-bezier(.2,.8,.2,1) 1.1s both; transition: background .3s; }
+.hero-chip:hover { background: linear-gradient(150deg, rgba(255,255,255,0.28), rgba(255,255,255,0.1)); }
+.monte-linhas { animation: monte-respira 9s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .hero-entra > *, .hero-chip, .monte-linhas { animation: none !important; } }
+/* elementos que inclinam sem virar "cartão" (sem sombra retangular nem reflexo) */
+.site [data-tilt][data-plano].inclinando { box-shadow: none; }
+.site [data-tilt][data-plano]::after { content: none; }
+.site [data-tilt][data-plano] svg { transition: filter .6s; }
+.site [data-tilt][data-plano].inclinando svg { filter: drop-shadow(0 26px 26px rgba(0, 42, 71, 0.22)); }

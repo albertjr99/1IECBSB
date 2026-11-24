@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 function CartaoDia({ d, hoje }: { d: DiaAgenda; hoje: boolean }) {
   return (
-    <div className="flex h-full flex-col border-t-4 border-marca bg-white p-6 shadow-[0_1px_0_var(--azul-ceu)] sm:p-7">
+    <div data-tilt="7" className="flex h-full flex-col border-t-4 border-marca bg-white p-6 shadow-[0_18px_40px_-30px_rgba(0,42,71,0.45)] sm:p-7">
       <div className="flex h-5 items-center justify-end">
         {hoje && <span className="bg-marca px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.18em] text-white">Hoje</span>}
       </div>

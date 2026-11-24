@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
+import type { Conteudo } from "@/lib/conteudo";
 import { useConteudo } from "@/lib/contexto";
 import { useAoVivo } from "@/lib/ao-vivo";
 import { listarVideos } from "@/lib/api";
@@ -14,15 +15,37 @@ import { MonteFoto } from "@/components/site/Monte";
 
 export const Route = createFileRoute("/_site/")({ component: Inicio });
 
+/** Próximo culto/estudo da agenda semanal, a partir de agora. */
+function proximoEncontro(dias: Conteudo["programacao"]["dias"]) {
+  const agora = new Date();
+  for (let k = 0; k < 8; k++) {
+    const d = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + k);
+    const dia = dias.find((x) => x.diaSemana === d.getDay());
+    if (!dia) continue;
+    const itens = dia.itens
+      .filter((it) => /culto|estudo|ebd|escola|consagra/i.test(it.titulo) && !/\d[ªº]/.test(it.detalhe + it.titulo))
+      .map((it) => {
+        const m = /(\d{1,2})h(\d{2})?/.exec(it.horario);
+        return { it, min: m ? Number(m[1]) * 60 + Number(m[2] ?? 0) : 0 };
+      })
+      .filter((x) => k > 0 || x.min > agora.getHours() * 60 + agora.getMinutes())
+      .sort((a, b) => a.min - b.min);
+    if (itens[0]) return { quando: k === 0 ? "Hoje" : k === 1 ? "Amanhã" : dia.dia, ...itens[0].it };
+  }
+  return null;
+}
+
 function Hero() {
   const c = useConteudo();
   const h = c.inicio.hero;
   const vivo = useAoVivo(c.mensagens.canal);
+  const [prox, setProx] = useState<ReturnType<typeof proximoEncontro>>(null);
+  useEffect(() => setProx(proximoEncontro(c.programacao.dias)), [c.programacao.dias]);
 
   return (
     <section className="overflow-hidden bg-white">
       <div className="container-site grid items-end gap-10 pt-14 sm:pt-20 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
-        <div className="pb-4 lg:pb-16">
+        <div className="hero-entra pb-4 lg:pb-16">
           {vivo?.aoVivo && (
             <Link to="/ao-vivo" className="mb-7 inline-flex items-center gap-2.5 bg-destaque px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-[0.18em] text-white hover:bg-destaque-escuro">
               <span className="ponto-vivo size-2 rounded-full bg-white" /> Ao vivo agora
@@ -39,10 +62,22 @@ function Hero() {
             </div>
           )}
         </div>
-        <MonteFoto imagem={h.imagem} horizonte={false} className="-mr-5 sm:-mr-8 lg:mr-0" />
+        <div data-tilt="5" data-plano className="monte-palco relative -mr-5 sm:-mr-8 lg:mr-0">
+          <MonteFoto imagem={h.imagem} horizonte={false} />
+          {prox && (
+            <Link to="/programacao" data-z style={{ "--z": "60px" } as React.CSSProperties} className="vidro hero-chip absolute bottom-[9%] left-[16%] flex items-center gap-4 px-5 py-4 text-white sm:left-[22%]">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white/15 ring-1 ring-white/30"><Clock size={19} /></span>
+              <span>
+                <span className="block text-[10.5px] font-bold uppercase tracking-[0.22em] text-white/75">Próximo encontro · {prox.quando}</span>
+                <span className="mt-0.5 block text-[17px] font-bold leading-tight">{prox.titulo}</span>
+                <span className="block text-[13px] text-white/85">{prox.horario}{prox.detalhe && ` · ${prox.detalhe}`}</span>
+              </span>
+            </Link>
+          )}
+        </div>
       </div>
       {/* a linha do horizonte, chão firme da marca */}
-      <div className="container-site"><div className="h-[3px] bg-marca" /></div>
+      <div className="container-site"><div className="horizonte-anim h-[3px] bg-marca" /></div>
       <div className="h-10 sm:h-12" />
     </section>
   );
