@@ -10,6 +10,7 @@ import { cn, linkTelefone, linkWhatsapp } from "@/lib/utils";
 import { LinkSite } from "./Link";
 import { IconeFacebook, IconeInstagram, IconeSpotify, IconeWhatsapp, IconeYoutube } from "./Icones";
 import { AvisoEvento } from "./AvisoEvento";
+import { aplicarEscala, removerEscala, SCRIPT_ESCALA } from "@/lib/escala-site";
 
 /**
  * Logo horizontal oficial (Manual da Marca, versão vetorial). Colorida sobre
@@ -100,7 +101,7 @@ function Cabecalho() {
       {(
 
         <div className="hidden bg-marca-funda text-[13px] text-white/85 md:block">
-          <div className="mx-auto flex h-10 w-full max-w-[1440px] items-center justify-between px-5 sm:px-8 xl:px-10 2xl:px-14">
+          <div className="mx-auto flex h-10 w-full max-w-[1440px] items-center justify-between px-5 sm:px-8 xl:px-10">
             <div className="flex items-center gap-6">
               {g.horarioAtendimento && <span className="inline-flex items-center gap-2"><Clock size={14} />{g.horarioAtendimento}</span>}
               {g.email && <a href={`mailto:${g.email}`} className="inline-flex items-center gap-2 hover:text-white"><Mail size={14} />{g.email}</a>}
@@ -121,8 +122,8 @@ function Cabecalho() {
         </div>
       )}
       <div className={cn("cabecalho-vidro border-b transition-[background-color,box-shadow,border-color] duration-300", rolou ? "border-white/60 bg-white/85 shadow-[0_10px_30px_-18px_rgba(0,42,71,0.45)] backdrop-blur-xl backdrop-saturate-150" : "border-transparent bg-white")}>
-        <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center gap-6 px-5 sm:px-8 xl:h-[88px] xl:px-10 2xl:px-14">
-          <Link to="/" aria-label="Página inicial" className="shrink-0"><Marca className="sm:w-[290px] 2xl:w-[320px]" /></Link>
+        <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center gap-6 px-5 sm:px-8 xl:h-[88px] xl:px-10">
+          <Link to="/" aria-label="Página inicial" className="shrink-0"><Marca className="sm:w-[290px]" /></Link>
 
           <div className="ml-auto flex items-center gap-2 xl:gap-0">
             <nav className="hidden items-center xl:flex" aria-label="Principal">
@@ -131,8 +132,8 @@ function Cabecalho() {
                   key={m.id}
                   para={m.para}
                   className={cn(
-                    "relative whitespace-nowrap px-2.5 py-2 text-[13.5px] font-medium text-tinta transition-colors hover:text-marca 2xl:px-4 2xl:text-[14.5px]",
-                    "after:absolute after:inset-x-2.5 after:-bottom-[24px] after:h-[3px] after:origin-center after:scale-x-0 after:bg-marca after:transition-transform 2xl:after:inset-x-4",
+                    "relative whitespace-nowrap px-2.5 py-2 text-[13.5px] font-medium text-tinta transition-colors hover:text-marca",
+                    "after:absolute after:inset-x-2.5 after:-bottom-[24px] after:h-[3px] after:origin-center after:scale-x-0 after:bg-marca after:transition-transform",
                     ativo(m.para) && "font-semibold text-marca after:scale-x-100",
                   )}
                 >
@@ -144,7 +145,7 @@ function Cabecalho() {
             <SeloAoVivo />
             {contribua && (
               <>
-                <span className="mx-4 hidden h-7 w-px bg-linha xl:block 2xl:mx-6" aria-hidden />
+                <span className="mx-4 hidden h-7 w-px bg-linha xl:block" aria-hidden />
                 <LinkSite para={contribua.para} className="btn-primario hidden !h-11 !px-6 sm:inline-flex">{contribua.rotulo}</LinkSite>
               </>
             )}
@@ -236,8 +237,15 @@ function Rodape() {
 }
 
 export function LayoutSite({ children }: { children: ReactNode }) {
+  // telas largas: a página inteira cresce na proporção da tela (ver lib/escala-site)
+  useEffect(() => {
+    aplicarEscala();
+    window.addEventListener("resize", aplicarEscala);
+    return () => { window.removeEventListener("resize", aplicarEscala); removerEscala(); };
+  }, []);
   return (
     <div className="site flex min-h-screen flex-col">
+      <script dangerouslySetInnerHTML={{ __html: SCRIPT_ESCALA }} />
       <a href="#conteudo" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2">Pular para o conteúdo</a>
       <Cabecalho />
       <main id="conteudo" className="flex-1">{children}</main>
