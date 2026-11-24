@@ -54,9 +54,9 @@ async function talvezEncerrar(v: Votacao) {
 // ─── Painel ─────────────────────────────────────────────────────────────────
 
 export const listarVotacoesPainel = createServerFn({ method: "GET" }).handler(async () => {
-  const { exigirSessao } = await import("../server/auth");
+  const { exigirAcesso } = await import("../server/auth");
   const { listarVotacoes, votosDa } = await import("../server/votacao");
-  exigirSessao();
+  await exigirAcesso("deliberacao");
   const l = await listarVotacoes();
   return Promise.all(
     l.map(async (v) => ({ ...v, votaram: (await votosDa(v.id)).presenca.length })),
@@ -66,9 +66,9 @@ export const listarVotacoesPainel = createServerFn({ method: "GET" }).handler(as
 export const obterVotacaoPainel = createServerFn({ method: "GET" })
   .validator((d: { id: string }) => d)
   .handler(async ({ data }) => {
-    const { exigirSessao } = await import("../server/auth");
+    const { exigirAcesso } = await import("../server/auth");
     const { listarVotacoes } = await import("../server/votacao");
-    exigirSessao();
+    await exigirAcesso("deliberacao");
     const v = (await listarVotacoes()).find((x) => x.id === data.id);
     if (!v) throw new Error("Votação não encontrada.");
     const resultado = await resultadoDe(v);
@@ -81,10 +81,10 @@ export const obterVotacaoPainel = createServerFn({ method: "GET" })
 export const salvarVotacao = createServerFn({ method: "POST" })
   .validator((d: Entrada) => validar(d))
   .handler(async ({ data }) => {
-    const { exigirSessao } = await import("../server/auth");
+    const { exigirAcesso } = await import("../server/auth");
     const { listarVotacoes, salvarVotacoes, novoToken, votosDa } = await import("../server/votacao");
     const { registrar } = await import("../server/armazem");
-    const s = exigirSessao();
+    const s = await exigirAcesso("deliberacao");
     const todas = await listarVotacoes();
     const agora = new Date().toISOString();
     const existente = data.id ? todas.find((x) => x.id === data.id) : undefined;
@@ -126,10 +126,10 @@ export const salvarVotacao = createServerFn({ method: "POST" })
 export const acaoVotacao = createServerFn({ method: "POST" })
   .validator((d: { id: string; acao: "abrir" | "encerrar" | "reabrir" | "excluir" }) => d)
   .handler(async ({ data }) => {
-    const { exigirSessao } = await import("../server/auth");
+    const { exigirAcesso } = await import("../server/auth");
     const { listarVotacoes, salvarVotacoes, apagarVotos } = await import("../server/votacao");
     const { registrar } = await import("../server/armazem");
-    const s = exigirSessao();
+    const s = await exigirAcesso("deliberacao");
     const todas = await listarVotacoes();
     const v = todas.find((x) => x.id === data.id);
     if (!v) throw new Error("Votação não encontrada.");

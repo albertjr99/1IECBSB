@@ -2,15 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import {
   AlertTriangle, Check, ChevronsLeft, ChevronsRight, CircleDot, Command, ExternalLink, Eye, EyeOff, Gavel, History, Landmark, Loader2,
-  LogOut, Menu, Monitor, Moon, Newspaper, RotateCw, Search, Smartphone, Sun, Tablet, Undo2, Upload, Users, X, type LucideIcon,
+  KeyRound, Lock, LogOut, Menu, Monitor, Moon, Newspaper, RotateCw, Search, Smartphone, Sun, Tablet, Undo2, Upload, Users, X, type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Conteudo } from "@/lib/conteudo";
 import { CANAL_PREVIA } from "@/lib/contexto";
-import { descartarRascunho, obterPainel, obterSessao, publicar, sair, salvarRascunho } from "@/lib/api";
+import { criarMinhaSenha, descartarRascunho, obterPainel, obterSessao, publicar, sair, salvarRascunho } from "@/lib/api";
+import { areaDoItem, pode, rotuloPapel, telaInicial } from "@/lib/permissoes";
 import { cn } from "@/lib/utils";
 import { SECOES } from "@/components/painel/editores";
-import { PainelUsuarios, PainelVersoes } from "@/components/painel/Extras";
+import { JanelaMinhaSenha, PainelUsuarios, PainelVersoes } from "@/components/painel/Extras";
 import { ModuloBoletim } from "@/components/painel/boletim/ModuloBoletim";
 import { Contorno, ModuloDeliberacao, ModuloFinancas } from "@/components/painel/Modulos";
 
@@ -60,7 +61,10 @@ function Painel() {
   const [publicado, setPublicado] = useState<Conteudo>(dados.publicado);
   const [c, setC] = useState<Conteudo>(dados.rascunho ?? dados.publicado);
   const [estado, setEstado] = useState<Estado>("salvo");
-  const [secao, setSecao] = useState("inicio");
+  const papel = dados.sessao.papel;
+  const liberado = useCallback((id: string) => pode(papel, areaDoItem(id)), [papel]);
+  const [secao, setSecao] = useState(() => telaInicial(papel));
+  const [minhaSenha, setMinhaSenha] = useState(false);
   const [gaveta, setGaveta] = useState(false);
   const [busca, setBusca] = useState(false);
   const [previaVisivel, setPreviaVisivel] = usePreferencia<"sim" | "nao">("iecb_painel_previa", () => (lerPref("iecb_painel_previa") as "sim" | "nao") ?? "sim");
@@ -101,6 +105,7 @@ function Painel() {
 
   useEffect(() => {
     if (primeira.current) { primeira.current = false; return; }
+    if (!pode(papel, "site")) return;
     setEstado("pendente");
     const t = setTimeout(salvarAgora, 1200);
     return () => clearTimeout(t);
@@ -164,7 +169,7 @@ function Painel() {
     toast("Alterações descartadas.");
   };
 
-  const ir = (id: string) => { setSecao(id); setGaveta(false); setBusca(false); };
+  const ir = (id: string) => { if (!liberado(id)) return; setSecao(id); setGaveta(false); setBusca(false); };
   const menuRecolhido = recolhida === "sim";
 
   return (
@@ -182,6 +187,8 @@ function Painel() {
         aoTema={() => setTema(tema === "escuro" ? "claro" : "escuro")}
         aoSair={async () => { await sair(); router.navigate({ to: "/admin/entrar" }); }}
         aoBuscar={() => setBusca(true)}
+        liberado={liberado}
+        aoMinhaSenha={() => setMinhaSenha(true)}
       />
       {/* Menu lateral (celular) */}
       {gaveta && (
@@ -198,6 +205,8 @@ function Painel() {
               aoTema={() => setTema(tema === "escuro" ? "claro" : "escuro")}
               aoSair={async () => { await sair(); router.navigate({ to: "/admin/entrar" }); }}
               aoBuscar={() => setBusca(true)}
+              liberado={liberado}
+              aoMinhaSenha={() => setMinhaSenha(true)}
             />
           </div>
         </div>
@@ -214,7 +223,7 @@ function Painel() {
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
-            {!ehModulo && (
+            {!ehModulo && pode(papel, "site") && (
               <>
                 <StatusSite estado={estado} alteradas={alteradas.size} />
                 {def && (
@@ -250,21 +259,21 @@ function Painel() {
           </div>
         )}
 
-        {/* Conteúdo */}
-        <div className="flex min-h-0 flex-1">
+        {/* Conteúdo (só depois que a pessoa cria a própria senha) */}
+        {!dados.sessao.trocarSenha && <div className="flex min-h-0 flex-1">
           {ehModulo ? (
             <main className="relative min-w-0 flex-1 overflow-y-auto">
-              {secao === "boletim" && <ModuloBoletim />}
-              {secao === "deliberacao" && <Contorno><ModuloDeliberacao /></Contorno>}
-              {secao === "financas" && <Contorno><ModuloFinancas /></Contorno>}
+              {secao === "boletim" && liberado("boletim") && <ModuloBoletim />}
+              {secao === "deliberacao" && liberado("deliberacao") && <Contorno><ModuloDeliberacao /></Contorno>}
+              {secao === "financas" && liberado("financas") && <Contorno><ModuloFinancas /></Contorno>}
             </main>
           ) : (
             <>
               <main className={cn("min-w-0 overflow-y-auto", mostrarPrevia ? "flex-1 xl:w-[540px] xl:flex-none 2xl:w-[600px]" : "flex-1")}>
                 <div className={cn("grid grid-cols-[minmax(0,1fr)] gap-4 p-4 sm:p-5", !mostrarPrevia && "mx-auto max-w-3xl sm:p-6")}>
-                  {def && <def.Editor c={c} mudar={mudar} />}
-                  {secao === "alteracoes" && <PainelVersoes aoRestaurar={(v) => { setC(v); setSecao("inicio"); }} />}
-                  {secao === "usuarios" && <PainelUsuarios souAdmin={dados.sessao.papel === "admin"} meuUsuario={dados.sessao.usuario} />}
+                  {def && liberado(def.id) && <def.Editor c={c} mudar={mudar} />}
+                  {secao === "alteracoes" && liberado("alteracoes") && <PainelVersoes podeRestaurar={pode(papel, "site")} aoRestaurar={(v) => { setC(v); setSecao("inicio"); }} />}
+                  {secao === "usuarios" && liberado("usuarios") && <PainelUsuarios meuUsuario={dados.sessao.usuario} />}
                   {def && !dados.uploadsPermanentes && (
                     <p className="px-1 text-[12px] text-p-suave">Dica: conecte o Vercel Blob (Storage → Blob) para guardar as fotos fora do banco e deixar o site mais leve.</p>
                   )}
@@ -278,7 +287,7 @@ function Painel() {
               )}
             </>
           )}
-        </div>
+        </div>}
       </div>
 
       {/* Prévia em tela cheia */}
@@ -289,7 +298,9 @@ function Painel() {
         </div>
       )}
 
-      {busca && <PaletaBusca aoFechar={() => setBusca(false)} ir={ir} alteradas={alteradas} />}
+      {busca && <PaletaBusca aoFechar={() => setBusca(false)} ir={ir} alteradas={alteradas} liberado={liberado} />}
+      {minhaSenha && <JanelaMinhaSenha aoFechar={() => setMinhaSenha(false)} />}
+      {dados.sessao.trocarSenha && <CriarSenha nome={dados.sessao.nome} aoConcluir={() => router.invalidate()} />}
 
       {dialogo && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={() => !publicando && setDialogo(false)}>
@@ -333,10 +344,11 @@ function StatusSite({ estado, alteradas }: { estado: Estado; alteradas: number }
 // ─── Menu lateral ───────────────────────────────────────────────────────────
 
 function Lateral({
-  className, recolhida, aoRecolher, secao, ir, alteradas, sessao, tema, aoTema, aoSair, aoBuscar,
+  className, recolhida, aoRecolher, secao, ir, alteradas, sessao, tema, aoTema, aoSair, aoBuscar, liberado, aoMinhaSenha,
 }: {
   className?: string; recolhida: boolean; aoRecolher?: () => void; secao: string; ir: (id: string) => void; alteradas: Set<string>;
   sessao: { nome: string; papel: string }; tema: "claro" | "escuro"; aoTema: () => void; aoSair: () => void; aoBuscar: () => void;
+  liberado: (id: string) => boolean; aoMinhaSenha: () => void;
 }) {
   const grupos: { titulo: string; itens: ItemNav[] }[] = [
     { titulo: "Igreja", itens: MODULOS },
@@ -374,22 +386,26 @@ function Lateral({
             <ul className="grid gap-px">
               {g.itens.map((it) => {
                 const ativo = secao === it.id;
+                const livre = liberado(it.id);
                 return (
                   <li key={it.id}>
                     <button
                       onClick={() => ir(it.id)}
-                      title={recolhida ? `${it.rotulo}${it.breve ? " (em breve)" : ""}` : undefined}
+                      disabled={!livre}
+                      aria-disabled={!livre}
+                      title={!livre ? `${it.rotulo} — fora do seu perfil de acesso` : recolhida ? `${it.rotulo}${it.breve ? " (em breve)" : ""}` : undefined}
                       className={cn(
                         "relative flex h-[30px] w-full items-center gap-2.5 rounded-md text-[13px] transition-colors [@media(max-height:800px)]:h-[26px]",
                         recolhida ? "justify-center" : "px-2",
-                        ativo ? "bg-white/[0.12] font-medium text-white" : "text-white/70 hover:bg-white/[0.06] hover:text-white",
+                        !livre ? "cursor-not-allowed text-white/25" : ativo ? "bg-white/[0.12] font-medium text-white" : "text-white/70 hover:bg-white/[0.06] hover:text-white",
                       )}
                     >
                       {ativo && <span className="absolute -left-3 top-1.5 bottom-1.5 w-[3px] rounded-r bg-destaque" style={recolhida ? { left: "-10px" } : undefined} />}
                       <it.Icone size={15} className="shrink-0" strokeWidth={1.8} />
                       {!recolhida && <span className="flex-1 truncate text-left">{it.rotulo}</span>}
-                      {!recolhida && it.breve && <span className="rounded border border-white/20 px-1 text-[9.5px] font-semibold uppercase tracking-wide text-white/50">breve</span>}
-                      {alteradas.has(it.id) && <span className={cn("size-1.5 shrink-0 rounded-full bg-amber-400", recolhida && "absolute right-2 top-1.5")} title="Alterações não publicadas" />}
+                      {!recolhida && it.breve && livre && <span className="rounded border border-white/20 px-1 text-[9.5px] font-semibold uppercase tracking-wide text-white/50">breve</span>}
+                      {!recolhida && !livre && <Lock size={11} className="shrink-0 text-white/25" aria-hidden />}
+                      {livre && alteradas.has(it.id) && <span className={cn("size-1.5 shrink-0 rounded-full bg-amber-400", recolhida && "absolute right-2 top-1.5")} title="Alterações não publicadas" />}
                     </button>
                   </li>
                 );
@@ -406,12 +422,13 @@ function Lateral({
             <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-[12px] font-semibold text-white">{iniciais || "?"}</span>
             <span className="min-w-0 leading-tight">
               <span className="block truncate text-[13px] font-medium text-white">{sessao.nome}</span>
-              <span className="block text-[11.5px] text-white/45">{sessao.papel === "admin" ? "Administrador" : "Editor"}</span>
+              <span className="block text-[11.5px] text-white/45">{rotuloPapel(sessao.papel)}</span>
             </span>
           </div>
         )}
         <div className={cn("flex gap-1", recolhida && "flex-col")}>
           <a href="/" target="_blank" rel="noopener" title="Ver o site" className="grid h-8 flex-1 place-items-center rounded-md text-white/60 hover:bg-white/[0.08] hover:text-white"><ExternalLink size={15} /></a>
+          <button onClick={aoMinhaSenha} title="Minha senha" className="grid h-8 flex-1 place-items-center rounded-md text-white/60 hover:bg-white/[0.08] hover:text-white"><KeyRound size={15} /></button>
           <button onClick={aoTema} title={tema === "escuro" ? "Modo claro" : "Modo escuro"} className="grid h-8 flex-1 place-items-center rounded-md text-white/60 hover:bg-white/[0.08] hover:text-white">{tema === "escuro" ? <Sun size={15} /> : <Moon size={15} />}</button>
           <button onClick={aoSair} title="Sair" className="grid h-8 flex-1 place-items-center rounded-md text-white/60 hover:bg-white/[0.08] hover:text-white"><LogOut size={15} /></button>
         </div>
@@ -431,9 +448,51 @@ function Lateral({
   );
 }
 
+// ─── Primeiro acesso: criar a própria senha ─────────────────────────────────
+
+function CriarSenha({ nome, aoConcluir }: { nome: string; aoConcluir: () => void }) {
+  const [nova, setNova] = useState("");
+  const [confirma, setConfirma] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState("");
+  const forca = nova.length >= 12 ? 3 : nova.length >= 10 ? 2 : nova.length >= 8 ? 1 : 0;
+  return (
+    <div className="fixed inset-0 z-[70] grid place-items-center bg-[#001d33]/70 p-4 backdrop-blur-md">
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setErro("");
+          if (nova.length < 8) { setErro("A senha precisa ter ao menos 8 caracteres."); return; }
+          if (nova !== confirma) { setErro("As duas senhas não são iguais."); return; }
+          setEnviando(true);
+          try { await criarMinhaSenha({ data: { nova } }); toast.success("Pronto! Sua senha foi criada."); aoConcluir(); }
+          catch (err) { setErro(err instanceof Error ? err.message : "Não foi possível."); } finally { setEnviando(false); }
+        }}
+        className="w-full max-w-[420px] border-t-[3px] border-[#00436f] bg-p-superficie p-7 shadow-2xl"
+      >
+        <img src="/marca/logo-horizontal-colorida.svg" alt="1ª IEC Brasília" className="h-9 w-auto dark:hidden" />
+        <h2 className="mt-6 text-[22px] font-bold leading-tight tracking-[-0.015em] text-p-texto">Bem-vindo, {nome.replace(/^(Pr|Pb|Dc|Dca|Sem)\.\s*/i, "").split(" ")[0]}</h2>
+        <p className="mt-2 text-[14px] leading-relaxed text-p-texto-2">Você entrou com uma senha provisória. Crie agora a sua própria senha — só você vai saber.</p>
+        <label className="mt-6 grid gap-1.5 text-[13px] font-semibold text-p-texto">
+          Nova senha
+          <input type="password" autoFocus autoComplete="new-password" value={nova} onChange={(e) => setNova(e.target.value)} className="h-11 border border-p-borda-forte bg-p-superficie px-3 text-[15px] font-normal text-p-texto outline-none focus:border-p-acento focus:ring-3 focus:ring-p-acento/15" />
+        </label>
+        <div className="mt-2 flex gap-1" aria-hidden>{[1, 2, 3].map((n) => <span key={n} className={cn("h-1 flex-1", forca >= n ? (forca === 1 ? "bg-amber-400" : "bg-emerald-500") : "bg-p-borda")} />)}</div>
+        <p className="mt-1 text-[12px] text-p-suave">Mínimo de 8 caracteres. Uma frase curta é fácil de lembrar e difícil de adivinhar.</p>
+        <label className="mt-4 grid gap-1.5 text-[13px] font-semibold text-p-texto">
+          Repita a nova senha
+          <input type="password" autoComplete="new-password" value={confirma} onChange={(e) => setConfirma(e.target.value)} className="h-11 border border-p-borda-forte bg-p-superficie px-3 text-[15px] font-normal text-p-texto outline-none focus:border-p-acento focus:ring-3 focus:ring-p-acento/15" />
+        </label>
+        {erro && <p className="mt-3 text-[13px] font-semibold text-red-600 dark:text-red-400">{erro}</p>}
+        <button disabled={enviando} className="btn-primario mt-6 !h-11 w-full !text-[13.5px]">{enviando && <Loader2 size={16} className="animate-spin" />} Criar minha senha e entrar</button>
+      </form>
+    </div>
+  );
+}
+
 // ─── Busca rápida (Ctrl+K) ──────────────────────────────────────────────────
 
-function PaletaBusca({ aoFechar, ir, alteradas }: { aoFechar: () => void; ir: (id: string) => void; alteradas: Set<string> }) {
+function PaletaBusca({ aoFechar, ir, alteradas, liberado }: { aoFechar: () => void; ir: (id: string) => void; alteradas: Set<string>; liberado: (id: string) => boolean }) {
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
   const todos: (ItemNav & { grupo: string })[] = [
@@ -442,7 +501,7 @@ function PaletaBusca({ aoFechar, ir, alteradas }: { aoFechar: () => void; ir: (i
     ...SISTEMA.map((s) => ({ ...s, grupo: "Sistema" })),
   ];
   const norm = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  const lista = todos.filter((t) => !q || norm(`${t.rotulo} ${t.descricao ?? ""}`).includes(norm(q)));
+  const lista = todos.filter((t) => liberado(t.id) && (!q || norm(`${t.rotulo} ${t.descricao ?? ""}`).includes(norm(q))));
   useEffect(() => setSel(0), [q]);
 
   return (

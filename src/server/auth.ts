@@ -14,10 +14,22 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { deleteCookie, getCookie, setCookie } from "@tanstack/react-start/server";
 import { gravar, ler, urlDoBanco } from "./armazem";
+import { pode, type Area, type Papel } from "@/lib/permissoes";
 
-export type Papel = "admin" | "editor";
-export type Usuario = { usuario: string; nome: string; papel: Papel; hash: string; criadoEm: string };
-export type Sessao = { usuario: string; nome: string; papel: Papel; exp: number };
+export type { Papel };
+export type Usuario = {
+  usuario: string;
+  nome: string;
+  papel: Papel;
+  /** vazio = conta criada, aguardando o administrador gerar a senha provisória */
+  hash: string;
+  criadoEm: string;
+  /** outras grafias aceitas no login (ex.: "aloisio" para "aluizio") */
+  apelidos?: string[];
+  /** senha provisória: a pessoa cria a própria senha no primeiro acesso */
+  trocarSenha?: boolean;
+};
+export type Sessao = { usuario: string; nome: string; papel: Papel; exp: number; trocarSenha?: boolean };
 
 /** "Hilário" → "hilario": é assim que o nome de acesso é guardado e comparado. */
 export function normalizarUsuario(t: string) {
@@ -53,7 +65,33 @@ export function conferirSenha(senha: string, hash: string): boolean {
 export async function listarUsuarios(): Promise<Usuario[]> {
   const l = (await ler<(Usuario & { email?: string })[]>("usuarios")) ?? [];
   // contas antigas (por e-mail) passam a usar o nome antes do @
-  return l.map((u) => (u.usuario ? u : { ...u, usuario: normalizarUsuario((u.email ?? "").split("@")[0] ?? "") }));
+  const lista = l.map((u) => (u.usuario ? u : { ...u, usuario: normalizarUsuario((u.email ?? "").split("@")[0] ?? "") }));
+  return criarContasDaEquipe(lista);
+}
+
+/**
+ * Contas da equipe (nov/2026), criadas uma vez só e sem senha: o
+ * administrador gera a senha provisória de cada uma em Usuários, e a
+ * pessoa cria a própria senha no primeiro acesso. Nenhuma senha fica no código.
+ */
+const CONTAS_EQUIPE = "usuarios:equipe:v1";
+const EQUIPE: Omit<Usuario, "hash" | "criadoEm">[] = [
+  { usuario: "hilario", nome: "Pr. Hilário José", papel: "pastor" },
+  { usuario: "aluizio", nome: "Pr. Aluízio Lourenço", papel: "pastor", apelidos: ["aloisio", "aluisio", "aloizio"] },
+  { usuario: "renan", nome: "Renan", papel: "admin" },
+  { usuario: "comunicacao", nome: "Equipe de Comunicação", papel: "comunicacao" },
+];
+let equipePronta = false;
+async function criarContasDaEquipe(lista: Usuario[]): Promise<Usuario[]> {
+  if (equipePronta || lista.length === 0) return lista;
+  if (await ler<boolean>(CONTAS_EQUIPE)) { equipePronta = true; return lista; }
+  const agora = new Date().toISOString();
+  const novas = EQUIPE.filter((c) => !lista.some((u) => u.usuario === c.usuario)).map((c) => ({ ...c, hash: "", criadoEm: agora, trocarSenha: true }));
+  const final = [...lista, ...novas];
+  if (novas.length) await gravar("usuarios", final);
+  await gravar(CONTAS_EQUIPE, true);
+  equipePronta = true;
+  return final;
 }
 
 export async function salvarUsuarios(lista: Usuario[]) {
@@ -90,8 +128,8 @@ export async function autenticar(usuarioBruto: string, senha: string): Promise<U
     }
     return null;
   }
-  const u = usuarios.find((x) => x.usuario === usuario);
-  if (!u || !conferirSenha(senha, u.hash)) return null;
+  const u = usuarios.find((x) => x.usuario === usuario || x.apelidos?.includes(usuario));
+  if (!u || !u.hash || !conferirSenha(senha, u.hash)) return null;
   return u;
 }
 
@@ -100,7 +138,7 @@ function assinar(dados: string) {
 }
 
 export function abrirSessao(u: Usuario) {
-  const s: Sessao = { usuario: u.usuario, nome: u.nome, papel: u.papel, exp: Date.now() + DURACAO_MS };
+  const s: Sessao = { usuario: u.usuario, nome: u.nome, papel: u.papel, exp: Date.now() + DURACAO_MS, ...(u.trocarSenha ? { trocarSenha: true } : {}) };
   const dados = Buffer.from(JSON.stringify(s)).toString("base64url");
   setCookie(COOKIE, `${dados}.${assinar(dados)}`, {
     httpOnly: true,
@@ -128,6 +166,28 @@ export function sessaoAtual(): Sessao | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Sessão com o perfil ATUAL da pessoa (lido da lista de usuários): se o
+ * administrador muda o perfil ou remove alguém, vale na hora, sem esperar o
+ * cookie expirar.
+ */
+export async function sessaoFresca(): Promise<Sessao | null> {
+  const s = sessaoAtual();
+  if (!s) return null;
+  const u = (await listarUsuarios()).find((x) => x.usuario === s.usuario);
+  if (!u) return null;
+  return { ...s, nome: u.nome, papel: u.papel, ...(u.trocarSenha ? { trocarSenha: true } : { trocarSenha: false }) };
+}
+
+/** Exige sessão e acesso à área; a pessoa com senha provisória só pode criar a própria senha. */
+export async function exigirAcesso(area: Area): Promise<Sessao> {
+  const s = await sessaoFresca();
+  if (!s) throw new Error("Sessão expirada. Entre novamente.");
+  if (s.trocarSenha) throw new Error("Crie a sua senha para continuar.");
+  if (!pode(s.papel, area)) throw new Error("O seu perfil não tem acesso a esta área.");
+  return s;
 }
 
 export function exigirSessao(papel?: Papel): Sessao {

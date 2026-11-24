@@ -79,7 +79,7 @@ function ListaBoletins({ aoAbrir }: { aoAbrir: (id: string, lembretes?: string[]
     <div className="ef ef-mesa min-h-full">
       <div className="mx-auto grid max-w-[1040px] gap-9 px-4 py-6 sm:px-8 sm:py-10">
         <header>
-          <p className="ef-sobre">Comunicação</p>
+          <p className="ef-sobre">Igreja</p>
           <h1 className="ef-titulo mt-3">Boletim dominical</h1>
           <p className="ef-sub mt-1.5 max-w-[60ch]">Escreva em poucos passos. O boletim sai no padrão da igreja, pronto para o site e para a impressão.</p>
         </header>

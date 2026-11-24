@@ -4,6 +4,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { completarConteudo, CONTEUDO_PADRAO, type Conteudo } from "./conteudo";
+import { PAPEIS, rotuloPapel, type Papel } from "./permissoes";
 
 // ─── Conteúdo publicado ─────────────────────────────────────────────────────
 
@@ -25,8 +26,8 @@ export const obterConteudoPublico = createServerFn({ method: "GET" }).handler(as
 // ─── Sessão ─────────────────────────────────────────────────────────────────
 
 export const obterSessao = createServerFn({ method: "GET" }).handler(async () => {
-  const { sessaoAtual, precisaPrimeiroAcesso } = await import("../server/auth");
-  const s = sessaoAtual();
+  const { sessaoFresca, precisaPrimeiroAcesso } = await import("../server/auth");
+  const s = await sessaoFresca();
   return { sessao: s, primeiroAcesso: s ? false : await precisaPrimeiroAcesso() };
 });
 
@@ -36,10 +37,15 @@ export const entrar = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data }) => {
-    const { autenticar, abrirSessao } = await import("../server/auth");
+    const { autenticar, abrirSessao, listarUsuarios: lu, normalizarUsuario } = await import("../server/auth");
     const { registrar } = await import("../server/armazem");
     const u = await autenticar(data.usuario, data.senha);
-    if (!u) throw new Error("Nome ou senha incorretos.");
+    if (!u) {
+      const n = normalizarUsuario(data.usuario);
+      const conta = (await lu()).find((x) => x.usuario === n || x.apelidos?.includes(n));
+      if (conta && !conta.hash) throw new Error("Seu acesso ainda não tem senha. Peça ao administrador a senha provisória.");
+      throw new Error("Nome ou senha incorretos.");
+    }
     abrirSessao(u);
     await registrar(u.nome, "Entrou no painel");
     return { nome: u.nome };
@@ -54,9 +60,10 @@ export const sair = createServerFn({ method: "POST" }).handler(async () => {
 // ─── Painel: rascunho, publicação, versões ─────────────────────────────────
 
 export const obterPainel = createServerFn({ method: "GET" }).handler(async () => {
-  const { exigirSessao } = await import("../server/auth");
+  const { sessaoFresca } = await import("../server/auth");
   const { ler, modoArmazenamento, tokenBlob, variaveisDeBanco } = await import("../server/armazem");
-  const sessao = exigirSessao();
+  const sessao = await sessaoFresca();
+  if (!sessao) throw new Error("Sessão expirada. Entre novamente.");
   const publicado = completarConteudo(await ler("conteudo:publicado"));
   const rascunhoSalvo = await ler<{ conteudo: unknown; em: string; autor: string }>("conteudo:rascunho");
   return {
@@ -78,18 +85,18 @@ export const salvarRascunho = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data }) => {
-    const { exigirSessao } = await import("../server/auth");
+    const { exigirAcesso } = await import("../server/auth");
     const { gravar } = await import("../server/armazem");
-    const s = exigirSessao();
+    const s = await exigirAcesso("site");
     const em = new Date().toISOString();
     await gravar("conteudo:rascunho", { conteudo: completarConteudo(data.conteudo), em, autor: s.nome });
     return { em };
   });
 
 export const descartarRascunho = createServerFn({ method: "POST" }).handler(async () => {
-  const { exigirSessao } = await import("../server/auth");
+  const { exigirAcesso } = await import("../server/auth");
   const { apagar, registrar } = await import("../server/armazem");
-  const s = exigirSessao();
+  const s = await exigirAcesso("site");
   await apagar("conteudo:rascunho");
   await registrar(s.nome, "Descartou alterações não publicadas");
   return { ok: true };
@@ -101,9 +108,9 @@ export const publicar = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data }) => {
-    const { exigirSessao } = await import("../server/auth");
+    const { exigirAcesso } = await import("../server/auth");
     const { gravar, apagar, criarVersao, registrar } = await import("../server/armazem");
-    const s = exigirSessao();
+    const s = await exigirAcesso("site");
     const c = completarConteudo(data.conteudo);
     const resumo = data.resumo?.trim() || "Atualização do site";
     await gravar("conteudo:publicado", c);
@@ -115,18 +122,18 @@ export const publicar = createServerFn({ method: "POST" })
   });
 
 export const listarVersoes = createServerFn({ method: "GET" }).handler(async () => {
-  const { exigirSessao } = await import("../server/auth");
+  const { exigirAcesso } = await import("../server/auth");
   const { listarVersoes: lv, listarAuditoria } = await import("../server/armazem");
-  exigirSessao();
+  await exigirAcesso("alteracoes");
   return { versoes: await lv(), auditoria: await listarAuditoria() };
 });
 
 export const carregarVersao = createServerFn({ method: "POST" })
   .validator((d: { id: number }) => d)
   .handler(async ({ data }) => {
-    const { exigirSessao } = await import("../server/auth");
+    const { exigirAcesso } = await import("../server/auth");
     const { lerVersao, registrar } = await import("../server/armazem");
-    const s = exigirSessao();
+    const s = await exigirAcesso("alteracoes");
     const c = await lerVersao(Number(data.id));
     if (!c) throw new Error("Versão não encontrada.");
     await registrar(s.nome, "Abriu versão anterior para restaurar", `Versão nº ${data.id}`);
@@ -142,8 +149,8 @@ export const enviarImagem = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data }) => {
-    const { exigirSessao } = await import("../server/auth");
-    exigirSessao();
+    const { exigirAcesso } = await import("../server/auth");
+    await exigirAcesso("site");
     const { tokenBlob } = await import("../server/armazem");
     const token = tokenBlob();
     if (token) {
@@ -162,44 +169,64 @@ export const enviarImagem = createServerFn({ method: "POST" })
 // ─── Usuários ───────────────────────────────────────────────────────────────
 
 export const listarUsuarios = createServerFn({ method: "GET" }).handler(async () => {
-  const { exigirSessao, listarUsuarios: lu } = await import("../server/auth");
-  exigirSessao();
+  const { exigirAcesso, listarUsuarios: lu } = await import("../server/auth");
+  await exigirAcesso("usuarios");
   return (await lu()).map(({ hash: _h, ...u }) => u);
 });
 
 export const salvarUsuario = createServerFn({ method: "POST" })
-  .validator((d: { usuario: string; nome: string; papel: "admin" | "editor"; senha?: string }) => {
-    if (!d?.usuario?.trim() || !d.nome?.trim()) throw new Error("Informe o nome completo e o nome de acesso.");
-    if (d.senha && d.senha.length < 8) throw new Error("A senha precisa ter ao menos 8 caracteres.");
+  .validator((d: { usuario: string; nome: string; papel: Papel }) => {
+    if (!d?.usuario?.trim() || !d.nome?.trim()) throw new Error("Informe o nome e o nome de acesso.");
+    if (!PAPEIS.some((p) => p.valor === d.papel)) throw new Error("Escolha um perfil.");
     return d;
   })
   .handler(async ({ data }) => {
-    const { exigirSessao, listarUsuarios: lu, salvarUsuarios, gerarHash, normalizarUsuario } = await import("../server/auth");
+    const { exigirAcesso, listarUsuarios: lu, salvarUsuarios, normalizarUsuario } = await import("../server/auth");
     const { registrar } = await import("../server/armazem");
-    const s = exigirSessao("admin");
+    const s = await exigirAcesso("usuarios");
     const lista = await lu();
     const usuario = normalizarUsuario(data.usuario);
     if (!usuario) throw new Error("Nome de acesso inválido.");
     const atual = lista.find((u) => u.usuario === usuario);
     if (atual) {
       atual.nome = data.nome.trim();
-      if (!(atual.usuario === s.usuario && data.papel !== "admin")) atual.papel = data.papel;
-      if (data.senha) atual.hash = gerarHash(data.senha);
+      if (atual.usuario === s.usuario && data.papel !== "admin") throw new Error("Você não pode tirar o seu próprio acesso de administrador.");
+      atual.papel = data.papel;
     } else {
-      if (!data.senha) throw new Error("Defina uma senha para o novo usuário.");
-      lista.push({ usuario, nome: data.nome.trim(), papel: data.papel, hash: gerarHash(data.senha), criadoEm: new Date().toISOString() });
+      if (lista.some((u) => u.apelidos?.includes(usuario))) throw new Error("Este nome de acesso já é usado por outra pessoa.");
+      lista.push({ usuario, nome: data.nome.trim(), papel: data.papel, hash: "", criadoEm: new Date().toISOString(), trocarSenha: true });
     }
     await salvarUsuarios(lista);
-    await registrar(s.nome, atual ? "Alterou usuário" : "Criou usuário", usuario);
+    await registrar(s.nome, atual ? "Alterou usuário" : "Criou usuário", `${usuario} (${rotuloPapel(data.papel)})`);
     return { ok: true };
+  });
+
+/** Senha provisória: aparece uma vez para o administrador repassar; a pessoa cria a dela no primeiro acesso. */
+export const gerarSenhaProvisoria = createServerFn({ method: "POST" })
+  .validator((d: { usuario: string }) => d)
+  .handler(async ({ data }) => {
+    const { exigirAcesso, listarUsuarios: lu, salvarUsuarios, gerarHash } = await import("../server/auth");
+    const { registrar } = await import("../server/armazem");
+    const { randomInt } = await import("node:crypto");
+    const s = await exigirAcesso("usuarios");
+    const lista = await lu();
+    const u = lista.find((x) => x.usuario === data.usuario);
+    if (!u) throw new Error("Usuário não encontrado.");
+    const palavras = ["Monte", "Cruz", "Graca", "Rocha", "Farol", "Aurora", "Sinai", "Jordao", "Oliveira", "Videira"];
+    const senha = `${palavras[randomInt(palavras.length)]}-${String(randomInt(1_000_000)).padStart(6, "0")}`;
+    u.hash = gerarHash(senha);
+    u.trocarSenha = true;
+    await salvarUsuarios(lista);
+    await registrar(s.nome, "Gerou senha provisória", u.usuario);
+    return { senha };
   });
 
 export const removerUsuario = createServerFn({ method: "POST" })
   .validator((d: { usuario: string }) => d)
   .handler(async ({ data }) => {
-    const { exigirSessao, listarUsuarios: lu, salvarUsuarios } = await import("../server/auth");
+    const { exigirAcesso, listarUsuarios: lu, salvarUsuarios } = await import("../server/auth");
     const { registrar } = await import("../server/armazem");
-    const s = exigirSessao("admin");
+    const s = await exigirAcesso("usuarios");
     if (data.usuario === s.usuario) throw new Error("Você não pode remover a si mesmo.");
     await salvarUsuarios((await lu()).filter((u) => u.usuario !== data.usuario));
     await registrar(s.nome, "Removeu usuário", data.usuario);
@@ -218,7 +245,30 @@ export const trocarMinhaSenha = createServerFn({ method: "POST" })
     const u = lista.find((x) => x.usuario === s.usuario);
     if (!u || !conferirSenha(data.atual, u.hash)) throw new Error("Senha atual incorreta.");
     u.hash = gerarHash(data.nova);
+    delete u.trocarSenha;
     await salvarUsuarios(lista);
+    return { ok: true };
+  });
+
+/** Primeiro acesso com senha provisória: a pessoa cria a própria senha (já entrou com a provisória). */
+export const criarMinhaSenha = createServerFn({ method: "POST" })
+  .validator((d: { nova: string }) => {
+    if (!d?.nova || d.nova.length < 8) throw new Error("A senha precisa ter ao menos 8 caracteres.");
+    return d;
+  })
+  .handler(async ({ data }) => {
+    const { exigirSessao, listarUsuarios: lu, salvarUsuarios, gerarHash, conferirSenha, abrirSessao } = await import("../server/auth");
+    const { registrar } = await import("../server/armazem");
+    const s = exigirSessao();
+    const lista = await lu();
+    const u = lista.find((x) => x.usuario === s.usuario);
+    if (!u?.trocarSenha) throw new Error("Use “Minha senha” para trocar a senha.");
+    if (conferirSenha(data.nova, u.hash)) throw new Error("Escolha uma senha diferente da provisória.");
+    u.hash = gerarHash(data.nova);
+    delete u.trocarSenha;
+    await salvarUsuarios(lista);
+    abrirSessao(u);
+    await registrar(u.nome, "Criou a própria senha");
     return { ok: true };
   });
 
