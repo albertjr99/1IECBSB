@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useConsentimento } from "@/lib/consentimento";
 import { CalendarDays, MapPin, X } from "lucide-react";
 import { useConteudo, emPrevia } from "@/lib/contexto";
 import { hojeISO, periodo } from "@/lib/utils";
@@ -8,17 +9,19 @@ import { LinkSite } from "./Link";
 export function AvisoEvento() {
   const { eventos } = useConteudo();
   const [aberto, setAberto] = useState(false);
+  const cookies = useConsentimento();
   const hoje = hojeISO();
   const ev = eventos.itens.find((e) => e.publicado && e.destaque && (e.dataFim || e.data) >= hoje);
 
   useEffect(() => {
-    if (!ev || emPrevia()) return;
+    // espera o visitante responder ao aviso de cookies, para não abrir dois avisos juntos
+    if (!ev || emPrevia() || !cookies.decidido) return;
     try {
       if (sessionStorage.getItem(`aviso-${ev.id}`)) return;
     } catch { /* sem armazenamento: mostra mesmo assim */ }
     const t = setTimeout(() => setAberto(true), 1200);
     return () => clearTimeout(t);
-  }, [ev?.id]);
+  }, [ev?.id, cookies.decidido]);
 
   if (!ev || !aberto) return null;
   const fechar = () => {

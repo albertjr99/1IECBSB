@@ -197,10 +197,10 @@ export const CONTEUDO_PADRAO: Conteudo = {
     email: "",
     horarioAtendimento: "",
     endereco: {
-      linha1: "SHCS SQ 415 – Templo",
-      linha2: "Asa Sul, Brasília — DF",
-      cep: "70298-400",
-      consultaMapa: "Primeira Igreja Evangélica Congregacional de Brasília, SHCS SQ 415, Asa Sul, Brasília - DF, 70298-400",
+      linha1: "SHCS SQS 416 – Plano Piloto",
+      linha2: "Brasília — DF",
+      cep: "70298-160",
+      consultaMapa: "Primeira Igreja Evangélica Congregacional de Brasília, SHCS SQS 416, Plano Piloto, Brasília - DF, 70298-160, Brasil",
     },
     redes: {
       instagram: "https://www.instagram.com/1iecbsb/",
@@ -294,9 +294,9 @@ export const CONTEUDO_PADRAO: Conteudo = {
     titulo: "Próximos eventos",
     subtitulo: "Congressos, conferências e encontros especiais.",
     itens: [
-      { id: "juniores-2026", titulo: "1º Congresso dos Juniores IECB", data: "2026-11-28", dataFim: "2026-11-29", horario: "Sábado, 19h", local: "Templo — SHCS SQ 415", descricao: "Vamos agradecer a Deus pela vida dos nossos pequeninos. Participe e traga convidados!", imagem: "", rotuloLink: "", link: "", destaque: false, publicado: true },
+      { id: "juniores-2026", titulo: "1º Congresso dos Juniores IECB", data: "2026-11-28", dataFim: "2026-11-29", horario: "Sábado, 19h", local: "Templo — SHCS SQS 416", descricao: "Vamos agradecer a Deus pela vida dos nossos pequeninos. Participe e traga convidados!", imagem: "", rotuloLink: "", link: "", destaque: false, publicado: true },
       { id: "jantar-2026", titulo: "Jantar de Confraternização IECB", data: "2026-12-04", dataFim: "", horario: "19h", local: "", descricao: "", imagem: "", rotuloLink: "", link: "", destaque: false, publicado: true },
-      { id: "iecb-54-anos", titulo: "IEC de Brasília — 54 anos", data: "2026-12-05", dataFim: "2026-12-06", horario: "19h", local: "Templo — SHCS SQ 415", descricao: "Cultos de gratidão a Deus pelos 54 anos da igreja, com o Pr. Eleazar Duarte (Projeto Zero). No sábado, participação do Coral Adorai (IP de Águas Claras); no domingo, Ceia do Senhor. Bazar Missionário nos dois dias.", imagem: "", rotuloLink: "", link: "", destaque: true, publicado: true },
+      { id: "iecb-54-anos", titulo: "IEC de Brasília — 54 anos", data: "2026-12-05", dataFim: "2026-12-06", horario: "19h", local: "Templo — SHCS SQS 416", descricao: "Cultos de gratidão a Deus pelos 54 anos da igreja, com o Pr. Eleazar Duarte (Projeto Zero). No sábado, participação do Coral Adorai (IP de Águas Claras); no domingo, Ceia do Senhor. Bazar Missionário nos dois dias.", imagem: "", rotuloLink: "", link: "", destaque: true, publicado: true },
       { id: "cafe-aniversariantes", titulo: "Café da manhã dos aniversariantes do trimestre", data: "2026-12-13", dataFim: "", horario: "9h", local: "", descricao: "", imagem: "", rotuloLink: "", link: "", destaque: false, publicado: true },
     ],
   },
@@ -330,7 +330,7 @@ export const CONTEUDO_PADRAO: Conteudo = {
         id: "pastores",
         nome: "Pastores",
         membros: [
-          { id: "pr-hilario", nome: "Pr. Hilário José Bispo da Graça", cargo: "Pastor-Presidente", foto: "", bio: "" },
+          { id: "pr-hilario", nome: "Pr. Hilário José Bispo da Graça", cargo: "Pastor-Presidente", foto: "/fotos/pr-hilario-jose.jpg", bio: "" },
           { id: "pr-aluizio", nome: "Pr. Aluízio Lourenço da Silva Filho", cargo: "Pastor Auxiliar", foto: "/fotos/pr-aluizio-lourenco.jpg", bio: "" },
           { id: "pr-jefferson", nome: "Pr. Jefferson Pontes Guimarães", cargo: "Pastor", foto: "", bio: "" },
         ],
@@ -339,7 +339,7 @@ export const CONTEUDO_PADRAO: Conteudo = {
         id: "diretoria",
         nome: "Diretoria da Igreja",
         membros: [
-          { id: "dir-presidente", nome: "Pr. Hilário José Bispo da Graça", cargo: "Pastor-Presidente", foto: "", bio: "" },
+          { id: "dir-presidente", nome: "Pr. Hilário José Bispo da Graça", cargo: "Pastor-Presidente", foto: "/fotos/pr-hilario-jose.jpg", bio: "" },
           { id: "dir-vice", nome: "Pb. Ricardo Rogério D. Santos", cargo: "Vice-Presidente", foto: "", bio: "" },
           { id: "dir-secretaria", nome: "Maria Isabel A. Silva dos Santos", cargo: "Secretária-Geral", foto: "", bio: "" },
           { id: "dir-patrimonio", nome: "Pb. Jorge E. S. Bonacorso", cargo: "Secretário do Patrimônio", foto: "", bio: "" },
@@ -403,7 +403,16 @@ export const CONTEUDO_PADRAO: Conteudo = {
  * Sem isto, um campo novo no código quebraria a leitura de um conteúdo antigo.
  */
 export function completarConteudo(salvo: unknown): Conteudo {
-  return mesclar(CONTEUDO_PADRAO, salvo) as Conteudo;
+  const c = mesclar(CONTEUDO_PADRAO, salvo) as Conteudo;
+  // correção do endereço (nov/2026): o antigo "SQ 415 / 70298-400" estava errado
+  const e = c.geral.endereco;
+  if (/SQS? 415|70298-400/.test(`${e.linha1} ${e.cep} ${e.consultaMapa}`)) c.geral.endereco = structuredClone(CONTEUDO_PADRAO.geral.endereco);
+  for (const ev of c.eventos.itens) ev.local = ev.local.replace(/SHCS SQ 415/g, "SHCS SQS 416");
+  // fotos novas da liderança entram mesmo em conteúdo já salvo (se ainda sem foto)
+  for (const g of c.lideranca.grupos) for (const m of g.membros) {
+    if (!m.foto && /Hil[aá]rio Jos[eé]/.test(m.nome)) m.foto = "/fotos/pr-hilario-jose.jpg";
+  }
+  return c;
 }
 
 function mesclar(padrao: unknown, valor: unknown): unknown {

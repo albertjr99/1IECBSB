@@ -18,12 +18,14 @@ import { Route as SiteContribuaRouteImport } from './routes/_site/contribua'
 import { Route as SiteLiderancaRouteImport } from './routes/_site/lideranca'
 import { Route as SiteMensagensRouteImport } from './routes/_site/mensagens'
 import { Route as SiteMinisteriosRouteImport } from './routes/_site/ministerios'
+import { Route as SitePrivacidadeRouteImport } from './routes/_site/privacidade'
 import { Route as SiteProgramacaoRouteImport } from './routes/_site/programacao'
 import { Route as SiteSobreRouteImport } from './routes/_site/sobre'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminEntrarRouteImport } from './routes/admin/entrar'
 import { Route as VotarTokenRouteImport } from './routes/votar.$token'
 import { Route as SiteBoletimDataRouteImport } from './routes/_site/boletim.$data'
+import { Route as SiteMinisteriosIdRouteImport } from './routes/_site/ministerios_.$id'
 import { Route as ImpressaoBoletimIdRouteImport } from './routes/impressao.boletim.$id'
 import { Route as ApiBoletimIdPdfRouteImport } from './routes/api/boletim.$id.pdf'
 
@@ -71,6 +73,11 @@ const SiteMinisteriosRoute = SiteMinisteriosRouteImport.update({
   path: '/ministerios',
   getParentRoute: () => SiteRoute,
 } as any)
+const SitePrivacidadeRoute = SitePrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => SiteRoute,
+} as any)
 const SiteProgramacaoRoute = SiteProgramacaoRouteImport.update({
   id: '/programacao',
   path: '/programacao',
@@ -101,6 +108,11 @@ const SiteBoletimDataRoute = SiteBoletimDataRouteImport.update({
   path: '/boletim/$data',
   getParentRoute: () => SiteRoute,
 } as any)
+const SiteMinisteriosIdRoute = SiteMinisteriosIdRouteImport.update({
+  id: '/ministerios_/$id',
+  path: '/ministerios/$id',
+  getParentRoute: () => SiteRoute,
+} as any)
 const ImpressaoBoletimIdRoute = ImpressaoBoletimIdRouteImport.update({
   id: '/impressao/boletim/$id',
   path: '/impressao/boletim/$id',
@@ -121,12 +133,14 @@ export interface FileRoutesByFullPath {
   '/lideranca': typeof SiteLiderancaRoute
   '/mensagens': typeof SiteMensagensRoute
   '/ministerios': typeof SiteMinisteriosRoute
+  '/privacidade': typeof SitePrivacidadeRoute
   '/programacao': typeof SiteProgramacaoRoute
   '/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
   '/votar/$token': typeof VotarTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/boletim/$data': typeof SiteBoletimDataRoute
+  '/ministerios/$id': typeof SiteMinisteriosIdRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
@@ -138,6 +152,7 @@ export interface FileRoutesByTo {
   '/lideranca': typeof SiteLiderancaRoute
   '/mensagens': typeof SiteMensagensRoute
   '/ministerios': typeof SiteMinisteriosRoute
+  '/privacidade': typeof SitePrivacidadeRoute
   '/programacao': typeof SiteProgramacaoRoute
   '/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
@@ -145,6 +160,7 @@ export interface FileRoutesByTo {
   '/': typeof SiteIndexRoute
   '/admin': typeof AdminIndexRoute
   '/boletim/$data': typeof SiteBoletimDataRoute
+  '/ministerios/$id': typeof SiteMinisteriosIdRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
@@ -158,6 +174,7 @@ export interface FileRoutesById {
   '/_site/lideranca': typeof SiteLiderancaRoute
   '/_site/mensagens': typeof SiteMensagensRoute
   '/_site/ministerios': typeof SiteMinisteriosRoute
+  '/_site/privacidade': typeof SitePrivacidadeRoute
   '/_site/programacao': typeof SiteProgramacaoRoute
   '/_site/sobre': typeof SiteSobreRoute
   '/admin/entrar': typeof AdminEntrarRoute
@@ -165,6 +182,7 @@ export interface FileRoutesById {
   '/_site/': typeof SiteIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_site/boletim/$data': typeof SiteBoletimDataRoute
+  '/_site/ministerios_/$id': typeof SiteMinisteriosIdRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
 }
@@ -179,12 +197,14 @@ export interface FileRouteTypes {
     | '/lideranca'
     | '/mensagens'
     | '/ministerios'
+    | '/privacidade'
     | '/programacao'
     | '/sobre'
     | '/admin/entrar'
     | '/votar/$token'
     | '/admin/'
     | '/boletim/$data'
+    | '/ministerios/$id'
     | '/impressao/boletim/$id'
     | '/api/boletim/$id/pdf'
   fileRoutesByTo: FileRoutesByTo
@@ -196,6 +216,7 @@ export interface FileRouteTypes {
     | '/lideranca'
     | '/mensagens'
     | '/ministerios'
+    | '/privacidade'
     | '/programacao'
     | '/sobre'
     | '/admin/entrar'
@@ -203,6 +224,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/boletim/$data'
+    | '/ministerios/$id'
     | '/impressao/boletim/$id'
     | '/api/boletim/$id/pdf'
   id:
@@ -215,6 +237,7 @@ export interface FileRouteTypes {
     | '/_site/lideranca'
     | '/_site/mensagens'
     | '/_site/ministerios'
+    | '/_site/privacidade'
     | '/_site/programacao'
     | '/_site/sobre'
     | '/admin/entrar'
@@ -222,6 +245,7 @@ export interface FileRouteTypes {
     | '/_site/'
     | '/admin/'
     | '/_site/boletim/$data'
+    | '/_site/ministerios_/$id'
     | '/impressao/boletim/$id'
     | '/api/boletim/$id/pdf'
   fileRoutesById: FileRoutesById
@@ -300,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteMinisteriosRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/privacidade': {
+      id: '/_site/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof SitePrivacidadeRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/_site/programacao': {
       id: '/_site/programacao'
       path: '/programacao'
@@ -342,6 +373,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteBoletimDataRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/_site/ministerios_/$id': {
+      id: '/_site/ministerios_/$id'
+      path: '/ministerios/$id'
+      fullPath: '/ministerios/$id'
+      preLoaderRoute: typeof SiteMinisteriosIdRouteImport
+      parentRoute: typeof SiteRoute
+    }
     '/impressao/boletim/$id': {
       id: '/impressao/boletim/$id'
       path: '/impressao/boletim/$id'
@@ -367,10 +405,12 @@ interface SiteRouteChildren {
   SiteLiderancaRoute: typeof SiteLiderancaRoute
   SiteMensagensRoute: typeof SiteMensagensRoute
   SiteMinisteriosRoute: typeof SiteMinisteriosRoute
+  SitePrivacidadeRoute: typeof SitePrivacidadeRoute
   SiteProgramacaoRoute: typeof SiteProgramacaoRoute
   SiteSobreRoute: typeof SiteSobreRoute
   SiteIndexRoute: typeof SiteIndexRoute
   SiteBoletimDataRoute: typeof SiteBoletimDataRoute
+  SiteMinisteriosIdRoute: typeof SiteMinisteriosIdRoute
 }
 
 const SiteRouteChildren: SiteRouteChildren = {
@@ -381,10 +421,12 @@ const SiteRouteChildren: SiteRouteChildren = {
   SiteLiderancaRoute: SiteLiderancaRoute,
   SiteMensagensRoute: SiteMensagensRoute,
   SiteMinisteriosRoute: SiteMinisteriosRoute,
+  SitePrivacidadeRoute: SitePrivacidadeRoute,
   SiteProgramacaoRoute: SiteProgramacaoRoute,
   SiteSobreRoute: SiteSobreRoute,
   SiteIndexRoute: SiteIndexRoute,
   SiteBoletimDataRoute: SiteBoletimDataRoute,
+  SiteMinisteriosIdRoute: SiteMinisteriosIdRoute,
 }
 
 const SiteRouteWithChildren = SiteRoute._addFileChildren(SiteRouteChildren)

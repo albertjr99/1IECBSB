@@ -3,6 +3,8 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { ArrowRight, Clock, LockKeyhole, Mail, MapPin, Menu, Phone, X } from "lucide-react";
 import { useConteudo } from "@/lib/contexto";
 import { useAoVivo } from "@/lib/ao-vivo";
+import { AvisoCookies } from "./AvisoCookies";
+import { abrirPreferenciasCookies } from "@/lib/consentimento";
 import { cn, linkTelefone, linkWhatsapp } from "@/lib/utils";
 import { LinkSite } from "./Link";
 import { IconeFacebook, IconeInstagram, IconeSpotify, IconeWhatsapp, IconeYoutube } from "./Icones";
@@ -186,55 +188,45 @@ function Rodape() {
   const g = c.geral;
   const zap = linkWhatsapp(g.whatsapp, "Olá! Vim pelo site.");
   return (
-    <footer className="grafismo-monte-escuro relative overflow-hidden bg-marca text-white/85">
-      <div className="container-site relative grid gap-10 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
-        <div>
-          <Marca negativo className="w-[300px]" />
-          {c.rodape.texto && <p className="texto-justificado mt-5 max-w-sm text-[15px] text-white/70">{c.rodape.texto}</p>}
-          <div className="mt-5 -ml-2"><Redes claro /></div>
+    <footer className="grafismo-monte-escuro relative overflow-hidden bg-marca text-white/80">
+      <div className="container-site relative grid gap-8 py-10 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-12">
+        <div className="grid gap-4">
+          <Marca negativo className="w-[260px]" />
+          <div className="-ml-2"><Redes claro tamanho={17} /></div>
         </div>
-        <div>
-          <h4 className="text-[11.5px] font-bold uppercase tracking-[0.24em] text-white">Navegue</h4>
-          <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-[15px]">
+        <nav aria-label="Rodapé" className="md:pt-1">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[14px]">
             {c.menu.filter((m) => m.visivel).map((m) => (
               <li key={m.id}><LinkSite para={m.para} className="hover:text-white">{m.rotulo}</LinkSite></li>
             ))}
             <li><Link to="/ao-vivo" className="hover:text-white">Ao vivo</Link></li>
           </ul>
-        </div>
-        <div>
-          <h4 className="text-[11.5px] font-bold uppercase tracking-[0.24em] text-white">Visite-nos</h4>
-          <ul className="mt-4 grid gap-3 text-[15px]">
-            <li className="flex gap-3">
-              <MapPin size={17} className="mt-1 shrink-0 text-white/60" />
-              <span>{g.endereco.linha1}{g.endereco.linha2 && <><br />{g.endereco.linha2}</>}{g.endereco.cep && <><br />CEP {g.endereco.cep}</>}</span>
-            </li>
-            {g.telefone && <li className="flex gap-3"><Phone size={17} className="mt-1 shrink-0 text-white/60" /><a href={linkTelefone(g.telefone)} className="hover:text-white">{g.telefone}</a></li>}
-            {g.email && <li className="flex gap-3"><Mail size={17} className="mt-1 shrink-0 text-white/60" /><a href={`mailto:${g.email}`} className="break-all hover:text-white">{g.email}</a></li>}
-            {g.horarioAtendimento && <li className="flex gap-3"><Clock size={17} className="mt-1 shrink-0 text-white/60" />{g.horarioAtendimento}</li>}
-          </ul>
-          {zap && (
-            <a href={zap} target="_blank" rel="noopener noreferrer" className="btn-branco mt-5 !h-11">
-              <IconeWhatsapp size={16} /> WhatsApp
-            </a>
-          )}
-        </div>
+          {c.rodape.texto && <p className="mt-4 text-[13.5px] text-white/60">{c.rodape.texto}</p>}
+        </nav>
+        <address className="grid gap-2 text-[14px] not-italic md:pt-1">
+          <span className="flex gap-2.5"><MapPin size={16} className="mt-[3px] shrink-0 text-white/55" /><span>{g.endereco.linha1}<br />{g.endereco.linha2}{g.endereco.cep && <> · CEP {g.endereco.cep}</>}</span></span>
+          {g.telefone && <span className="flex gap-2.5"><Phone size={16} className="mt-[3px] shrink-0 text-white/55" /><a href={linkTelefone(g.telefone)} className="hover:text-white">{g.telefone}</a></span>}
+          {g.email && <span className="flex gap-2.5"><Mail size={16} className="mt-[3px] shrink-0 text-white/55" /><a href={`mailto:${g.email}`} className="break-all hover:text-white">{g.email}</a></span>}
+          {g.horarioAtendimento && <span className="flex gap-2.5"><Clock size={16} className="mt-[3px] shrink-0 text-white/55" />{g.horarioAtendimento}</span>}
+          {zap && <a href={zap} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-2 font-semibold text-white hover:text-white/80"><IconeWhatsapp size={15} /> WhatsApp</a>}
+        </address>
       </div>
       <div className="relative border-t border-white/15">
-        <div className="container-site flex flex-col gap-2 py-5 text-[13px] text-white/55 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} {g.nome}</p>
-          <Link to="/admin" className="hover:text-white/80">Área administrativa</Link>
-        </div>
-        {/* Crédito de quem produziu o site. */}
-        <div className="container-site flex items-center justify-center gap-2 pb-6 text-[12px] text-white/50">
-          <span>Produzido por</span>
-          <span aria-hidden className="text-white/25">|</span>
+        <div className="container-site flex flex-col gap-3 py-4 text-[12.5px] text-white/55 md:flex-row md:items-center md:justify-between">
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span>© {new Date().getFullYear()} {g.nome}</span>
+            <Link to="/privacidade" className="hover:text-white/85">Privacidade</Link>
+            <button type="button" onClick={abrirPreferenciasCookies} className="hover:text-white/85">Cookies</button>
+            <Link to="/admin" className="hover:text-white/85">Área administrativa</Link>
+          </p>
+          {/* Crédito de quem produziu o site. */}
           <a
             href={`mailto:contato.gratiast@gmail.com?subject=${encodeURIComponent(`Contato pelo site da ${g.nomeCurto}`)}`}
             title="GRATIA Software e Tecnologia — enviar e-mail"
-            className="rounded opacity-80 transition-opacity hover:opacity-100"
+            className="inline-flex items-center gap-2 self-start opacity-75 transition-opacity hover:opacity-100 md:self-auto"
           >
-            <img src="/logo-gratia-branco.svg" alt="GRATIA Software e Tecnologia" width={130} height={28} className="h-7 w-auto" />
+            <span>Produzido por</span>
+            <img src="/logo-gratia-branco.svg" alt="GRATIA Software e Tecnologia" width={100} height={22} className="h-5 w-auto" />
           </a>
         </div>
       </div>
@@ -249,6 +241,7 @@ export function LayoutSite({ children }: { children: ReactNode }) {
       <Cabecalho />
       <main id="conteudo" className="flex-1">{children}</main>
       <Rodape />
+      <AvisoCookies />
       <AvisoEvento />
     </div>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ConteudoExterno } from "./AvisoCookies";
 import { ExternalLink, MapPin, Navigation, Play, X } from "lucide-react";
 import type { Evento } from "@/lib/conteudo";
 import type { Video } from "@/server/youtube";
@@ -67,14 +68,16 @@ export function PlayerVideo({ v, onFechar }: { v: Video | null; onFechar: () => 
           <h3 className="text-lg font-semibold">{v.titulo}</h3>
           <button onClick={onFechar} className="grid size-10 shrink-0 place-items-center rounded-full bg-white/10 hover:bg-white/20" aria-label="Fechar"><X size={20} /></button>
         </div>
-        <div className="aspect-video overflow-hidden rounded-md bg-black shadow-2xl">
-          <iframe
-            src={`https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`}
-            title={v.titulo}
-            className="size-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
+        <div className="relative aspect-video overflow-hidden rounded-md bg-black shadow-2xl">
+          <ConteudoExterno tipo="video" link={`https://www.youtube.com/watch?v=${v.id}`}>
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`}
+              title={v.titulo}
+              className="size-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </ConteudoExterno>
         </div>
         <a href={`https://www.youtube.com/watch?v=${v.id}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white">
           Abrir no YouTube <ExternalLink size={14} />
@@ -122,7 +125,9 @@ export function Mapa({ consulta, className }: { consulta: string; className?: st
   return (
     <div ref={setRef} className={cn("relative overflow-hidden rounded-lg bg-marca-clara", className)}>
       {carregar ? (
-        <iframe title="Mapa de localização" src={src} className="absolute inset-0 size-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+        <ConteudoExterno tipo="mapa" link={`https://www.google.com/maps/search/?api=1&query=${q}`}>
+          <iframe title="Mapa de localização" src={src} className="absolute inset-0 size-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+        </ConteudoExterno>
       ) : (
         <div className="absolute inset-0 grid place-items-center text-sm text-marca/60"><MapPin /></div>
       )}

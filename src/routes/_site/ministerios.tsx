@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 import { useConteudo } from "@/lib/contexto";
-import { linkWhatsapp } from "@/lib/utils";
 import { iconeMinisterio } from "@/lib/conteudo";
 import { CapaPagina } from "@/components/site/Layout";
 
@@ -11,29 +11,28 @@ function Ministerios() {
   return (
     <>
       <CapaPagina rotulo="Participe" titulo={m.titulo} texto={m.introducao} />
-      <div className="container-site grid gap-x-12 gap-y-14 py-20 md:grid-cols-2">
+      <div className="container-site grid gap-5 py-20 sm:grid-cols-2 lg:grid-cols-3">
         {m.itens.map((x) => (
-          <article key={x.id} className="flex flex-col">
-            {x.imagem && <img src={x.imagem} alt="" className="mb-6 aspect-[16/10] w-full object-cover" loading="lazy" />}
-            <div className="flex items-center gap-5">
-              <span className="grid size-16 shrink-0 place-items-center rounded-full bg-marca">
-                <img src={`/marca/icones/icone-${iconeMinisterio(x)}-branco.svg`} alt="" className="size-9" />
+          <Link
+            key={x.id}
+            to="/ministerios/$id"
+            params={{ id: x.id }}
+            className="group relative flex flex-col overflow-hidden border border-linha bg-white transition duration-300 hover:-translate-y-1 hover:border-marca hover:shadow-[0_22px_44px_-24px_rgba(0,42,71,0.45)]"
+          >
+            <div className="h-1 bg-marca transition-all duration-300 group-hover:h-1.5" />
+            {x.imagem && <img src={x.imagem} alt="" className="aspect-[16/9] w-full object-cover" loading="lazy" />}
+            <div className="flex flex-1 flex-col p-7">
+              <span className="grid size-14 place-items-center rounded-full bg-marca transition-transform duration-300 group-hover:scale-105">
+                <img src={`/marca/icones/icone-${iconeMinisterio(x)}-branco.svg`} alt="" className="size-8" />
               </span>
-              <h3 className="text-[1.3rem] font-bold leading-snug text-marca">{x.nome}</h3>
+              <h2 className="mt-6 text-[1.25rem] font-bold leading-snug text-marca">{x.nome}</h2>
+              <p className="texto-justificado mt-3 line-clamp-3 text-[15px] leading-relaxed text-tinta">{x.descricao}</p>
+              {x.quando && <p className="mt-4 text-[12px] font-bold uppercase tracking-[0.14em] text-tinta-suave">{x.quando}</p>}
+              <span className="mt-auto inline-flex items-center gap-2 pt-6 text-[12px] font-bold uppercase tracking-[0.14em] text-marca">
+                Conhecer <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+              </span>
             </div>
-            <p className="texto-justificado mt-5 leading-relaxed text-tinta">{x.descricao}</p>
-            {(x.quando || x.lider) && (
-              <dl className="mt-5 grid gap-2 border-t border-linha pt-4 text-[14.5px]">
-                {x.quando && <div className="flex gap-3"><dt className="w-24 shrink-0 text-[11px] font-bold uppercase leading-6 tracking-[0.18em] text-tinta-suave">Quando</dt><dd className="text-tinta">{x.quando}</dd></div>}
-                {x.lider && <div className="flex gap-3"><dt className="w-24 shrink-0 text-[11px] font-bold uppercase leading-6 tracking-[0.18em] text-tinta-suave">Liderança</dt><dd className="text-tinta">{x.lider}</dd></div>}
-              </dl>
-            )}
-            {x.contato && (
-              <a href={linkWhatsapp(x.contato, `Olá! Quero saber mais sobre o ministério ${x.nome}.`)} target="_blank" rel="noopener noreferrer" className="btn-contorno mt-5 self-start">
-                Quero participar
-              </a>
-            )}
-          </article>
+          </Link>
         ))}
       </div>
     </>

@@ -143,7 +143,7 @@ export function blocoNovo(tipo: TipoBloco): Bloco {
 
 const EXPEDIENTE = {
   nome: "Primeira Igreja Evangélica\nCongregacional de Brasília",
-  texto: "SHCS SQ 415 – Templo – Asa Sul / Plano Piloto\nBrasília/DF - CEP 70298-400\nTel. (61) 3346-7866 / 3245-1739\nCNPJ: 00.371.427/0001-04\ninstagram.com/1iecbsb\nyoutube.com/@iecbsb",
+  texto: "SHCS SQS 416 – Plano Piloto\nBrasília/DF - CEP 70298-160\nTel. (61) 3346-7866 / 3245-1739\nCNPJ: 00.371.427/0001-04\ninstagram.com/1iecbsb\nyoutube.com/@iecbsb",
   pastoresTitulo: "Pastores",
   pastores: "Hilário José Bispo da Graça\nAluízio Lourenço da Silva Filho (Pr. Aux.)\nJefferson Pontes Guimarães",
   diretoriaTitulo: "Diretoria da Igreja",

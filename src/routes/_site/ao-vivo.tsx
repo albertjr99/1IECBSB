@@ -8,19 +8,22 @@ import type { Video } from "@/server/youtube";
 import { CapaPagina } from "@/components/site/Layout";
 import { AgendaCompacta } from "@/components/site/AgendaSemanal";
 import { IconeYoutube } from "@/components/site/Icones";
+import { ConteudoExterno } from "@/components/site/AvisoCookies";
 
 export const Route = createFileRoute("/_site/ao-vivo")({ component: AoVivo, head: () => ({ meta: [{ title: "Ao vivo" }] }) });
 
 function Player({ id, titulo }: { id: string; titulo: string }) {
   return (
-    <div className="aspect-video overflow-hidden rounded-lg bg-black shadow-2xl">
-      <iframe
-        src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`}
-        title={titulo}
-        className="size-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-      />
+    <div className="relative aspect-video overflow-hidden rounded-lg bg-black shadow-2xl">
+      <ConteudoExterno tipo="video" link={`https://www.youtube.com/watch?v=${id}`}>
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`}
+          title={titulo}
+          className="size-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </ConteudoExterno>
     </div>
   );
 }
