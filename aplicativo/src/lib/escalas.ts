@@ -15,7 +15,7 @@ export type EscalaVista = {
 };
 export type MeuMinisterio = { id: string; nome: string; icone: string; lider: boolean; funcoes: string[]; pessoas: number; rascunhos: number; recusas: number };
 export type InicioEscalas = { ministerios: MeuMinisterio[]; proximas: EscalaVista[]; recentes: EscalaVista[]; pendentes: number; ausencias: Indisponibilidade[] };
-export type VerEscala = { escala: EscalaVista; ministerio: { id: string; nome: string; icone: string; repertorio: boolean; funcoes: Funcao[] }; lider: boolean; alertas: Record<string, string[]> };
+export type VerEscala = { escala: EscalaVista; ministerio: { id: string; nome: string; icone: string; repertorio: boolean; funcoes: Funcao[] }; lider: boolean; alertas: Record<string, string[]>; repetidas?: { id: string; titulo: string; situacao: "rascunho" | "publicada" }[] };
 export type PessoaEquipe = { membroId: string; nome: string; foto?: string; lider: boolean; funcoes: string[]; funcoesNomes: string[]; vezes90: number; ultima?: string; faltas: number };
 export type DadosMinisterio = {
   ministerio: MinisterioApp; equipe: PessoaEquipe[]; escalas: EscalaVista[]; series: Serie[];

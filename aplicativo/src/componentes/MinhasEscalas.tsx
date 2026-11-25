@@ -1,7 +1,8 @@
 /** Aba "Escalas" do Participar: quando eu sirvo, meus ministérios e minhas ausências. */
 import { Rostos } from "./Pessoa";
+import { DataBloco, StatusIcone } from "./EscalaUI";
 import { router } from "expo-router";
-import { CalendarOff, CheckCircle2, ChevronRight, CircleDashed, Crown, Plus, Trash2, XCircle } from "lucide-react-native";
+import { CalendarOff, CheckCircle2, ChevronRight, CircleDashed, Plus, Trash2, XCircle } from "lucide-react-native";
 import { useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { Botao, Cartao, Sobre, T } from "./ui";
@@ -10,7 +11,7 @@ import { CampoData } from "./Calendario";
 import { IconeMinisterio } from "./IconeMinisterio";
 import { diaDe, marcarAusencia, removerAusencia, responderEscala, type EscalaVista, type InicioEscalas, type Resposta } from "@/lib/escalas";
 import { AZUL, F, VERMELHO, useTema } from "@/lib/tema";
-import { dataBR, dataComDia, emBrasilia, hojeBrasilia } from "@/lib/util";
+import { dataBR, emBrasilia, hojeBrasilia } from "@/lib/util";
 
 export const horaBR = (iso: string) => { const b = emBrasilia(iso); return `${String(b.hora).padStart(2, "0")}h${String(b.minuto).padStart(2, "0")}`; };
 
@@ -72,28 +73,24 @@ export function MinhasEscalas({ d, recarregar }: { d: InicioEscalas; recarregar:
           const pendente = minhas.some((v) => v.resposta === "pendente");
           const perto = ["Hoje", "Amanhã"].includes(falta(e.inicio));
           return (
-            <Cartao key={e.id} style={[{ padding: 0 }, pendente && { borderColor: AZUL }]}>
-              <Pressable onPress={() => router.push(`/escala/${e.id}`)} style={{ padding: 18, gap: 6 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <IconeMinisterio chave={e.icone} size={14} color={c.suave} />
-                  <T s={10.5} f={F.negrito} cor={c.suave} style={{ flex: 1, letterSpacing: 1.6, textTransform: "uppercase" }}>{e.ministerio}</T>
-                  <T s={10.5} f={F.negrito} cor={perto ? VERMELHO : c.suave} style={{ letterSpacing: 1.6, textTransform: "uppercase" }}>{falta(e.inicio)}</T>
-                </View>
-                <Text style={{ fontFamily: F.negrito, fontSize: 18, lineHeight: 23, color: c.escuro ? c.texto : AZUL }}>{e.titulo}</Text>
-                <T s={14} cor={c.suave}>{dataComDia(diaDe(e.inicio))} · {horaBR(e.inicio)}{e.local ? ` · ${e.local}` : ""}</T>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 4 }}>
-                  {minhas.map((v) => <View key={v.id} style={{ backgroundColor: c.realce, paddingHorizontal: 10, paddingVertical: 4 }}><T s={13} f={F.negrito} cor={c.azul}>{v.funcao}</T></View>)}
-                  {minhas[0] ? <Selo r={minhas[0].resposta} /> : null}
-                </View>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 }}>
-                  <Rostos pessoas={e.vagas.filter((v) => v.membroId).map((v) => ({ id: v.membroId, nome: v.nome ?? "", foto: v.foto }))} />
-                  <T s={12.5} cor={c.suave} style={{ flex: 1 }}>{e.confirmados} de {e.preenchidas} confirmados{e.musicas.length ? ` · ${e.musicas.length} músicas` : ""}</T>
+            <Cartao key={e.id} filete={pendente} style={{ padding: 0 }}>
+              <Pressable onPress={() => router.push(`/escala/${e.id}`)} style={({ pressed }) => ({ flexDirection: "row", gap: 14, padding: 16, opacity: pressed ? 0.85 : 1 })}>
+                <DataBloco iso={e.inicio} tam={56} claro={!pendente} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <T s={12.5} cor={perto ? c.azul : c.suave} f={perto ? F.negrito : F.medio}>{e.ministerio} · {falta(e.inicio)}</T>
+                  <Text numberOfLines={2} style={{ fontFamily: F.negrito, fontSize: 17, lineHeight: 22, color: c.escuro ? c.texto : AZUL }}>{e.titulo}</Text>
+                  <T s={13.5} cor={c.suave}>{horaBR(e.inicio)}{e.local ? ` · ${e.local}` : ""}</T>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 }}>
+                    {minhas[0] ? <StatusIcone r={minhas[0].resposta} tam={18} /> : null}
+                    <T s={13.5} f={F.semi} style={{ flex: 1 }} linhas={1}>{minhas.map((v) => v.funcao).join(" e ")}</T>
+                    <Rostos pessoas={e.vagas.filter((v) => v.membroId && !e.minhas.includes(v.id)).map((v) => ({ id: v.membroId, nome: v.nome ?? "", foto: v.foto }))} tam={24} max={4} />
+                  </View>
                 </View>
               </Pressable>
               {pendente ? (
-                <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: c.borda }}>
-                  <Pressable disabled={enviando} onPress={() => setRecusa({ e, motivo: "" })} style={{ flex: 1, height: 50, alignItems: "center", justifyContent: "center" }}><T s={12} f={F.negrito} cor={VERMELHO} style={{ letterSpacing: 1.2, textTransform: "uppercase" }}>Não poderei</T></Pressable>
-                  <Pressable disabled={enviando} onPress={() => responder(e, "confirmado")} style={{ flex: 1, height: 50, alignItems: "center", justifyContent: "center", backgroundColor: AZUL }}><T s={12} f={F.negrito} cor="#fff" style={{ letterSpacing: 1.2, textTransform: "uppercase" }}>Confirmar</T></Pressable>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingBottom: 16 }}>
+                  <Pressable disabled={enviando} onPress={() => setRecusa({ e, motivo: "" })} style={{ height: 44, paddingHorizontal: 14, alignItems: "center", justifyContent: "center" }}><T s={14} f={F.semi} cor={c.suave}>Não posso</T></Pressable>
+                  <Botao style={{ flex: 1, height: 44 }} carregando={enviando} onPress={() => responder(e, "confirmado")}>Confirmar</Botao>
                 </View>
               ) : null}
             </Cartao>
@@ -104,33 +101,27 @@ export function MinhasEscalas({ d, recarregar }: { d: InicioEscalas; recarregar:
       <View style={{ gap: 12 }}>
         <Sobre>Meus ministérios</Sobre>
         {d.ministerios.map((m) => (
-          <Cartao key={m.id} onPress={m.lider ? () => router.push(`/ministerio/${m.id}`) : undefined} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <View style={{ width: 46, height: 46, backgroundColor: AZUL, alignItems: "center", justifyContent: "center" }}><IconeMinisterio chave={m.icone} size={21} color="#fff" /></View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><T f={F.negrito} s={16}>{m.nome}</T>{m.lider ? <Crown size={14} color={VERMELHO} /> : null}</View>
-              <T s={13} cor={c.suave} linhas={1}>{m.funcoes.join(", ") || "Sem função definida"} · {m.pessoas} pessoas</T>
-              {m.lider && (m.recusas > 0 || m.rascunhos > 0) ? (
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  {m.recusas > 0 ? <T s={11.5} f={F.negrito} cor={VERMELHO}>{m.recusas} com ausência avisada</T> : null}
-                  {m.rascunhos > 0 ? <T s={11.5} f={F.negrito} cor={c.azul}>{m.rascunhos} em rascunho</T> : null}
-                </View>
-              ) : null}
+          <Cartao key={m.id} onPress={m.lider ? () => router.push(`/ministerio/${m.id}`) : undefined} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 14 }}>
+            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.realce, alignItems: "center", justifyContent: "center" }}><IconeMinisterio chave={m.icone} size={20} color={c.azul} /></View>
+            <View style={{ flex: 1, gap: 1 }}>
+              <T f={F.negrito} s={16}>{m.nome}</T>
+              <T s={13} cor={c.suave} linhas={1}>{[m.lider ? "Você lidera" : null, m.funcoes.join(", ") || null].filter(Boolean).join(" · ") || `${m.pessoas} pessoas`}</T>
+              {m.lider && (m.recusas > 0 || m.rascunhos > 0) ? <T s={12.5} f={F.semi} cor={c.azul}>{[m.recusas ? `${m.recusas} sem substituto` : null, m.rascunhos ? `${m.rascunhos} em rascunho` : null].filter(Boolean).join(" · ")}</T> : null}
             </View>
             {m.lider ? <ChevronRight size={18} color={c.suave} /> : null}
           </Cartao>
         ))}
-        {d.ministerios.some((m) => m.lider) ? <T s={12.5} cor={c.suave}>Você lidera: toque no ministério para montar e publicar as escalas.</T> : null}
       </View>
 
       <View style={{ gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Sobre>Minhas ausências</Sobre>
-          <Pressable hitSlop={8} onPress={() => { const h = hojeBrasilia(); setAusencia({ de: h, ate: h, motivo: "" }); }} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={16} color={c.azul} /><T s={12} f={F.negrito} cor={c.azul} style={{ letterSpacing: 1.2, textTransform: "uppercase" }}>Marcar</T></Pressable>
+          <Pressable hitSlop={8} onPress={() => { const h = hojeBrasilia(); setAusencia({ de: h, ate: h, motivo: "" }); }} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={16} color={c.azul} /><T s={14} f={F.semi} cor={c.azul}>Marcar</T></Pressable>
         </View>
         {d.ausencias.length === 0 ? <T s={13.5} cor={c.suave}>Vai viajar ou não poderá servir em algumas datas? Marque aqui e a liderança já vê ao montar a escala.</T> : (
           <Cartao style={{ padding: 0 }}>
             {d.ausencias.map((a, i) => (
-              <View key={a.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: c.borda }}>
+              <View key={a.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: c.fundo }}>
                 <CalendarOff size={18} color={c.suave} />
                 <View style={{ flex: 1 }}><T f={F.semi} s={15}>{a.de === a.ate ? dataBR(a.de) : `${dataBR(a.de)} a ${dataBR(a.ate)}`}</T>{a.motivo ? <T s={12.5} cor={c.suave}>{a.motivo}</T> : null}</View>
                 <Pressable hitSlop={10} onPress={async () => { await removerAusencia(a.id).catch(() => {}); recarregar(); }} accessibilityLabel="Remover"><Trash2 size={17} color={c.suave} /></Pressable>

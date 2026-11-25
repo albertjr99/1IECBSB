@@ -1,9 +1,10 @@
 /** Liderança do ministério: escalas, repetições, equipe e ausências. */
 import { FotoPessoa, Rostos } from "@/componentes/Pessoa";
+import { DataBloco } from "@/componentes/EscalaUI";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { AlertTriangle, CalendarOff, CalendarPlus, ChevronRight, Crown, Pencil, Plus, Repeat, Search, Settings2, Trash2, UserPlus, X } from "lucide-react-native";
+import { CalendarOff, CalendarPlus, ChevronRight, Crown, Pencil, Plus, Repeat, Search, Settings2, Trash2, UserPlus, X } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Alert, Pressable, Switch, Text, View } from "react-native";
 import { Aviso, Botao, Cartao, Carregando, T, Tela } from "@/componentes/ui";
 import { Folha, Rotulo } from "@/componentes/Folha";
 import { CampoData, CampoHora } from "@/componentes/Calendario";
@@ -14,7 +15,7 @@ import {
   type DadosMinisterio, type Frequencia, type Serie,
 } from "@/lib/escalas";
 import { AZUL, F, VERMELHO, useTema } from "@/lib/tema";
-import { dataBR, hojeBrasilia } from "@/lib/util";
+import { dataBR, hojeBrasilia, nomeCurto } from "@/lib/util";
 
 type Aba = "escalas" | "repeticoes" | "equipe" | "ausencias";
 type SerieForm = Omit<Serie, "id" | "ativa" | "excluidas" | "ministerioId" | "desde" | "ate"> & { id?: string; desde: string; ate: string; aplicar?: boolean };
@@ -48,40 +49,35 @@ export default function Ministerio() {
   return (
     <Tela voltar titulo="Liderança" atualizar={carregar}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ width: 50, height: 50, backgroundColor: AZUL, alignItems: "center", justifyContent: "center" }}><IconeMinisterio chave={m.icone} size={23} color="#fff" /></View>
+        <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: c.realce, alignItems: "center", justifyContent: "center" }}><IconeMinisterio chave={m.icone} size={22} color={c.azul} /></View>
         <View style={{ flex: 1 }}><Text style={{ fontFamily: F.negrito, fontSize: 24, color: c.escuro ? c.texto : AZUL }}>{m.nome}</Text><T s={13} cor={c.suave}>{d.equipe.length} pessoas · {m.funcoes.length} funções</T></View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }} style={{ marginHorizontal: -18, paddingHorizontal: 18, flexGrow: 0 }}>
-        {([["escalas", "Escalas"], ["repeticoes", "Repetições"], ["equipe", "Equipe"], ["ausencias", `Ausências${d.ausencias.length ? ` · ${d.ausencias.length}` : ""}`]] as const).map(([k, r]) => (
-          <Pressable key={k} onPress={() => setAba(k)} style={{ height: 40, paddingHorizontal: 16, justifyContent: "center", borderWidth: 1, borderColor: aba === k ? AZUL : c.borda, backgroundColor: aba === k ? AZUL : c.sup }}>
-            <T s={11.5} f={F.negrito} cor={aba === k ? "#fff" : c.suave} style={{ letterSpacing: 1, textTransform: "uppercase" }}>{r}</T>
+      <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: c.borda }}>
+        {([["escalas", "Escalas"], ["repeticoes", "Repetir"], ["equipe", "Equipe"], ["ausencias", d.ausencias.length ? `Ausências ${d.ausencias.length}` : "Ausências"]] as const).map(([k, r]) => (
+          <Pressable key={k} onPress={() => setAba(k)} style={{ flex: 1, alignItems: "center", paddingVertical: 12, borderBottomWidth: 2.5, borderBottomColor: aba === k ? AZUL : "transparent", marginBottom: -1 }}>
+            <T s={13.5} f={aba === k ? F.negrito : F.medio} cor={aba === k ? c.azul : c.suave} linhas={1}>{r}</T>
           </Pressable>
         ))}
-        <View style={{ width: 24 }} />
-      </ScrollView>
+      </View>
 
       {aba === "escalas" ? (
         <>
           <Botao icone={<CalendarPlus size={17} color="#fff" />} onPress={() => router.push({ pathname: "/escala/editar", params: { min: m.id } })}>Montar nova escala</Botao>
           {!futuras.length ? <Cartao style={{ padding: 18 }}><T s={14} cor={c.suave}>Nenhuma escala por vir. Crie uma, ou uma repetição (ex.: todo domingo às 10h) para as datas aparecerem sozinhas.</T></Cartao> : futuras.map((e) => {
             const recusas = e.vagas.filter((v) => v.resposta === "recusado").length;
-            const dia = diaDe(e.inicio);
             return (
-              <Cartao key={e.id} onPress={() => router.push(`/escala/${e.id}`)} style={[{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12 }, e.situacao === "rascunho" && { borderStyle: "dashed" }]}>
-                <View style={{ width: 46, alignItems: "center" }}>
-                  <Text style={{ fontFamily: F.negrito, fontSize: 22, color: c.escuro ? c.texto : AZUL }}>{dia.slice(8, 10)}</Text>
-                  <T s={10.5} f={F.negrito} cor={c.suave} style={{ textTransform: "uppercase" }}>{DIAS_CURTOS[new Date(`${dia}T12:00:00Z`).getUTCDay()]}</T>
-                </View>
+              <Cartao key={e.id} onPress={() => router.push(`/escala/${e.id}`)} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 14 }}>
+                <DataBloco iso={e.inicio} tam={52} claro={e.situacao === "rascunho"} />
                 <View style={{ flex: 1, gap: 2 }}>
-                  <T f={F.negrito} s={15.5} linhas={1}>{e.titulo}</T>
-                  <T s={12.5} cor={c.suave}>{horaBR(e.inicio)} · {falta(e.inicio)}{e.serieId ? " · repetição" : ""}</T>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                    {e.situacao === "rascunho" ? <T s={11.5} f={F.negrito} cor={c.azul}>Rascunho · {e.preenchidas}/{e.total} vagas</T> : <T s={11.5} f={F.negrito} cor={c.suave}>{e.confirmados}/{e.preenchidas} confirmados</T>}
-                    {e.situacao === "publicada" && e.preenchidas < e.total ? <T s={11.5} f={F.negrito} cor={VERMELHO}>{e.total - e.preenchidas} a definir</T> : null}
-                    {recusas ? <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}><AlertTriangle size={12} color={VERMELHO} /><T s={11.5} f={F.negrito} cor={VERMELHO}>{recusas} não poderá(ão)</T></View> : null}
+                  <T f={F.negrito} s={16} linhas={1}>{e.titulo}</T>
+                  <T s={13} cor={c.suave}>{horaBR(e.inicio)} · {falta(e.inicio)}</T>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 }}>
+                    {e.preenchidas ? <Rostos pessoas={e.vagas.filter((v) => v.membroId).map((v) => ({ id: v.membroId, nome: v.nome ?? "", foto: v.foto }))} tam={24} max={5} /> : null}
+                    <T s={12.5} f={F.semi} cor={e.situacao === "rascunho" || recusas || e.preenchidas < e.total ? c.azul : c.suave} style={{ flex: 1 }} linhas={1}>
+                      {e.situacao === "rascunho" ? "Rascunho" : recusas ? recusas === 1 ? "1 sem substituto" : `${recusas} sem substituto` : e.preenchidas < e.total ? e.total - e.preenchidas === 1 ? "1 vaga aberta" : `${e.total - e.preenchidas} vagas abertas` : `${e.confirmados}/${e.preenchidas} confirmados`}
+                    </T>
                   </View>
-                  {e.preenchidas ? <View style={{ marginTop: 4 }}><Rostos pessoas={e.vagas.filter((v) => v.membroId).map((v) => ({ id: v.membroId, nome: v.nome ?? "", foto: v.foto }))} tam={26} max={7} /></View> : null}
                 </View>
                 <ChevronRight size={18} color={c.suave} />
               </Cartao>
@@ -121,7 +117,7 @@ export default function Ministerio() {
               <Pressable key={p.membroId} onPress={() => setPessoa({ membroId: p.membroId, nome: p.nome, funcoes: [...p.funcoes] })} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: c.borda }}>
                 <FotoPessoa id={p.membroId} nome={p.nome} foto={p.foto} tam={44} />
                 <View style={{ flex: 1, gap: 1 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><T f={F.semi} s={15}>{p.nome}</T>{p.lider ? <Crown size={13} color={VERMELHO} /> : null}</View>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><T f={F.semi} s={15}>{nomeCurto(p.nome)}</T>{p.lider ? <Crown size={13} color={VERMELHO} /> : null}</View>
                   <T s={12.5} cor={c.suave} linhas={1}>{p.funcoesNomes.join(", ") || "Sem função"}</T>
                   <T s={11.5} cor={c.suave}>{p.vezes90 ? `${p.vezes90}× em 90 dias` : "Não serviu em 90 dias"}{p.ultima ? ` · última ${dataBR(diaDe(p.ultima))}` : ""}{p.faltas ? ` · ${p.faltas} ausência(s)` : ""}</T>
                 </View>
@@ -138,7 +134,7 @@ export default function Ministerio() {
             {d.ausencias.map((a, i) => (
               <View key={a.id} style={{ flexDirection: "row", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: c.borda }}>
                 <CalendarOff size={18} color={c.suave} />
-                <View style={{ flex: 1 }}><T f={F.semi} s={15}>{a.nome}</T><T s={13} cor={c.suave}>{a.de === a.ate ? dataBR(a.de) : `${dataBR(a.de)} a ${dataBR(a.ate)}`}{a.motivo ? ` · ${a.motivo}` : ""}</T></View>
+                <View style={{ flex: 1 }}><T f={F.semi} s={15}>{nomeCurto(a.nome)}</T><T s={13} cor={c.suave}>{a.de === a.ate ? dataBR(a.de) : `${dataBR(a.de)} a ${dataBR(a.ate)}`}{a.motivo ? ` · ${a.motivo}` : ""}</T></View>
               </View>
             ))}
           </Cartao>

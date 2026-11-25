@@ -35,7 +35,8 @@ export function Titulo({ children, s = 24, style }: { children: ReactNode; s?: n
 export function Cartao({ children, style, filete, onPress }: { children: ReactNode; style?: StyleProp<ViewStyle>; filete?: boolean; onPress?: () => void }) {
   const { c } = useTema();
   const base: StyleProp<ViewStyle> = [
-    { backgroundColor: c.sup, borderWidth: StyleSheet.hairlineWidth * 2, borderColor: c.borda, borderRadius: RAIO, shadowColor: "#002A47", shadowOpacity: c.escuro ? 0 : 0.08, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: c.escuro ? 0 : 2 },
+    // claro: sem contorno, só uma sombra macia; escuro: contorno fino (sombra não aparece)
+    { backgroundColor: c.sup, borderWidth: c.escuro ? StyleSheet.hairlineWidth * 2 : 0, borderColor: c.borda, borderRadius: RAIO, shadowColor: "#002A47", shadowOpacity: c.escuro ? 0 : 0.07, shadowRadius: 18, shadowOffset: { width: 0, height: 6 }, elevation: c.escuro ? 0 : 2 },
     filete && { borderTopWidth: 3, borderTopColor: c.escuro ? c.azul : AZUL },
     style,
   ];

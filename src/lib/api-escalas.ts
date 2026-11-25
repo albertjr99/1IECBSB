@@ -128,15 +128,18 @@ export const escVer = createServerFn({ method: "GET" })
         const a: string[] = [];
         const i = indisponivelEm(ind, v.membroId, dia);
         if (i) a.push(`Marcou ausência${i.motivo ? ` (${i.motivo})` : ""} nesta data`);
-        for (const c of choques(escalas, e, v.membroId)) a.push(`Também escalado(a) em ${porMin.get(c.ministerioId) ?? "outro ministério"} · ${c.titulo}`);
+        // escala repetida do mesmo ministério não é choque da pessoa (vira um aviso só, abaixo)
+        for (const c of choques(escalas, e, v.membroId).filter((x) => x.ministerioId !== e.ministerioId)) a.push(`Também escalado(a) em ${porMin.get(c.ministerioId) ?? "outro ministério"} · ${c.titulo}`);
         if (e.vagas.filter((x) => x.membroId === v.membroId).length > 1) a.push("Está em mais de uma função nesta escala");
         if (a.length) alertas[v.id] = a;
       }
     }
+    // outra escala do mesmo ministério no mesmo horário: provavelmente repetida
+    const repetidas = lider ? escalas.filter((x) => x.id !== e.id && x.ministerioId === e.ministerioId && Math.abs(new Date(x.inicio).getTime() - new Date(e.inicio).getTime()) < 3 * 3600e3).map((x) => ({ id: x.id, titulo: x.titulo, situacao: x.situacao })) : [];
     return {
       escala: vista(e, m, nomes, eu.id, lider),
       ministerio: { id: m.id, nome: m.nome, icone: m.icone, repertorio: m.repertorio, funcoes: m.funcoes },
-      lider, alertas,
+      lider, alertas, repetidas,
     };
   });
 

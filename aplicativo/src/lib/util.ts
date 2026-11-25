@@ -54,6 +54,17 @@ export const soDigitos = (t: string) => (t ?? "").replace(/\D/g, "");
 export function primeiroNome(nome: string) {
   return nome.replace(/^(pr|pb|dc|dca|sem|ir|irmã|irmão)\.?\s+/i, "").split(/\s+/)[0] ?? nome;
 }
+/** "ALBERT IGLESIA CORREA DOS SANTOS" → "Albert Santos" (título como "Pr." fica). */
+export function nomeCurto(nome: string) {
+  const miudas = new Set(["da", "de", "do", "das", "dos", "e"]);
+  const cap = (w: string) => (miudas.has(w.toLowerCase()) ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  const p = nome.trim().split(/\s+/).filter(Boolean).map(cap);
+  if (p.length <= 2) return p.join(" ");
+  const titulo = /^(pr|pra|pb|dc|dca|sem|ir|irmã|irmão|presb)\.?$/i.test(p[0]!) ? `${p.shift()} ` : "";
+  const ultimo = [...p].reverse().find((w) => !miudas.has(w)) ?? p[p.length - 1]!;
+  return `${titulo}${p[0]} ${ultimo}`;
+}
+
 export function iniciais(nome: string) {
   const p = nome.trim().split(/\s+/);
   return ((p[0]?.[0] ?? "") + (p.length > 1 ? p[p.length - 1]![0] : "")).toUpperCase();

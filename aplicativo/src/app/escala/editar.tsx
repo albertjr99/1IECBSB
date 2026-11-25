@@ -17,7 +17,7 @@ import { IconeMinisterio } from "@/componentes/IconeMinisterio";
 import { carregarMinisterio, diaDe, instante, salvarEscala, sugerirEquipe, verEscala, type DadosMinisterio, type ItemRoteiro, type Musica } from "@/lib/escalas";
 import { buscarHinos } from "@/lib/hinario";
 import { AZUL, F, VERMELHO, useTema } from "@/lib/tema";
-import { emBrasilia } from "@/lib/util";
+import { emBrasilia, nomeCurto } from "@/lib/util";
 
 type VagaForm = { id?: string; chave: string; funcaoId: string; membroId?: string };
 type Form = { titulo: string; dia: string; hora: string; local: string; observacoes: string; vagas: VagaForm[]; roteiro: ItemRoteiro[]; musicas: Musica[]; situacao: "rascunho" | "publicada" };
@@ -177,7 +177,7 @@ export default function EditarEscala() {
                       <Pressable key={v.chave} onPress={() => { toque(); setEscolher(v.chave); }} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 10, borderWidth: 1, borderStyle: p ? "solid" : "dashed", borderColor: p ? c.borda : AZUL, backgroundColor: p ? c.sup : c.realce, opacity: pressed ? 0.85 : 1 })}>
                         {p ? <FotoPessoa id={p.membroId} nome={p.nome} foto={p.foto} tam={44} /> : <View style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderStyle: "dashed", borderColor: AZUL, alignItems: "center", justifyContent: "center" }}><UserPlus size={20} color={AZUL} /></View>}
                         <View style={{ flex: 1 }}>
-                          <T f={p ? F.negrito : F.semi} s={15.5} cor={p ? c.texto : c.azul}>{p ? p.nome : "Escolher pessoa"}</T>
+                          <T f={p ? F.negrito : F.semi} s={15.5} cor={p ? c.texto : c.azul}>{p ? nomeCurto(p.nome) : "Escolher pessoa"}</T>
                           {p && ausentes.has(p.membroId) ? <T s={12} f={F.semi} cor={VERMELHO}>Marcou ausência neste dia</T> : p ? <T s={12} cor={c.suave}>{p.vezes90 ? `Serviu ${p.vezes90}× nos últimos 90 dias` : "Não serviu nos últimos 90 dias"}</T> : null}
                         </View>
                         <ChevronRight size={18} color={c.suave} />
@@ -246,7 +246,7 @@ export default function EditarEscala() {
                   {v.membroId ? <FotoPessoa id={v.membroId} nome={nomeDe(v.membroId)} foto={pessoa.get(v.membroId)?.foto} tam={38} /> : <View style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderStyle: "dashed", borderColor: VERMELHO }} />}
                   <View style={{ flex: 1 }}>
                     <T s={11} f={F.negrito} cor={c.suave} style={{ letterSpacing: 1.2, textTransform: "uppercase" }}>{fn.nome}{k ? ` ${k + 1}` : ""}</T>
-                    <T s={15} f={F.semi} cor={v.membroId ? c.texto : VERMELHO}>{v.membroId ? nomeDe(v.membroId) : "Ainda sem ninguém"}</T>
+                    <T s={15} f={F.semi} cor={v.membroId ? c.texto : VERMELHO}>{v.membroId ? nomeCurto(nomeDe(v.membroId)) : "Ainda sem ninguém"}</T>
                   </View>
                 </Pressable>
               )))}
@@ -323,7 +323,7 @@ function Grade({ lista, atual, ausentes, naEscala, aoEscolher }: { lista: DadosM
               <FotoPessoa id={p.membroId} nome={p.nome} foto={p.foto} tam={60} />
               {sel ? <View style={{ position: "absolute", right: -4, bottom: -2, width: 24, height: 24, borderRadius: 12, backgroundColor: AZUL, borderWidth: 2, borderColor: c.sup, alignItems: "center", justifyContent: "center" }}><Check size={13} color="#fff" strokeWidth={3} /></View> : null}
             </View>
-            <T s={13} f={F.negrito} centro linhas={2}>{p.nome.split(" ").slice(0, 2).join(" ")}</T>
+            <T s={13} f={F.negrito} centro linhas={2}>{nomeCurto(p.nome)}</T>
             <T s={11} f={F.semi} cor={aus ? VERMELHO : ja ? c.azul : c.suave} centro>{aus ? "Ausente" : ja ? "Já está na escala" : p.vezes90 ? `${p.vezes90}× em 90 dias` : "Disponível"}</T>
           </Pressable>
         );
