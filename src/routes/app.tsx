@@ -80,11 +80,13 @@ function App() {
 
 function Abas() {
   const caminho = useRouterState({ select: (s) => s.location.pathname });
+  // o editor de escala tem a própria barra de ações embaixo
+  if (caminho.startsWith("/app/escala/editar")) return null;
   const abas = [
     { para: "/app", rotulo: "Início", Icone: House, ativo: caminho === "/app" || caminho === "/app/" },
     { para: "/app/biblia", rotulo: "Bíblia", Icone: BookOpen, ativo: caminho.startsWith("/app/biblia") },
     { para: "/app/hinario", rotulo: "Hinário", Icone: Music, ativo: caminho.startsWith("/app/hinario") },
-    { para: "/app/participar", rotulo: "Participar", Icone: Users, ativo: caminho.startsWith("/app/participar") },
+    { para: "/app/participar", rotulo: "Participar", Icone: Users, ativo: caminho.startsWith("/app/participar") || caminho.startsWith("/app/escala") || caminho.startsWith("/app/ministerio") },
     { para: "/app/mais", rotulo: "Mais", Icone: Ellipsis, ativo: caminho.startsWith("/app/mais") || caminho.startsWith("/app/boletim") || caminho.startsWith("/app/ofertar") },
   ] as const;
   return (

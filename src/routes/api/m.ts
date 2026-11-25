@@ -39,6 +39,18 @@ const ACOES: Record<string, Acao> = {
   async contribuir() { const { appContribuir } = await import("@/lib/api-app"); return appContribuir(); },
   async informarContribuicao(d) { const { appInformarContribuicao } = await import("@/lib/api-app"); return appInformarContribuicao({ data: d }); },
   async entrarReuniao(d) { const { appEntrarReuniao } = await import("@/lib/api-app"); return appEntrarReuniao({ data: d }); },
+  // escalas dos ministérios
+  async escalas() { const { escInicio } = await import("@/lib/api-escalas"); return escInicio(); },
+  async escala(d) { const { escVer } = await import("@/lib/api-escalas"); return escVer({ data: d }); },
+  async escalaResponder(d) { const { escResponder } = await import("@/lib/api-escalas"); return escResponder({ data: d }); },
+  async ausencia(d) { const { escAusencia } = await import("@/lib/api-escalas"); return escAusencia({ data: d }); },
+  async ausenciaRemover(d) { const { escAusenciaRemover } = await import("@/lib/api-escalas"); return escAusenciaRemover({ data: d }); },
+  async ministerio(d) { const { escMinisterio } = await import("@/lib/api-escalas"); return escMinisterio({ data: d }); },
+  async escalaSalvar(d) { const { escSalvar } = await import("@/lib/api-escalas"); return escSalvar({ data: d }); },
+  async escalaExcluir(d) { const { escExcluir } = await import("@/lib/api-escalas"); return escExcluir({ data: d }); },
+  async serieSalvar(d) { const { escSerieSalvar } = await import("@/lib/api-escalas"); return escSerieSalvar({ data: d }); },
+  async serieExcluir(d) { const { escSerieExcluir } = await import("@/lib/api-escalas"); return escSerieExcluir({ data: d }); },
+  async equipe(d) { const { escEquipe } = await import("@/lib/api-escalas"); return escEquipe({ data: d }); },
   async participar() { const { appParticipar } = await import("@/lib/api-app"); return appParticipar(); },
   async boletins() { const { appBoletins } = await import("@/lib/api-app"); return appBoletins(); },
   async boletim(d: { data: string }) {

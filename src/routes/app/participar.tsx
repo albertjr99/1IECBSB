@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, ChevronRight, Clock, Lock, Radio, Users, Video, Vote } from "lucide-react";
+import { CalendarCheck, CheckCircle2, ChevronRight, Clock, Lock, Radio, Users, Video, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { appEntrarReuniao, appParticipar } from "@/lib/api-app";
+import { escInicio } from "@/lib/api-escalas";
+import { MinhasEscalas, type DadosEscalas } from "@/components/escalas/MinhasEscalas";
 import { cn } from "@/lib/utils";
 import { quandoLongo } from "@/lib/datas";
 
-export const Route = createFileRoute("/app/participar")({ component: Participar });
+export const Route = createFileRoute("/app/participar")({
+  validateSearch: (s: Record<string, unknown>) => ({ aba: s.aba === "escalas" || s.aba === "votacoes" || s.aba === "reunioes" ? (s.aba as "escalas" | "votacoes" | "reunioes") : undefined }),
+  component: Participar,
+});
 
 type Dados = Awaited<ReturnType<typeof appParticipar>>;
 const SIGILO = { secreta: "Voto secreto", presidencia: "Voto visível só à presidência", aberta: "Voto aberto" } as const;
@@ -21,8 +26,11 @@ function falta(iso: string) {
 
 function Participar() {
   const [d, setD] = useState<Dados | null>(null);
-  const [aba, setAba] = useState<"votacoes" | "reunioes">("votacoes");
-  const carregar = useCallback(() => appParticipar().then(setD).catch((e) => toast.error(e instanceof Error ? e.message : "Sem conexão.")), []);
+  const busca = Route.useSearch();
+  const [aba, setAba] = useState<"escalas" | "votacoes" | "reunioes">(busca.aba ?? "escalas");
+  const [esc, setEsc] = useState<DadosEscalas | null>(null);
+  const carregarEscalas = useCallback(() => escInicio().then((x) => { setEsc(x); if (!busca.aba && !x.ministerios.length) setAba((a) => (a === "escalas" ? "votacoes" : a)); }).catch(() => {}), [busca.aba]);
+  const carregar = useCallback(() => { carregarEscalas(); return appParticipar().then(setD).catch((e) => toast.error(e instanceof Error ? e.message : "Sem conexão.")); }, [carregarEscalas]);
   useEffect(() => { carregar(); const t = setInterval(carregar, 45_000); return () => clearInterval(t); }, [carregar]);
   const abertas = d?.votacoes.filter((v) => v.situacao === "em_andamento" && !v.votou).length ?? 0;
   const aoVivo = d?.reunioes.filter((r) => r.aoVivo && !r.cancelada).length ?? 0;
@@ -35,17 +43,17 @@ function Participar() {
       <header className="a-topo">
         <p className="a-sobre !text-white/80">Igreja</p>
         <h1 className="mt-2 text-[28px] font-bold tracking-[-0.02em]">Participar</h1>
-        <p className="mt-1 text-[14px] text-white/75">Votações da igreja e reuniões online, direto pelo celular.</p>
+        <p className="mt-1 text-[14px] text-white/75">Escalas dos ministérios, votações da igreja e reuniões online.</p>
       </header>
-      <div className="mx-5 grid grid-cols-2 border border-[var(--a-borda)] bg-[var(--a-sup)]">
-        {([["votacoes", "Votações", Vote, abertas], ["reunioes", "Reuniões", Video, aoVivo]] as const).map(([k, r, I, n]) => (
-          <button key={k} onClick={() => setAba(k)} className={cn("flex h-12 items-center justify-center gap-2 text-[12px] font-bold uppercase tracking-[0.12em]", aba === k ? "bg-[#00436f] text-white" : "text-[var(--a-suave)]")}>
+      <div className="mx-5 grid grid-cols-3 border border-[var(--a-borda)] bg-[var(--a-sup)]">
+        {([["escalas", "Escalas", CalendarCheck, esc?.pendentes ?? 0], ["votacoes", "Votações", Vote, abertas], ["reunioes", "Reuniões", Video, aoVivo]] as const).map(([k, r, I, n]) => (
+          <button key={k} onClick={() => setAba(k)} className={cn("flex h-12 items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.1em]", aba === k ? "bg-[#00436f] text-white" : "text-[var(--a-suave)]")}>
             <I size={17} /> {r}{n > 0 && <span className="grid min-w-5 place-items-center rounded-full bg-[var(--a-vermelho)] px-1.5 text-[11px] text-white">{n}</span>}
           </button>
         ))}
       </div>
       <div className="grid gap-3 px-5">
-        {!d ? <div className="h-32 animate-pulse bg-[var(--a-borda)]" /> : aba === "votacoes" ? (
+        {aba === "escalas" ? (esc ? <MinhasEscalas d={esc} recarregar={carregarEscalas} /> : <div className="h-32 animate-pulse bg-[var(--a-borda)]" />) : !d ? <div className="h-32 animate-pulse bg-[var(--a-borda)]" /> : aba === "votacoes" ? (
           d.votacoes.length === 0 ? <Vazio texto="Nenhuma votação para você no momento. Quando a igreja abrir uma votação, ela aparece aqui." /> :
           d.votacoes.map((v) => {
             const aberta = v.situacao === "em_andamento"; const pendente = aberta && !v.votou;

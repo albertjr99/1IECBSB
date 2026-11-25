@@ -36,11 +36,15 @@ import { Route as SiteBoletimDataRouteImport } from './routes/_site/boletim.$dat
 import { Route as SiteHinarioIndexRouteImport } from './routes/_site/hinario.index'
 import { Route as SiteHinarioNumeroRouteImport } from './routes/_site/hinario.$numero'
 import { Route as SiteMinisteriosIdRouteImport } from './routes/_site/ministerios_.$id'
+import { Route as ApiEscalasLembretesRouteImport } from './routes/api/escalas.lembretes'
 import { Route as ApiHubRetornoRouteImport } from './routes/api/hub.retorno'
 import { Route as ApiHubSincronizarRouteImport } from './routes/api/hub.sincronizar'
 import { Route as AppBoletimDataRouteImport } from './routes/app/boletim.$data'
+import { Route as AppEscalaIdRouteImport } from './routes/app/escala.$id'
+import { Route as AppMinisterioIdRouteImport } from './routes/app/ministerio.$id'
 import { Route as ImpressaoBoletimIdRouteImport } from './routes/impressao.boletim.$id'
 import { Route as ApiBoletimIdPdfRouteImport } from './routes/api/boletim.$id.pdf'
+import { Route as AppEscalaEditarIdRouteImport } from './routes/app/escala.editar.$id'
 
 const SiteRoute = SiteRouteImport.update({
   id: '/_site',
@@ -176,6 +180,11 @@ const SiteMinisteriosIdRoute = SiteMinisteriosIdRouteImport.update({
   path: '/ministerios/$id',
   getParentRoute: () => SiteRoute,
 } as any)
+const ApiEscalasLembretesRoute = ApiEscalasLembretesRouteImport.update({
+  id: '/api/escalas/lembretes',
+  path: '/api/escalas/lembretes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiHubRetornoRoute = ApiHubRetornoRouteImport.update({
   id: '/api/hub/retorno',
   path: '/api/hub/retorno',
@@ -191,6 +200,16 @@ const AppBoletimDataRoute = AppBoletimDataRouteImport.update({
   path: '/boletim/$data',
   getParentRoute: () => AppRoute,
 } as any)
+const AppEscalaIdRoute = AppEscalaIdRouteImport.update({
+  id: '/escala/$id',
+  path: '/escala/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMinisterioIdRoute = AppMinisterioIdRouteImport.update({
+  id: '/ministerio/$id',
+  path: '/ministerio/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 const ImpressaoBoletimIdRoute = ImpressaoBoletimIdRouteImport.update({
   id: '/impressao/boletim/$id',
   path: '/impressao/boletim/$id',
@@ -200,6 +219,11 @@ const ApiBoletimIdPdfRoute = ApiBoletimIdPdfRouteImport.update({
   id: '/api/boletim/$id/pdf',
   path: '/api/boletim/$id/pdf',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppEscalaEditarIdRoute = AppEscalaEditarIdRouteImport.update({
+  id: '/escala/editar/$id',
+  path: '/escala/editar/$id',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -228,12 +252,16 @@ export interface FileRoutesByFullPath {
   '/boletim/$data': typeof SiteBoletimDataRoute
   '/hinario/$numero': typeof SiteHinarioNumeroRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
+  '/api/escalas/lembretes': typeof ApiEscalasLembretesRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/app/boletim/$data': typeof AppBoletimDataRoute
+  '/app/escala/$id': typeof AppEscalaIdRoute
+  '/app/ministerio/$id': typeof AppMinisterioIdRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/hinario/': typeof SiteHinarioIndexRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
+  '/app/escala/editar/$id': typeof AppEscalaEditarIdRoute
 }
 export interface FileRoutesByTo {
   '/ao-vivo': typeof SiteAoVivoRoute
@@ -260,12 +288,16 @@ export interface FileRoutesByTo {
   '/boletim/$data': typeof SiteBoletimDataRoute
   '/hinario/$numero': typeof SiteHinarioNumeroRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
+  '/api/escalas/lembretes': typeof ApiEscalasLembretesRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/app/boletim/$data': typeof AppBoletimDataRoute
+  '/app/escala/$id': typeof AppEscalaIdRoute
+  '/app/ministerio/$id': typeof AppMinisterioIdRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/hinario': typeof SiteHinarioIndexRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
+  '/app/escala/editar/$id': typeof AppEscalaEditarIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -295,12 +327,16 @@ export interface FileRoutesById {
   '/_site/boletim/$data': typeof SiteBoletimDataRoute
   '/_site/hinario/$numero': typeof SiteHinarioNumeroRoute
   '/_site/ministerios_/$id': typeof SiteMinisteriosIdRoute
+  '/api/escalas/lembretes': typeof ApiEscalasLembretesRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/app/boletim/$data': typeof AppBoletimDataRoute
+  '/app/escala/$id': typeof AppEscalaIdRoute
+  '/app/ministerio/$id': typeof AppMinisterioIdRoute
   '/impressao/boletim/$id': typeof ImpressaoBoletimIdRoute
   '/_site/hinario/': typeof SiteHinarioIndexRoute
   '/api/boletim/$id/pdf': typeof ApiBoletimIdPdfRoute
+  '/app/escala/editar/$id': typeof AppEscalaEditarIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -330,12 +366,16 @@ export interface FileRouteTypes {
     | '/boletim/$data'
     | '/hinario/$numero'
     | '/ministerios/$id'
+    | '/api/escalas/lembretes'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
     | '/app/boletim/$data'
+    | '/app/escala/$id'
+    | '/app/ministerio/$id'
     | '/impressao/boletim/$id'
     | '/hinario/'
     | '/api/boletim/$id/pdf'
+    | '/app/escala/editar/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/ao-vivo'
@@ -362,12 +402,16 @@ export interface FileRouteTypes {
     | '/boletim/$data'
     | '/hinario/$numero'
     | '/ministerios/$id'
+    | '/api/escalas/lembretes'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
     | '/app/boletim/$data'
+    | '/app/escala/$id'
+    | '/app/ministerio/$id'
     | '/impressao/boletim/$id'
     | '/hinario'
     | '/api/boletim/$id/pdf'
+    | '/app/escala/editar/$id'
   id:
     | '__root__'
     | '/_site'
@@ -396,12 +440,16 @@ export interface FileRouteTypes {
     | '/_site/boletim/$data'
     | '/_site/hinario/$numero'
     | '/_site/ministerios_/$id'
+    | '/api/escalas/lembretes'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
     | '/app/boletim/$data'
+    | '/app/escala/$id'
+    | '/app/ministerio/$id'
     | '/impressao/boletim/$id'
     | '/_site/hinario/'
     | '/api/boletim/$id/pdf'
+    | '/app/escala/editar/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -411,6 +459,7 @@ export interface RootRouteChildren {
   ApiMRoute: typeof ApiMRoute
   VotarTokenRoute: typeof VotarTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  ApiEscalasLembretesRoute: typeof ApiEscalasLembretesRoute
   ApiHubRetornoRoute: typeof ApiHubRetornoRoute
   ApiHubSincronizarRoute: typeof ApiHubSincronizarRoute
   ImpressaoBoletimIdRoute: typeof ImpressaoBoletimIdRoute
@@ -608,6 +657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SiteMinisteriosIdRouteImport
       parentRoute: typeof SiteRoute
     }
+    '/api/escalas/lembretes': {
+      id: '/api/escalas/lembretes'
+      path: '/api/escalas/lembretes'
+      fullPath: '/api/escalas/lembretes'
+      preLoaderRoute: typeof ApiEscalasLembretesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/hub/retorno': {
       id: '/api/hub/retorno'
       path: '/api/hub/retorno'
@@ -629,6 +685,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBoletimDataRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/escala/$id': {
+      id: '/app/escala/$id'
+      path: '/escala/$id'
+      fullPath: '/app/escala/$id'
+      preLoaderRoute: typeof AppEscalaIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/ministerio/$id': {
+      id: '/app/ministerio/$id'
+      path: '/ministerio/$id'
+      fullPath: '/app/ministerio/$id'
+      preLoaderRoute: typeof AppMinisterioIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/impressao/boletim/$id': {
       id: '/impressao/boletim/$id'
       path: '/impressao/boletim/$id'
@@ -642,6 +712,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/boletim/$id/pdf'
       preLoaderRoute: typeof ApiBoletimIdPdfRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/escala/editar/$id': {
+      id: '/app/escala/editar/$id'
+      path: '/escala/editar/$id'
+      fullPath: '/app/escala/editar/$id'
+      preLoaderRoute: typeof AppEscalaEditarIdRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
@@ -692,6 +769,9 @@ interface AppRouteChildren {
   AppParticiparRoute: typeof AppParticiparRoute
   AppIndexRoute: typeof AppIndexRoute
   AppBoletimDataRoute: typeof AppBoletimDataRoute
+  AppEscalaIdRoute: typeof AppEscalaIdRoute
+  AppMinisterioIdRoute: typeof AppMinisterioIdRoute
+  AppEscalaEditarIdRoute: typeof AppEscalaEditarIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -702,6 +782,9 @@ const AppRouteChildren: AppRouteChildren = {
   AppParticiparRoute: AppParticiparRoute,
   AppIndexRoute: AppIndexRoute,
   AppBoletimDataRoute: AppBoletimDataRoute,
+  AppEscalaIdRoute: AppEscalaIdRoute,
+  AppMinisterioIdRoute: AppMinisterioIdRoute,
+  AppEscalaEditarIdRoute: AppEscalaEditarIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -713,6 +796,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMRoute: ApiMRoute,
   VotarTokenRoute: VotarTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
+  ApiEscalasLembretesRoute: ApiEscalasLembretesRoute,
   ApiHubRetornoRoute: ApiHubRetornoRoute,
   ApiHubSincronizarRoute: ApiHubSincronizarRoute,
   ImpressaoBoletimIdRoute: ImpressaoBoletimIdRoute,

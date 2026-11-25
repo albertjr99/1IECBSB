@@ -43,6 +43,6 @@ export async function avisarUmaVez(chave: string, destino: Destino, msg: Mensage
   const { ler, gravar } = await import("./armazem");
   const feitos = (await ler<string[]>("push-enviados")) ?? [];
   if (feitos.includes(chave)) return;
-  await gravar("push-enviados", [chave, ...feitos].slice(0, 400));
+  await gravar("push-enviados", [chave, ...feitos].slice(0, 3000));
   await enviarPush(destino, msg);
 }

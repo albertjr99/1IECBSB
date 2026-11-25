@@ -68,6 +68,8 @@ export default function Raiz() {
     if (!ativo || Platform.OS === "web") return;
     const abrir = (d: Record<string, unknown> | undefined) => {
       if (d?.tela === "boletim" && typeof d.data === "string") router.push(`/boletim/${d.data}`);
+      else if (d?.tela === "escala" && typeof d.id === "string" && d.id) router.push(`/escala/${d.id}`);
+      else if (d?.tela === "escala" || d?.tela === "escalas") router.push("/participar?aba=escalas");
       else if (d?.tela === "votacao" || d?.tela === "participar") router.push("/participar");
     };
     Notifications.getLastNotificationResponseAsync().then((r) => abrir(r?.notification.request.content.data)).catch(() => {});

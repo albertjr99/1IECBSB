@@ -4,6 +4,7 @@ import { BookOpen, Home, Menu, Music, Users } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { AppState } from "react-native";
 import { carregarParticipacao, pendencias } from "@/lib/participar";
+import { carregarEscalas } from "@/lib/escalas";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -23,7 +24,8 @@ export default function Abas() {
   // número no ícone "Participar": votações esperando o voto + reuniões acontecendo
   const [aviso, setAviso] = useState(0);
   useEffect(() => {
-    const ver = () => carregarParticipacao().then((p) => setAviso(pendencias(p))).catch(() => {});
+    // + escalas esperando a confirmação
+    const ver = () => Promise.all([carregarParticipacao().then(pendencias).catch(() => 0), carregarEscalas().then((e) => e.pendentes).catch(() => 0)]).then(([a, b]) => setAviso(a + b));
     ver();
     const t = setInterval(ver, 60_000);
     const s = AppState.addEventListener("change", (e) => { if (e === "active") ver(); });

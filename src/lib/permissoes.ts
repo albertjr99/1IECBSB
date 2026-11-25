@@ -8,11 +8,11 @@
 export type Papel = "admin" | "pastor" | "comunicacao" | "editor";
 
 /** Áreas do painel. "site" = todas as seções de edição do site. */
-export type Area = "site" | "boletim" | "deliberacao" | "financas" | "agentes" | "alteracoes" | "usuarios" | "suporte" | "membros";
+export type Area = "site" | "boletim" | "deliberacao" | "financas" | "agentes" | "alteracoes" | "usuarios" | "suporte" | "membros" | "escalas";
 
 export const PERMISSOES: Record<Papel, readonly Area[]> = {
-  admin: ["site", "boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios", "suporte", "membros"],
-  pastor: ["boletim", "deliberacao", "alteracoes", "suporte", "membros"],
+  admin: ["site", "boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios", "suporte", "membros", "escalas"],
+  pastor: ["boletim", "deliberacao", "alteracoes", "suporte", "membros", "escalas"],
   comunicacao: ["site", "agentes", "suporte"],
   // perfil antigo ("Editor"): equivale à comunicação
   editor: ["site", "agentes", "suporte"],
@@ -20,7 +20,7 @@ export const PERMISSOES: Record<Papel, readonly Area[]> = {
 
 export const PAPEIS: { valor: Exclude<Papel, "editor">; rotulo: string; descricao: string }[] = [
   { valor: "admin", rotulo: "Administrador", descricao: "Acesso a tudo, inclusive usuários." },
-  { valor: "pastor", rotulo: "Pastor", descricao: "Boletim, membros do app, hinário, deliberações, controle de alterações e suporte de TI." },
+  { valor: "pastor", rotulo: "Pastor", descricao: "Boletim, membros do app, ministérios e escalas, deliberações, controle de alterações e suporte de TI." },
   { valor: "comunicacao", rotulo: "Comunicação", descricao: "Toda a edição do site, hinário, Agentes de IA e suporte de TI. Sem boletim, deliberações e controle de alterações." },
 ];
 
@@ -34,7 +34,7 @@ export function pode(papel: string | undefined, area: Area) {
 
 /** Área de cada item do menu do painel. */
 export function areaDoItem(id: string): Area {
-  if (["boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios", "suporte", "membros"].includes(id)) return id as Area;
+  if (["boletim", "deliberacao", "financas", "agentes", "alteracoes", "usuarios", "suporte", "membros", "escalas"].includes(id)) return id as Area;
   return "site";
 }
 

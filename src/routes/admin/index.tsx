@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import {
+  CalendarCheck,
   AlertTriangle, Check, ChevronsLeft, ChevronsRight, CircleDot, Command, ExternalLink, Eye, EyeOff, Gavel, History, Landmark, Loader2,
   BookHeart, KeyRound, LifeBuoy, Lock, LogOut, PenTool, Menu, Monitor, Moon, Newspaper, RotateCw, Search, Smartphone, Sun, Tablet, Undo2, Upload, Users, X, type LucideIcon,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import { SECOES } from "@/components/painel/editores";
 import { JanelaPerfil, PainelUsuarios, PainelVersoes } from "@/components/painel/Extras";
 import { ModuloSuporte } from "@/components/painel/ModuloSuporte";
 import { ModuloMembros } from "@/components/painel/ModulosApp";
+import { ModuloEscalas } from "@/components/painel/ModuloEscalas";
 import { Avatar } from "@/components/painel/Avatar";
 import { ModuloBoletim } from "@/components/painel/boletim/ModuloBoletim";
 import { Contorno, ModuloAgentes, ModuloDeliberacao, ModuloFinancas } from "@/components/painel/Modulos";
@@ -39,6 +41,7 @@ type ItemNav = { id: string; rotulo: string; Icone: LucideIcon; breve?: boolean;
 const MODULOS: ItemNav[] = [
   { id: "boletim", rotulo: "Boletim", Icone: Newspaper, descricao: "Boletim dominical no modelo da igreja." },
   { id: "membros", rotulo: "Membros do app", Icone: Smartphone, descricao: "Cadastro, aprovação e acesso ao aplicativo dos membros." },
+  { id: "escalas", rotulo: "Ministérios e escalas", Icone: CalendarCheck, descricao: "Ministérios, funções, liderança e escalas de serviço." },
   { id: "deliberacao", rotulo: "Deliberação", Icone: Gavel, descricao: "Votação Online e Assembleia Online." },
   { id: "financas", rotulo: "Finanças", Icone: Landmark, breve: true, descricao: "Controle financeiro da igreja (em breve)." },
 ];
@@ -336,6 +339,7 @@ function Painel() {
             <main className="ef-mesa relative min-w-0 flex-1 overflow-y-auto">
               {secao === "agentes" && liberado("agentes") && <ModuloAgentes />}
               {secao === "membros" && liberado("membros") && <ModuloMembros />}
+              {secao === "escalas" && liberado("escalas") && <ModuloEscalas />}
               {secao === "suporte" && liberado("suporte") && <ModuloSuporte />}
               {secao === "boletim" && liberado("boletim") && <ModuloBoletim />}
               {secao === "deliberacao" && liberado("deliberacao") && <Contorno><ModuloDeliberacao /></Contorno>}

@@ -1,6 +1,6 @@
-/** Participar: votações online e reuniões online da igreja, num só lugar. */
-import { router, useFocusEffect } from "expo-router";
-import { Bell, BellRing, CheckCircle2, ChevronRight, Clock, Lock, Radio, Users, Video, Vote } from "lucide-react-native";
+/** Participar: escalas dos ministérios, votações e reuniões online da igreja, num só lugar. */
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Bell, BellRing, CalendarCheck, CheckCircle2, ChevronRight, Clock, Lock, Radio, Users, Video, Vote } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 import { Aviso, Cartao, Carregando, Sobre, T, Tela, Titulo } from "@/componentes/ui";
@@ -8,6 +8,8 @@ import { gravarCache, lerCache } from "@/lib/cache";
 import { alternarLembrete, carregarParticipacao, entrarNaSala, lembretesAtivos, type Participacao, type ReuniaoMembro, type VotacaoMembro } from "@/lib/participar";
 import { AZUL, F, NOITE, useTema } from "@/lib/tema";
 import { quando } from "@/lib/util";
+import { MinhasEscalas } from "@/componentes/MinhasEscalas";
+import { carregarEscalas, sincronizarLembretes, type InicioEscalas } from "@/lib/escalas";
 
 const SIGILO = { secreta: "Voto secreto", presidencia: "Voto visível só à presidência", aberta: "Voto aberto" };
 
@@ -25,7 +27,16 @@ export default function Participar() {
   const { c } = useTema();
   const [d, setD] = useState<Participacao | null>(null);
   const [erro, setErro] = useState("");
-  const [aba, setAba] = useState<"votacoes" | "reunioes">("votacoes");
+  const params = useLocalSearchParams<{ aba?: string }>();
+  const [aba, setAba] = useState<"escalas" | "votacoes" | "reunioes">(params.aba === "votacoes" || params.aba === "reunioes" ? params.aba : "escalas");
+  const [esc, setEsc] = useState<InicioEscalas | null>(null);
+  const carregarEsc = useCallback(async () => {
+    const g = await lerCache<InicioEscalas>("escalas"); if (g) setEsc((x) => x ?? g);
+    try {
+      const r = await carregarEscalas(); setEsc(r); gravarCache("escalas", r); sincronizarLembretes(r.proximas);
+      if (!r.ministerios.length) setAba((a) => (a === "escalas" && !params.aba ? "votacoes" : a));
+    } catch { /* fica o que estava guardado */ }
+  }, [params.aba]);
   const [lembretes, setLembretes] = useState<Record<string, string>>({});
   const [atualizando, setAtualizando] = useState(false);
   const [entrando, setEntrando] = useState<string | null>(null);
@@ -35,8 +46,9 @@ export default function Participar() {
     try { const r = await carregarParticipacao(); setD(r); setErro(""); gravarCache("participar", r); }
     catch (e) { setErro(e instanceof Error ? e.message : ""); }
     lembretesAtivos().then(setLembretes);
+    await carregarEsc();
     setAtualizando(false);
-  }, []);
+  }, [carregarEsc]);
   useFocusEffect(useCallback(() => { carregar(); const t = setInterval(carregar, 45_000); return () => clearInterval(t); }, [carregar]));
 
   const abertas = d?.votacoes.filter((v) => v.situacao === "em_andamento" && !v.votou).length ?? 0;
@@ -61,20 +73,20 @@ export default function Participar() {
       <View style={{ gap: 6 }}>
         <Sobre>Igreja</Sobre>
         <Titulo s={28}>Participar</Titulo>
-        <T cor={c.suave} s={14}>Votações da igreja e reuniões online, direto pelo celular.</T>
+        <T cor={c.suave} s={14}>Escalas dos ministérios, votações da igreja e reuniões online.</T>
       </View>
 
       <View style={{ flexDirection: "row", borderWidth: 1, borderColor: c.borda, backgroundColor: c.sup }}>
-        {([["votacoes", "Votações", Vote, abertas], ["reunioes", "Reuniões", Video, aoVivo]] as const).map(([k, r, I, n]) => (
-          <Pressable key={k} onPress={() => setAba(k)} style={{ flex: 1, height: 50, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: aba === k ? AZUL : "transparent" }}>
-            <I size={17} color={aba === k ? "#fff" : c.suave} />
-            <Text style={{ fontFamily: F.negrito, fontSize: 12, letterSpacing: 1.2, textTransform: "uppercase", color: aba === k ? "#fff" : c.suave }}>{r}</Text>
+        {([["escalas", "Escalas", CalendarCheck, esc?.pendentes ?? 0], ["votacoes", "Votações", Vote, abertas], ["reunioes", "Reuniões", Video, aoVivo]] as const).map(([k, r, I, n]) => (
+          <Pressable key={k} onPress={() => setAba(k)} style={{ flex: 1, height: 50, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, backgroundColor: aba === k ? AZUL : "transparent" }}>
+            <I size={16} color={aba === k ? "#fff" : c.suave} />
+            <Text style={{ fontFamily: F.negrito, fontSize: 10.5, letterSpacing: 0.8, textTransform: "uppercase", color: aba === k ? "#fff" : c.suave }}>{r}</Text>
             {n ? <View style={{ minWidth: 20, height: 20, paddingHorizontal: 5, borderRadius: 10, backgroundColor: "#CC2127", alignItems: "center", justifyContent: "center" }}><Text style={{ fontFamily: F.negrito, fontSize: 11, color: "#fff" }}>{n}</Text></View> : null}
           </Pressable>
         ))}
       </View>
 
-      {!d ? (erro ? <Aviso texto={erro} acao={carregar} /> : <Carregando />) : aba === "votacoes" ? (
+      {aba === "escalas" ? (esc ? <MinhasEscalas d={esc} recarregar={carregarEsc} /> : erro ? <Aviso texto={erro} acao={carregar} /> : <Carregando />) : !d ? (erro ? <Aviso texto={erro} acao={carregar} /> : <Carregando />) : aba === "votacoes" ? (
         d.votacoes.length === 0 ? <Vazio I={Vote} texto="Nenhuma votação para você no momento. Quando a igreja abrir uma votação, ela aparece aqui e você recebe um aviso." /> : (
           <View style={{ gap: 12 }}>
             {d.votacoes.map((v) => <CartaoVotacao key={v.id} v={v} />)}
