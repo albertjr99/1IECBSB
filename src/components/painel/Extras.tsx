@@ -8,8 +8,9 @@ import { cn } from "@/lib/utils";
 import { Campo, Grade, Secao } from "./kit";
 import { Avatar, fotoQuadrada } from "./Avatar";
 import { Camada } from "./Camada";
+import { dataHora } from "@/lib/datas";
 
-const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const quando = (iso: string) => dataHora(iso);
 
 export function PainelVersoes({ aoRestaurar, podeRestaurar = true }: { aoRestaurar: (c: Conteudo) => void; podeRestaurar?: boolean }) {
   const [dados, setDados] = useState<Awaited<ReturnType<typeof listarVersoes>> | null>(null);

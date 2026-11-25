@@ -9,7 +9,7 @@ import { chamar } from "@/lib/api";
 import { gravarCache, lerCache } from "@/lib/cache";
 import { AZUL, F, useTema } from "@/lib/tema";
 import type { Igreja } from "@/lib/tipos";
-import { diaEMes, soDigitos } from "@/lib/util";
+import { diaEMes, emBrasilia, soDigitos } from "@/lib/util";
 
 export default function TelaIgreja() {
   const { aba: inicial } = useLocalSearchParams<{ aba?: string }>();
@@ -21,7 +21,7 @@ export default function TelaIgreja() {
     lerCache<Igreja>("igreja").then((g) => g && setD((x) => x ?? g));
     chamar<Igreja>("igreja").then((r) => { setD(r); gravarCache("igreja", r); }).catch((e) => setErro(e.message));
   }, []);
-  const hoje = new Date().getDay();
+  const hoje = emBrasilia().semana;
   const abrir = (u: string) => WebBrowser.openBrowserAsync(u, { toolbarColor: AZUL }).catch(() => Linking.openURL(u));
   const ic = (I: typeof Phone) => <I size={20} color={c.azul} />;
 

@@ -8,6 +8,7 @@
  *
  * Marcação nos textos: **negrito**, *itálico*; linha em branco separa parágrafos.
  */
+import { dataComDia, diaBrasilia } from "./datas";
 
 export type Largura = "inteira" | "dois-tercos" | "um-terco" | "larga" | "estreita";
 
@@ -103,14 +104,22 @@ export const novoIdB = (p = "b") => `${p}-${Math.random().toString(36).slice(2, 
 
 const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 
-export function dataPorExtenso(iso: string) {
+/** Por extenso, para as folhas impressas do boletim ("22 de novembro de 2026"). */
+export function dataImpressa(iso: string) {
   const [a, m, d] = iso.split("-").map(Number);
   if (!a || !m || !d) return iso;
   return `${d} de ${MESES[m - 1]} de ${a}`;
 }
 
-export function proximoDomingo(base = new Date()) {
-  const d = new Date(base);
+/** Telas do site, do painel e do app: "domingo, 22/11/2026" (formato brasileiro). */
+export function dataPorExtenso(iso: string) {
+  return dataComDia(iso);
+}
+
+export function proximoDomingo(base?: Date) {
+  // "hoje" é o dia de Brasília, mesmo no servidor (UTC)
+  const [ha, hm, hd] = diaBrasilia(base ?? Date.now()).split("-").map(Number);
+  const d = new Date(ha!, hm! - 1, hd!);
   d.setDate(d.getDate() + ((7 - d.getDay()) % 7 || 7));
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }

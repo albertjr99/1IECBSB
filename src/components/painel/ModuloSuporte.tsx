@@ -15,6 +15,7 @@ import { abrirChamado, cancelarChamado, comentarChamado, listarChamados, sincron
 import { cn } from "@/lib/utils";
 import { Avatar } from "./Avatar";
 import { Camada } from "./Camada";
+import { dataHora } from "@/lib/datas";
 
 type Dados = Awaited<ReturnType<typeof listarChamados>>;
 type Vista = "geral" | "lista" | "andamento";
@@ -34,7 +35,7 @@ function Selo({ s }: { s: Situacao }) {
   return <span className={cn("inline-flex h-6 shrink-0 items-center px-2 text-[10.5px] font-bold uppercase tracking-[0.1em]", COR[s])}>{SITUACAO_ROTULO[s]}</span>;
 }
 
-const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+const quando = (iso: string) => dataHora(iso);
 function relativo(iso: string) {
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
   if (m < 1) return "agora";

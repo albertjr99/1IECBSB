@@ -143,7 +143,8 @@ export const salvarReuniaoPainel = createServerFn({ method: "POST" })
     await registrar(s.nome, existente ? "Alterou reunião online" : "Agendou reunião online", data.titulo);
     if (!existente) {
       const { enviarPush } = await import("../server/push");
-      const quando = new Date(data.inicio).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+      const { quandoLongo } = await import("./datas");
+      const quando = quandoLongo(data.inicio);
       await enviarPush("todos", { titulo: "Reunião online", texto: `${data.titulo.trim()} — ${quando}.`, dados: { tela: "inicio" } });
     }
     return { ok: true };

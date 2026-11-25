@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ChevronLeft, FileDown, Share2 } from "lucide-react";
 import { obterBoletimPublico } from "@/lib/api-boletim";
-import { dataPorExtenso, type Boletim } from "@/lib/boletim";
+import { type Boletim } from "@/lib/boletim";
 import { FolhasEscaladas } from "@/components/boletim/Folhas";
 import { LeituraCelular } from "@/components/boletim/LeituraCelular";
+import { dataComDia } from "@/lib/datas";
 
 export const Route = createFileRoute("/app/boletim/$data")({ component: BoletimApp });
 
@@ -18,9 +19,9 @@ function BoletimApp() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 flex items-center gap-1 border-b border-[var(--a-borda)] bg-[color-mix(in_srgb,var(--a-sup)_90%,transparent)] px-2 pb-2 pt-[calc(env(safe-area-inset-top)+10px)] backdrop-blur-xl">
         <button onClick={() => router.history.back()} className="flex items-center gap-1 px-2 py-2 text-[14px] font-semibold text-[var(--a-azul)]"><ChevronLeft size={19} /> Voltar</button>
-        <span className="min-w-0 flex-1 truncate text-center text-[14px] font-bold">Boletim · {dataPorExtenso(data)}</span>
+        <span className="min-w-0 flex-1 truncate text-center text-[14px] font-bold">Boletim · {dataComDia(data)}</span>
         <a href={`/api/boletim/${data}/pdf`} className="grid size-10 place-items-center text-[var(--a-suave)]" aria-label="Baixar PDF"><FileDown size={19} /></a>
-        <button onClick={async () => { const url = `${location.origin}/boletim/${data}`; if (navigator.share) { try { await navigator.share({ title: `Boletim ${dataPorExtenso(data)}`, url }); } catch { /* cancelado */ } } else await navigator.clipboard?.writeText(url); }} className="grid size-10 place-items-center text-[var(--a-suave)]" aria-label="Compartilhar"><Share2 size={18} /></button>
+        <button onClick={async () => { const url = `${location.origin}/boletim/${data}`; if (navigator.share) { try { await navigator.share({ title: `Boletim ${dataComDia(data)}`, url }); } catch { /* cancelado */ } } else await navigator.clipboard?.writeText(url); }} className="grid size-10 place-items-center text-[var(--a-suave)]" aria-label="Compartilhar"><Share2 size={18} /></button>
       </header>
       <div className="flex justify-center px-4 pt-3">
         <div className="flex border border-[var(--a-borda)]">

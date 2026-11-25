@@ -1,19 +1,54 @@
-const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+/**
+ * Datas e horas do app: sempre no horário de Brasília (America/Sao_Paulo, UTC−3,
+ * sem horário de verão desde 2019) e no formato brasileiro dd/mm/aaaa,
+ * qualquer que seja o fuso configurado no celular.
+ */
 const DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+const DIAS_CURTOS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+const OFFSET_MS = -3 * 60 * 60_000;
+const p2 = (n: number) => String(n).padStart(2, "0");
 
-export function dataPorExtenso(iso: string) {
+/** Partes da data/hora em Brasília para um instante (ISO, número ou Date). */
+export function emBrasilia(t: string | number | Date = Date.now()) {
+  const d = new Date(new Date(t).getTime() + OFFSET_MS);
+  return { ano: d.getUTCFullYear(), mes: d.getUTCMonth() + 1, dia: d.getUTCDate(), hora: d.getUTCHours(), minuto: d.getUTCMinutes(), semana: d.getUTCDay() };
+}
+
+/** "aaaa-mm-dd" de hoje em Brasília. */
+export function hojeBrasilia() {
+  const b = emBrasilia();
+  return `${b.ano}-${p2(b.mes)}-${p2(b.dia)}`;
+}
+
+/** Data de calendário "aaaa-mm-dd" → "dd/mm/aaaa". */
+export function dataBR(iso: string) {
+  const [a, m, d] = iso.slice(0, 10).split("-");
+  return a && m && d ? `${d}/${m}/${a}` : iso;
+}
+
+/** "aaaa-mm-dd" → "domingo, 22/11/2026". */
+export function dataComDia(iso: string) {
   const [a, m, d] = iso.slice(0, 10).split("-").map(Number);
   if (!a || !m || !d) return iso;
-  return `${d} de ${MESES[m - 1]} de ${a}`;
+  return `${DIAS[new Date(Date.UTC(a, m - 1, d)).getUTCDay()]}, ${dataBR(iso)}`;
 }
-export function diaEMes(iso: string) {
-  const [, m, d] = iso.slice(0, 10).split("-").map(Number);
-  return `${d} de ${MESES[(m ?? 1) - 1]}`;
-}
+
+/** Compatível com as telas antigas: agora também em dd/mm/aaaa. */
+export const dataPorExtenso = dataComDia;
+export const diaEMes = dataBR;
+
+/** Instante → "qua, 25/11/2026 · 07h40" (horário de Brasília). */
 export function quando(iso: string) {
-  const d = new Date(iso);
-  return `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} · ${String(d.getHours()).padStart(2, "0")}h${d.getMinutes() ? String(d.getMinutes()).padStart(2, "0") : ""}`;
+  const b = emBrasilia(iso);
+  return `${DIAS_CURTOS[b.semana]}, ${p2(b.dia)}/${p2(b.mes)}/${b.ano} · ${p2(b.hora)}h${p2(b.minuto)}`;
 }
+
+/** Instante → "25/11/2026" (data em Brasília). */
+export function dataDoInstante(iso: string) {
+  const b = emBrasilia(iso);
+  return `${p2(b.dia)}/${p2(b.mes)}/${b.ano}`;
+}
+
 export const reais = (centavos: number) => (centavos / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 export const soDigitos = (t: string) => (t ?? "").replace(/\D/g, "");
 export function primeiroNome(nome: string) {
@@ -24,7 +59,7 @@ export function iniciais(nome: string) {
   return ((p[0]?.[0] ?? "") + (p.length > 1 ? p[p.length - 1]![0] : "")).toUpperCase();
 }
 export function saudacao() {
-  const h = new Date().getHours();
+  const h = emBrasilia().hora;
   return h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
 }
 export function mascaraCelular(t: string) {

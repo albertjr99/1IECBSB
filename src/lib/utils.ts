@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { data as dataDoInstante, dataBR, diaBrasilia } from "./datas";
 
 export function cn(...c: ClassValue[]) {
   return twMerge(clsx(c));
@@ -33,15 +34,16 @@ export function diaMes(iso: string) {
   return { dia: String(d.getDate()).padStart(2, "0"), mes: MESES[d.getMonth()] ?? "" };
 }
 
+/** "27/11/2026" ou "27/11 a 29/11/2026" (formato brasileiro). */
 export function periodo(inicio: string, fim?: string) {
   if (!inicio) return "";
-  const f = (iso: string) => dataLocal(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
-  if (!fim || fim === inicio) return dataLocal(inicio).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
-  return `${f(inicio)} a ${f(fim)}`;
+  if (!fim || fim === inicio) return dataBR(inicio);
+  return inicio.slice(0, 4) === fim.slice(0, 4) ? `${dataBR(inicio).slice(0, 5)} a ${dataBR(fim)}` : `${dataBR(inicio)} a ${dataBR(fim)}`;
 }
 
+/** Instante → "25/11/2026" no horário de Brasília. */
 export function dataCurta(iso: string) {
-  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).replace(".", "");
+  return dataDoInstante(iso);
 }
 
 export function duracaoTexto(s: number) {
@@ -54,7 +56,7 @@ export function paragrafos(texto: string) {
   return texto.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 }
 
+/** "aaaa-mm-dd" de hoje no horário de Brasília. */
 export function hojeISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return diaBrasilia();
 }

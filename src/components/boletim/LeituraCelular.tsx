@@ -4,9 +4,10 @@
  * numa tela de telefone).
  */
 import { useRef, useState, type ReactNode } from "react";
-import { dataPorExtenso, type Bloco, type Boletim } from "@/lib/boletim";
+import { type Bloco, type Boletim } from "@/lib/boletim";
 import { Marcado } from "./Folhas";
 import "./leitura-celular.css";
+import { dataComDia } from "@/lib/datas";
 
 const paragrafos = (t: string) => t.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 const limpo = (t: string) => t.replace(/\*+/g, "").trim();
@@ -144,7 +145,7 @@ export function LeituraCelular({ boletim, className }: { boletim: Boletim; class
             <header className="bl-capa">
               <img src="/marca/logo-horizontal-colorida.svg" alt="1ª IEC Brasília" className="bl-logo" />
               <p className="bl-rotulo">{boletim.titulo}</p>
-              <p className="bl-data">{dataPorExtenso(boletim.data)}</p>
+              <p className="bl-data">{dataComDia(boletim.data)}</p>
             </header>
             {boletim.versiculo && (
               <figure className="bl-verso">

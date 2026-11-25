@@ -12,6 +12,7 @@ import {
 import { cn, linkWhatsapp } from "@/lib/utils";
 import { IconeWhatsapp } from "@/components/site/Icones";
 import { Campo, Grade, Interruptor, Secao, Selecao } from "../kit";
+import { dataHora, isoParaLocal, localParaIso } from "@/lib/datas";
 
 type Tela = { tipo: "lista" } | { tipo: "form"; id?: string } | { tipo: "detalhe"; id: string };
 
@@ -29,7 +30,7 @@ const COR_SITUACAO: Record<Situacao, string> = {
   encerrada: "bg-p-texto text-p-superficie",
 };
 
-const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const quando = (iso: string) => dataHora(iso);
 
 // ─── Lista ──────────────────────────────────────────────────────────────────
 
@@ -78,11 +79,7 @@ function ListaVotacoes({ aoAbrir, aoNova }: { aoAbrir: (id: string) => void; aoN
 
 // ─── Formulário ─────────────────────────────────────────────────────────────
 
-const paraLocal = (iso: string) => {
-  const d = new Date(iso);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-};
+const paraLocal = isoParaLocal; // campos em horário de Brasília
 
 type FormEleitor = { id?: string; nome: string; contato: string; membroId?: string };
 
@@ -128,8 +125,8 @@ function FormVotacao({ id, aoSair }: { id?: string; aoSair: (id?: string) => voi
           ...(id ? { id } : {}),
           ...f,
           opcoes: f.opcoes.map((o, i) => ({ id: o.id || `o${i + 1}`, texto: o.texto })),
-          inicio: new Date(f.inicio).toISOString(),
-          fim: new Date(f.fim).toISOString(),
+          inicio: localParaIso(f.inicio),
+          fim: localParaIso(f.fim),
           rascunho: !abrir,
           eleitores,
         },

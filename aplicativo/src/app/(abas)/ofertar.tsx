@@ -12,7 +12,7 @@ import { gravarCache, lerCache } from "@/lib/cache";
 import { brCode, normalizarChave } from "@/lib/pix";
 import { AZUL, F, useTema } from "@/lib/tema";
 import { TIPO_CONTRIBUICAO, type Contribuicao, type TipoContribuicao } from "@/lib/tipos";
-import { reais } from "@/lib/util";
+import { dataDoInstante, reais } from "@/lib/util";
 
 type Dados = { pix: { chave: string; tipo: string; favorecido: string }; minhas: Contribuicao[] };
 
@@ -105,7 +105,7 @@ export default function Ofertar() {
               <View key={x.id} style={{ flexDirection: "row", alignItems: "center", padding: 14, borderTopWidth: i ? 1 : 0, borderTopColor: c.borda }}>
                 <View style={{ flex: 1 }}>
                   <T f={F.semi} s={14.5}>{TIPO_CONTRIBUICAO[x.tipo]}</T>
-                  <T s={12} cor={c.suave}>{new Date(x.em).toLocaleDateString("pt-BR")} · {x.situacao === "confirmada" ? "confirmada" : "aguardando confirmação"}</T>
+                  <T s={12} cor={c.suave}>{dataDoInstante(x.em)} · {x.situacao === "confirmada" ? "confirmada" : "aguardando confirmação"}</T>
                 </View>
                 <T f={F.negrito} s={15} cor={x.situacao === "confirmada" ? c.azul : c.suave}>{reais(x.valor)}</T>
               </View>

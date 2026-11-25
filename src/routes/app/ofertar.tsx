@@ -7,6 +7,7 @@ import { appContribuir, appInformarContribuicao } from "@/lib/api-app";
 import { TIPO_CONTRIBUICAO, reais, type TipoContribuicao } from "@/lib/membros";
 import { brCode, normalizarChave } from "@/lib/pix";
 import { cn } from "@/lib/utils";
+import { data } from "@/lib/datas";
 
 export const Route = createFileRoute("/app/ofertar")({ component: Ofertar });
 
@@ -118,7 +119,7 @@ function Ofertar() {
           <ul className="a-cartao divide-y divide-[var(--a-borda)]">
             {d.minhas.slice(0, 24).map((c) => (
               <li key={c.id} className="flex items-center gap-3 px-4 py-3">
-                <span className="min-w-0 flex-1"><span className="block text-[14.5px] font-bold">{TIPO_CONTRIBUICAO[c.tipo]}</span><span className="text-[12px] text-[var(--a-suave)]">{new Date(c.em).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span></span>
+                <span className="min-w-0 flex-1"><span className="block text-[14.5px] font-bold">{TIPO_CONTRIBUICAO[c.tipo]}</span><span className="text-[12px] text-[var(--a-suave)]">{data(c.em)}</span></span>
                 <span className="text-right"><span className="block text-[15px] font-bold">{reais(c.valor)}</span><span className={cn("inline-flex items-center gap-1 text-[11px] font-semibold", c.situacao === "confirmada" ? "text-emerald-600" : "text-[var(--a-suave)]")}>{c.situacao === "confirmada" ? <><CheckCircle2 size={12} /> Recebida</> : "Informada"}</span></span>
               </li>
             ))}

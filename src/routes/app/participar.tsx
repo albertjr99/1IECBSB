@@ -4,12 +4,13 @@ import { CheckCircle2, ChevronRight, Clock, Lock, Radio, Users, Video, Vote } fr
 import { toast } from "sonner";
 import { appEntrarReuniao, appParticipar } from "@/lib/api-app";
 import { cn } from "@/lib/utils";
+import { quandoLongo } from "@/lib/datas";
 
 export const Route = createFileRoute("/app/participar")({ component: Participar });
 
 type Dados = Awaited<ReturnType<typeof appParticipar>>;
 const SIGILO = { secreta: "Voto secreto", presidencia: "Voto visível só à presidência", aberta: "Voto aberto" } as const;
-const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+const quando = (iso: string) => quandoLongo(iso);
 function falta(iso: string) {
   const min = Math.round((new Date(iso).getTime() - Date.now()) / 60_000);
   if (min <= 0) return "agora";

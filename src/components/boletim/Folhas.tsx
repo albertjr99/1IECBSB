@@ -9,7 +9,7 @@ import { escapar, marcadoHtml, paragrafos, type ModoTexto } from "./marcacao";
 
 export { marcadoHtml };
 import type { Bloco, Boletim, Pagina } from "@/lib/boletim";
-import { dataPorExtenso } from "@/lib/boletim";
+import { dataImpressa } from "@/lib/boletim";
 
 // ─── Marcação: **negrito**, *itálico*, ***ambos*** ─────────────────────────
 
@@ -183,7 +183,7 @@ function Capa({ boletim }: { boletim: Boletim }) {
       </div>
       <div className="bol-capa-data">
         <span>{boletim.titulo}</span>
-        <strong>{dataPorExtenso(boletim.data)}</strong>
+        <strong>{dataImpressa(boletim.data)}</strong>
       </div>
     </header>
   );
@@ -551,7 +551,7 @@ function PaginaView({ boletim, pagina, n, marcarTransbordo = false, aoSelecionar
       <div className="bol-corpo" ref={corpo} style={{ overflow: "hidden" }}>
         {n > 1 && (
           <div className="bol-cabecalho">
-            <span className="bol-cab-marca"><img src="/marca/logo-simbolo-colorida.svg" alt="" /><strong>{boletim.titulo}</strong><span>· {dataPorExtenso(boletim.data)}</span></span>
+            <span className="bol-cab-marca"><img src="/marca/logo-simbolo-colorida.svg" alt="" /><strong>{boletim.titulo}</strong><span>· {dataImpressa(boletim.data)}</span></span>
             <span className="bol-num">{n}</span>
           </div>
         )}

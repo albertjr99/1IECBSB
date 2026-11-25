@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { DiaAgenda } from "@/lib/conteudo";
 import { useConteudo } from "@/lib/contexto";
 import { cn } from "@/lib/utils";
+import { emBrasilia } from "@/lib/datas";
 
 function CartaoDia({ d, hoje }: { d: DiaAgenda; hoje: boolean }) {
   return (
@@ -53,7 +54,7 @@ export function AgendaSemanal({ comCapa = true }: { comCapa?: boolean }) {
   const [hoje, setHoje] = useState(-1);
   const total = p.dias.length + (comCapa ? 1 : 0);
 
-  useEffect(() => setHoje(new Date().getDay()), []);
+  useEffect(() => setHoje(emBrasilia().semana), []);
 
   const cartoes = useCallback(() => Array.from(trilho.current?.children ?? []) as HTMLElement[], []);
 

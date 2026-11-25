@@ -15,10 +15,12 @@ import { cn, linkWhatsapp } from "@/lib/utils";
 import { Avatar } from "./Avatar";
 import { Camada } from "./Camada";
 import { Campo, Grade, Secao } from "./kit";
+import { dataHora, diaBrasilia, isoParaLocal, localParaIso, hora } from "@/lib/datas";
+import { data, quandoLongo } from "@/lib/datas";
 
 const enderecoApp = () => (typeof window !== "undefined" ? `${window.location.origin}/app` : "/app");
 const dataBR = (iso: string) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : "—");
-const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+const quando = (iso: string) => dataHora(iso);
 
 function Cabeca({ sobre, titulo, texto, acao }: { sobre: string; titulo: string; texto: string; acao?: React.ReactNode }) {
   return (
@@ -238,7 +240,7 @@ export function ModuloReunioes() {
     <div className="grid gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <p className="max-w-[62ch] text-[14.5px] text-p-texto-2">Reuniões por vídeo para os membros do aplicativo. A sala abre 15 minutos antes; quem entra pelo app fica na lista de presença automaticamente.</p>
-        <button onClick={() => setForm({ titulo: "", descricao: "", data: new Date().toISOString().slice(0, 10), hora: "19:30", duracaoMin: 90 })} className="ef-btn ef-btn-pri !h-11"><Plus size={16} /> Agendar reunião</button>
+        <button onClick={() => setForm({ titulo: "", descricao: "", data: diaBrasilia(), hora: "19:30", duracaoMin: 90 })} className="ef-btn ef-btn-pri !h-11"><Plus size={16} /> Agendar reunião</button>
       </div>
       {!lista ? <Loader2 className="mx-auto animate-spin text-p-suave" /> : (
         <>
@@ -248,12 +250,12 @@ export function ModuloReunioes() {
               <ul className="grid gap-3">
                 {proximas.map((r) => (
                   <li key={r.id} className="ef-peca ef-peca-filete flex flex-wrap items-center gap-4 px-5 py-4">
-                    <span className="grid w-14 shrink-0 text-center"><span className="ef-num text-[24px] font-bold leading-none text-p-acento">{r.inicio.slice(8, 10)}</span><span className="text-[10px] font-bold uppercase tracking-[0.16em] text-p-suave">{new Date(r.inicio).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span></span>
-                    <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold text-p-texto">{r.titulo}</span><span className="text-[12.5px] text-p-suave">{new Date(r.inicio).toLocaleString("pt-BR", { weekday: "long", hour: "2-digit", minute: "2-digit" })} · {r.duracaoMin} min · {r.presencas.length} presentes</span></span>
+                    <span className="grid w-14 shrink-0 text-center"><span className="ef-num text-[24px] font-bold leading-none text-p-acento">{data(r.inicio).slice(0, 2)}</span><span className="text-[10px] font-bold uppercase tracking-[0.16em] text-p-suave">{data(r.inicio).slice(3)}</span></span>
+                    <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold text-p-texto">{r.titulo}</span><span className="text-[12.5px] text-p-suave">{quandoLongo(r.inicio)} · {r.duracaoMin} min · {r.presencas.length} presentes</span></span>
                     <span className="flex flex-wrap gap-1">
                       <a href={linkDaSala(r.sala, "Presidência — 1ª IEC Brasília")} target="_blank" rel="noopener" className={cn("ef-btn !h-9", salaAberta(r) ? "ef-btn-pri" : "ef-btn-sec")}><Video size={15} /> {salaAberta(r) ? "Entrar agora" : "Abrir a sala"}</a>
                       <button onClick={() => setPresenca(r.id)} className="ef-btn ef-btn-fantasma !h-9"><Users size={15} /> Presença</button>
-                      <button onClick={() => setForm({ id: r.id, titulo: r.titulo, descricao: r.descricao, data: r.inicio.slice(0, 10), hora: new Date(r.inicio).toTimeString().slice(0, 5), duracaoMin: r.duracaoMin })} className="ef-btn ef-btn-fantasma !h-9"><Pencil size={15} /></button>
+                      <button onClick={() => setForm({ id: r.id, titulo: r.titulo, descricao: r.descricao, data: isoParaLocal(r.inicio).slice(0, 10), hora: isoParaLocal(r.inicio).slice(11, 16), duracaoMin: r.duracaoMin })} className="ef-btn ef-btn-fantasma !h-9"><Pencil size={15} /></button>
                       <button onClick={async () => { if (!confirm("Cancelar esta reunião?")) return; await cancelarReuniaoPainel({ data: { id: r.id } }); carregar(); }} className="ef-btn ef-btn-perigo">Cancelar</button>
                     </span>
                   </li>
@@ -285,7 +287,7 @@ export function ModuloReunioes() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 try {
-                  await salvarReuniaoPainel({ data: { ...(form.id ? { id: form.id } : {}), titulo: form.titulo, descricao: form.descricao, inicio: new Date(`${form.data}T${form.hora}:00`).toISOString(), duracaoMin: form.duracaoMin } });
+                  await salvarReuniaoPainel({ data: { ...(form.id ? { id: form.id } : {}), titulo: form.titulo, descricao: form.descricao, inicio: localParaIso(`${form.data}T${form.hora}`), duracaoMin: form.duracaoMin } });
                   toast.success(form.id ? "Reunião atualizada." : "Reunião agendada. Ela já aparece no aplicativo dos membros.");
                   setForm(null); carregar();
                 } catch (err) { toast.error(err instanceof Error ? err.message : "Erro"); }
@@ -312,7 +314,7 @@ export function ModuloReunioes() {
             <div onClick={(e) => e.stopPropagation()} className="ef-janela grid max-h-[80vh] w-full max-w-md grid-rows-[auto_1fr_auto] p-7">
               <div className="flex items-start justify-between"><div><p className="ef-sobre">Lista de presença</p><h2 className="mt-2.5 text-[19px] font-bold">{aberta.titulo}</h2><p className="text-[13px] text-p-suave">{aberta.presencas.length} presentes</p></div><button onClick={() => setPresenca(null)} className="p-1 text-p-suave" aria-label="Fechar"><X size={18} /></button></div>
               <ol className="mt-4 overflow-y-auto border-y border-p-borda">
-                {aberta.presencas.map((p, i) => <li key={p.membroId} className="flex justify-between border-b border-p-borda py-2 text-[14px] last:border-0"><span><span className="ef-num mr-3 text-p-suave">{String(i + 1).padStart(2, "0")}</span>{p.nome}</span><span className="text-[12px] text-p-suave">{new Date(p.em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span></li>)}
+                {aberta.presencas.map((p, i) => <li key={p.membroId} className="flex justify-between border-b border-p-borda py-2 text-[14px] last:border-0"><span><span className="ef-num mr-3 text-p-suave">{String(i + 1).padStart(2, "0")}</span>{p.nome}</span><span className="text-[12px] text-p-suave">{hora(p.em)}</span></li>)}
                 {!aberta.presencas.length && <li className="py-6 text-center text-[13.5px] text-p-suave">Ninguém entrou ainda.</li>}
               </ol>
               <button onClick={() => navigator.clipboard?.writeText(aberta.presencas.map((p, i) => `${i + 1}. ${p.nome}`).join("\n")).then(() => toast.success("Lista copiada."))} className="ef-btn ef-btn-sec mt-4 justify-self-start"><Copy size={15} /> Copiar lista</button>

@@ -5,6 +5,7 @@ import { abrirCedula, votar } from "@/lib/api-votacao";
 import { SIGILO_DESC, SIGILO_ROTULO } from "@/lib/votacao";
 import { useConteudo } from "@/lib/contexto";
 import { cn } from "@/lib/utils";
+import { quandoLongo } from "@/lib/datas";
 
 export const Route = createFileRoute("/votar/$token")({
   ssr: false,
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/votar/$token")({
   pendingComponent: () => <div className="grid min-h-screen place-items-center"><Loader2 className="animate-spin text-marca" /></div>,
 });
 
-const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+const quando = (iso: string) => quandoLongo(iso);
 
 function Moldura({ children }: { children: React.ReactNode }) {
   const { geral } = useConteudo();

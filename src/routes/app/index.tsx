@@ -9,25 +9,25 @@ import { primeiroNome, salaAberta } from "@/lib/membros";
 import { hojeISO, periodo } from "@/lib/utils";
 import type { Conteudo } from "@/lib/conteudo";
 import { Avatar } from "@/components/painel/Avatar";
+import { dataBR, emBrasilia, dataComDia, diaBrasilia, quando } from "@/lib/datas";
 
 export const Route = createFileRoute("/app/")({ component: Inicio });
 
 type Dados = Awaited<ReturnType<typeof appInicio>>;
 
 function saudacao() {
-  const h = new Date().getHours();
+  const h = emBrasilia().hora;
   return h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
 }
 
 function proximoEncontro(dias: Conteudo["programacao"]["dias"]) {
-  const agora = new Date();
+  const agora = emBrasilia(); // horário de Brasília, também no servidor
   for (let k = 0; k < 8; k++) {
-    const d = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + k);
-    const dia = dias.find((x) => x.diaSemana === d.getDay());
+    const dia = dias.find((x) => x.diaSemana === (agora.semana + k) % 7);
     if (!dia) continue;
     const itens = dia.itens
       .map((it) => { const m = /(\d{1,2})h(\d{2})?/.exec(it.horario); return { it, min: m ? Number(m[1]) * 60 + Number(m[2] ?? 0) : 0 }; })
-      .filter((x) => /culto|estudo|ebd|escola|consagra|ora/i.test(x.it.titulo) && (k > 0 || x.min > agora.getHours() * 60 + agora.getMinutes()))
+      .filter((x) => /culto|estudo|ebd|escola|consagra|ora/i.test(x.it.titulo) && (k > 0 || x.min > agora.hora * 60 + agora.minuto))
       .sort((a, b) => a.min - b.min);
     if (itens[0]) return { quando: k === 0 ? "Hoje" : k === 1 ? "Amanhã" : dia.dia, ...itens[0].it };
   }
@@ -68,7 +68,7 @@ function Inicio() {
           <img src="/marca/logo-horizontal-negativo-branco-cruz-vermelha.svg" alt="1ª IEC Brasília" className="h-8 w-auto" />
           <Link to="/app/mais" aria-label="Meu perfil"><Avatar nome={membro.nome} foto={membro.foto} tamanho={38} className="ring-2 ring-white/25" /></Link>
         </div>
-        <p className="mt-7 text-[14px] text-white/70">{new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p>
+        <p className="mt-7 text-[14px] text-white/70">{dataComDia(diaBrasilia())}</p>
         <h1 className="mt-1 text-[28px] font-bold leading-tight tracking-[-0.02em]">{saudacao()}, {primeiroNome(membro.nome)}</h1>
         {prox && (
           <div className="mt-5 flex items-center gap-3 border border-white/20 bg-white/[0.08] px-4 py-3 backdrop-blur">
@@ -91,7 +91,7 @@ function Inicio() {
             {pendentes.map((v) => (
               <a key={v.id} href={`/votar/${v.token}`} className="a-cartao a-filete flex items-center gap-4 px-4 py-4">
                 <Vote size={24} className="shrink-0 text-[var(--a-azul)]" />
-                <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{v.titulo}</span><span className="text-[12.5px] text-[var(--a-suave)]">Votação aberta até {new Date(v.fim).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></span>
+                <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{v.titulo}</span><span className="text-[12.5px] text-[var(--a-suave)]">Votação aberta até {quando(v.fim)}</span></span>
                 <span className="a-btn a-btn-pri !h-10 !px-4 !text-[11px]">Votar</span>
               </a>
             ))}
@@ -107,7 +107,7 @@ function Inicio() {
               return (
                 <div key={r.id} className="a-cartao flex items-center gap-4 px-4 py-4">
                   <Video size={22} className="shrink-0 text-[var(--a-azul)]" />
-                  <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{r.titulo}</span><span className="text-[12.5px] text-[var(--a-suave)]">{new Date(r.inicio).toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></span>
+                  <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{r.titulo}</span><span className="text-[12.5px] text-[var(--a-suave)]">{quando(r.inicio)}</span></span>
                   <button disabled={!aberta} onClick={async () => { try { const { url } = await appEntrarReuniao({ data: { id: r.id } }); window.open(url, "_blank"); } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); } }} className="a-btn a-btn-pri !h-10 !px-4 !text-[11px]">{aberta ? "Entrar" : "Em breve"}</button>
                 </div>
               );
@@ -158,7 +158,7 @@ function Inicio() {
           <ul className="a-cartao divide-y divide-[var(--a-borda)]">
             {eventos.map((e) => (
               <li key={e.id} className="flex items-center gap-4 px-4 py-3.5">
-                <span className="w-11 shrink-0 text-center text-[var(--a-azul)]"><span className="block text-[22px] font-bold leading-none">{e.data.slice(8, 10)}</span><span className="text-[9.5px] font-bold uppercase tracking-[0.16em]">{new Date(`${e.data}T12:00`).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span></span>
+                <span className="w-11 shrink-0 text-center text-[var(--a-azul)]"><span className="block text-[22px] font-bold leading-none">{e.data.slice(8, 10)}</span><span className="text-[9.5px] font-bold uppercase tracking-[0.16em]">/{dataBR(e.data).slice(3, 5)}</span></span>
                 <span className="min-w-0 flex-1"><span className="block text-[14.5px] font-bold leading-snug">{e.titulo}</span><span className="text-[12px] text-[var(--a-suave)]">{periodo(e.data, e.dataFim)}{e.horario && ` · ${e.horario}`}</span></span>
                 <CalendarDays size={16} className="shrink-0 text-[var(--a-suave)]" />
               </li>

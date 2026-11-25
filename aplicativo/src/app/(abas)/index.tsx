@@ -10,7 +10,7 @@ import { entrarNaSala } from "@/lib/participar";
 import { useMembro } from "@/lib/sessao";
 import { AZUL, F, NOITE, useTema } from "@/lib/tema";
 import type { Inicio } from "@/lib/tipos";
-import { dataPorExtenso, primeiroNome, quando, salaAberta, saudacao } from "@/lib/util";
+import { dataBR, hojeBrasilia, primeiroNome, quando, salaAberta, saudacao } from "@/lib/util";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const LIVROS = (require("../../dados/indice-biblia.json") as { livros: { id: string; nome: string }[] }).livros;
@@ -32,8 +32,7 @@ export default function TelaInicio() {
   }, [d]);
   useFocusEffect(useCallback(() => { carregar(); }, [])); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hoje = new Date();
-  const aniversario = membro.nascimento?.slice(5) === `${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+  const aniversario = !!membro.nascimento && membro.nascimento.slice(5) === hojeBrasilia().slice(5);
   const abertas = d?.votacoes.filter((v) => v.situacao === "em_andamento" && !v.votou) ?? [];
 
   const entrarReuniao = async (id: string) => {
@@ -118,7 +117,7 @@ export default function TelaInicio() {
 
       <View style={{ flexDirection: "row", gap: 10 }}>
         {[
-          { t: "Boletim", s: d?.boletim ? dataPorExtenso(d.boletim.data).replace(/ de \d{4}$/, "") : "da semana", I: FileText, ir: () => (d?.boletim ? router.push(`/boletim/${d.boletim.data}`) : router.push("/boletins")) },
+          { t: "Boletim", s: d?.boletim ? dataBR(d.boletim.data) : "da semana", I: FileText, ir: () => (d?.boletim ? router.push(`/boletim/${d.boletim.data}`) : router.push("/boletins")) },
           { t: "Agenda", s: "cultos e eventos", I: CalendarDays, ir: () => router.push("/igreja") },
           { t: "Ofertar", s: "dízimos e ofertas", I: HandHeart, ir: () => router.push("/ofertar") },
         ].map((a) => (

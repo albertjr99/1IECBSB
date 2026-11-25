@@ -108,8 +108,8 @@ export const publicarBoletim = createServerFn({ method: "POST" })
     await registrar(s.nome, data.publicar ? "Publicou boletim" : "Retirou boletim do site", b.data.split("-").reverse().join("/"));
     if (data.publicar) {
       const { avisarUmaVez } = await import("../server/push");
-      const { dataPorExtenso } = await import("./boletim");
-      await avisarUmaVez(`boletim:${b.id}`, "todos", { titulo: "Boletim da semana", texto: `O boletim de ${dataPorExtenso(b.data)} já está no aplicativo.`, dados: { tela: "boletim", data: b.data } });
+      const { dataBR } = await import("./datas");
+      await avisarUmaVez(`boletim:${b.id}`, "todos", { titulo: "Boletim da semana", texto: `O boletim de ${dataBR(b.data)} já está no aplicativo.`, dados: { tela: "boletim", data: b.data } });
     }
     return { ok: true, publicadoEm: b.publicadoEm, atualizadoEm: b.atualizadoEm };
   });

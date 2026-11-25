@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { EditorFacil } from "./EditorFacil";
 import { EstudioBoletim } from "./Estudio";
 import "./editor.css";
+import { dataHora } from "@/lib/datas";
 
 type Aberto = { id: string; modo: "facil" | "avancado"; lembretes?: string[] };
 
@@ -30,7 +31,7 @@ export function ModuloBoletim() {
 }
 
 const MES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+const quando = (iso: string) => dataHora(iso);
 
 /** A primeira página do boletim, em pé e em perspectiva, com uma folha atrás. */
 function Capa3D({ boletim, apagada }: { boletim: Boletim | null; apagada?: boolean }) {
@@ -110,7 +111,7 @@ function ListaBoletins({ aoAbrir }: { aoAbrir: (id: string, lembretes?: string[]
                     <h2 className="mt-4 text-[clamp(28px,3.6vw,42px)] font-bold leading-[1.05] tracking-[-0.025em]">{dataPorExtenso(domingo)}</h2>
                     <p className="mt-4 max-w-[50ch] text-[15px] leading-relaxed text-white/75">
                       {lista.length
-                        ? `O boletim já começa preparado a partir do de ${dataPorExtenso(lista[0]!.data).replace(/ de \d{4}$/, "")}: mesmos avisos, escala adiantada e agenda sem o que já passou. Falta revisar e escrever as pastorais.`
+                        ? `O boletim já começa preparado a partir do de ${dataPorExtenso(lista[0]!.data)}: mesmos avisos, escala adiantada e agenda sem o que já passou. Falta revisar e escrever as pastorais.`
                         : "O boletim começa no modelo da igreja, com todas as seções."}
                     </p>
                     <button disabled={criando} onClick={criar} className="ef-btn ef-btn-branco mt-8 !h-[52px] !px-7">

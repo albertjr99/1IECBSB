@@ -7,7 +7,7 @@ import { useMembro } from "@/components/app/contexto";
 import { Avatar, fotoQuadrada } from "@/components/painel/Avatar";
 import { type Preferencias } from "@/lib/membros";
 import { cn } from "@/lib/utils";
-import { dataPorExtenso } from "@/lib/boletim";
+import { dataComDia } from "@/lib/datas";
 
 export const Route = createFileRoute("/app/mais")({ component: Mais });
 
@@ -79,7 +79,7 @@ function Mais() {
           {boletins.slice(0, 6).map((b) => (
             <Link key={b.id} to="/app/boletim/$data" params={{ data: b.data }} className="flex items-center gap-4 px-4 py-3.5">
               <Newspaper size={20} className="shrink-0 text-[var(--a-azul)]" />
-              <span className="flex-1 text-[15px] font-semibold">{dataPorExtenso(b.data)}</span>
+              <span className="flex-1 text-[15px] font-semibold">{dataComDia(b.data)}</span>
               <ChevronRight size={17} className="text-[var(--a-suave)]" />
             </Link>
           ))}

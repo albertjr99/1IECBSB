@@ -12,15 +12,15 @@ import { CabecalhoSecao } from "@/components/site/Layout";
 import { BotoesRota, CartaoEvento, CartaoVideo, EsqueletoVideos, Mapa, PlayerVideo } from "@/components/site/Blocos";
 import { AgendaSemanal } from "@/components/site/AgendaSemanal";
 import { MonteFoto } from "@/components/site/Monte";
+import { emBrasilia } from "@/lib/datas";
 
 export const Route = createFileRoute("/_site/")({ component: Inicio });
 
 /** Próximo culto/estudo da agenda semanal, a partir de agora. */
 function proximoEncontro(dias: Conteudo["programacao"]["dias"]) {
-  const agora = new Date();
+  const agora = emBrasilia(); // horário de Brasília, também no servidor
   for (let k = 0; k < 8; k++) {
-    const d = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + k);
-    const dia = dias.find((x) => x.diaSemana === d.getDay());
+    const dia = dias.find((x) => x.diaSemana === (agora.semana + k) % 7);
     if (!dia) continue;
     const itens = dia.itens
       .filter((it) => /culto|estudo|ebd|escola|consagra/i.test(it.titulo) && !/\d[ªº]/.test(it.detalhe + it.titulo))
@@ -28,7 +28,7 @@ function proximoEncontro(dias: Conteudo["programacao"]["dias"]) {
         const m = /(\d{1,2})h(\d{2})?/.exec(it.horario);
         return { it, min: m ? Number(m[1]) * 60 + Number(m[2] ?? 0) : 0 };
       })
-      .filter((x) => k > 0 || x.min > agora.getHours() * 60 + agora.getMinutes())
+      .filter((x) => k > 0 || x.min > agora.hora * 60 + agora.minuto)
       .sort((a, b) => a.min - b.min);
     if (itens[0]) return { quando: k === 0 ? "Hoje" : k === 1 ? "Amanhã" : dia.dia, ...itens[0].it };
   }

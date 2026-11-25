@@ -22,6 +22,7 @@ import { IconeWhatsapp } from "@/components/site/Icones";
 import { cn } from "@/lib/utils";
 import "./editor.css";
 import { Camada } from "../Camada";
+import { quando } from "@/lib/datas";
 
 type IdPasso = "inicio" | "pastoral" | "segunda" | "avisos" | "oracao" | "escala" | "agenda" | "semana" | "aniversariantes" | "publicar";
 type Passo = { id: IdPasso; titulo: string; Icone: LucideIcon; ajuda: string };
@@ -565,7 +566,7 @@ function PassoInicio({ b, mudar }: PropsPasso) {
         <div className="flex flex-wrap items-center gap-3">
           <input id="data-boletim" type="date" value={b.data} onChange={(e) => e.target.value && mudar((d) => { d.data = e.target.value; })} className={cn(campo, "max-w-[240px]")} />
           <span className={cn("text-[14px]", domingo ? "text-p-suave" : "font-semibold text-amber-700 dark:text-amber-400")}>
-            {domingo ? `Domingo, ${dataPorExtenso(b.data)}` : "Atenção: esta data não é um domingo"}
+            {domingo ? dataPorExtenso(b.data).replace(/^d/, "D") : "Atenção: esta data não é um domingo"}
           </span>
         </div>
       </div>
@@ -977,7 +978,7 @@ function PassoPublicar({ b, verificacao, ir, salvarAntes, aoPublicado, aoRestaur
             {versoes.map((v) => (
               <li key={v.em} className="flex flex-wrap items-center gap-3 border-b border-p-borda px-4 py-3 last:border-0">
                 <span className="min-w-0 flex-1">
-                  <span className="ef-num block text-[14px] font-semibold text-p-texto">{new Date(v.em).toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} · {v.por || "—"}</span>
+                  <span className="ef-num block text-[14px] font-semibold text-p-texto">{quando(v.em)} · {v.por || "—"}</span>
                   <span className="block truncate text-[12.5px] text-p-suave">{v.motivo}{v.pastoral ? ` · “${v.pastoral}”` : ""}</span>
                 </span>
                 <button

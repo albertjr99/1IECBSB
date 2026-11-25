@@ -9,6 +9,7 @@ import { CapaPagina } from "@/components/site/Layout";
 import { AgendaCompacta } from "@/components/site/AgendaSemanal";
 import { IconeYoutube } from "@/components/site/Icones";
 import { ConteudoExterno } from "@/components/site/AvisoCookies";
+import { quandoLongo } from "@/lib/datas";
 
 export const Route = createFileRoute("/_site/ao-vivo")({ component: AoVivo, head: () => ({ meta: [{ title: "Ao vivo" }] }) });
 
@@ -61,7 +62,7 @@ function AoVivo() {
                   {s.agendado ? (
                     <p className="mt-1 flex items-center gap-2 text-tinta-suave">
                       <CalendarClock size={16} className="text-marca" />
-                      Próxima transmissão: <strong className="text-tinta">{new Date(s.agendado.inicio).toLocaleString("pt-BR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</strong>
+                      Próxima transmissão: <strong className="text-tinta">{quandoLongo(s.agendado.inicio)}</strong>
                     </p>
                   ) : (
                     <p className="texto-justificado mt-1 text-tinta">Esta página mostra a transmissão automaticamente quando começar. Enquanto isso, assista à última mensagem.</p>

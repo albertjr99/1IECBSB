@@ -1,3 +1,4 @@
+import { dataComDia } from "@/lib/datas";
 import { useMemo, useState } from "react";
 import { CalendarPlus, ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
 import type { Evento } from "@/lib/conteudo";
@@ -11,9 +12,9 @@ const iso = (a: number, m: number, d: number) => `${a}-${String(m + 1).padStart(
 const fimDe = (ev: Evento) => (ev.dataFim && ev.dataFim > ev.data ? ev.dataFim : ev.data);
 const ocorreEm = (ev: Evento, dia: string) => ev.data <= dia && dia <= fimDe(ev);
 
+/** "aaaa-mm-dd" → "quarta, 25/11/2026". */
 function diaPorExtenso(dia: string) {
-  const [a, m, d] = dia.split("-").map(Number);
-  return new Date(a, m - 1, d).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  return dataComDia(dia);
 }
 
 /** Link "adicionar ao Google Agenda" (dia inteiro; o horário vai na descrição). */
