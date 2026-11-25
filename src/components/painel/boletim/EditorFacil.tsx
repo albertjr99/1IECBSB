@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Bold, BookOpen, Cake, CalendarDays, Check, CheckCircle2, Church, ClipboardList,
-  CloudOff, Copy, Eye, FileDown, Globe, HandHeart, History, Italic, Loader2, Megaphone, PenLine, Plus, Redo2, RemoveFormatting, Send, Settings2, Trash2, Undo2, X,
+  CloudOff, Copy, Eye, FileDown, Globe, HandHeart, History, Italic, Loader2, Maximize2, Megaphone, PanelLeftClose, PanelLeftOpen, PenLine, Plus, Redo2, RemoveFormatting, Send, Settings2, Trash2, Undo2, X,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -74,6 +74,12 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
   const [passo, setPasso] = useState<IdPasso>("inicio");
   /** qual pastoral está aberta no passo "Pastorais" */
   const [artigoSel, setArtigoSel] = useState(0);
+  // roteiro estreito (só os números) para sobrar espaço; abre recolhido em telas menores
+  const [trilhoCurto, setTrilhoCurto] = useState(() => {
+    try { const p = localStorage.getItem("iecb_boletim_trilho"); if (p) return p === "curto"; } catch { /* sem armazenamento */ }
+    return typeof window !== "undefined" && window.innerWidth < 1680;
+  });
+  const alternarTrilho = () => setTrilhoCurto((v) => { try { localStorage.setItem("iecb_boletim_trilho", v ? "largo" : "curto"); } catch { /* */ } return !v; });
   const [vistos, setVistos] = useState<Set<IdPasso>>(() => new Set(["inicio"]));
   const [salvamento, setSalvamento] = useState<Salvamento>("salvo");
   const [conflito, setConflito] = useState("");
@@ -311,10 +317,17 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
 
       <div className="relative flex min-h-0 flex-1">
         {/* ── trilho dos passos ── */}
-        <nav className="ef-trilho hidden w-[256px] shrink-0 flex-col overflow-y-auto border-r border-p-borda bg-p-sutil px-3 py-5 lg:flex" aria-label="Passos do boletim">
-          <div className="mb-4 px-3">
-            <p className="ef-h2 !text-[11px] !text-p-suave">Roteiro</p>
-            <p className="mt-1 text-[13px] text-p-suave"><span className="ef-num font-bold text-p-texto">{prontos}</span> de {PASSOS.length - 1} prontos</p>
+        <nav className={cn("ef-trilho hidden shrink-0 flex-col overflow-y-auto border-r border-p-borda bg-p-sutil py-5 transition-[width] duration-200 lg:flex", trilhoCurto ? "ef-trilho-curto w-[68px] px-2" : "w-[256px] px-3")} aria-label="Passos do boletim">
+          <div className={cn("mb-4 flex items-start justify-between gap-2", trilhoCurto ? "justify-center px-0" : "px-3")}>
+            {!trilhoCurto && (
+              <div>
+                <p className="ef-h2 !text-[11px] !text-p-suave">Roteiro</p>
+                <p className="mt-1 text-[13px] text-p-suave"><span className="ef-num font-bold text-p-texto">{prontos}</span> de {PASSOS.length - 1} prontos</p>
+              </div>
+            )}
+            <button onClick={alternarTrilho} className="grid size-8 shrink-0 place-items-center text-p-suave transition hover:text-p-acento" title={trilhoCurto ? "Mostrar os nomes dos passos" : "Recolher o roteiro (mais espaço para escrever)"} aria-label={trilhoCurto ? "Expandir roteiro" : "Recolher roteiro"}>
+              {trilhoCurto ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            </button>
           </div>
           <ol className="grid gap-0.5">
             {PASSOS.map((p, n) => {
@@ -322,17 +335,17 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
               const ativo = p.id === passo;
               return (
                 <li key={p.id}>
-                  <button onClick={() => ir(p.id)} className="ef-passo" aria-current={ativo ? "step" : undefined} data-estado={ok ? "feito" : "aberto"}>
+                  <button onClick={() => ir(p.id)} className="ef-passo" title={trilhoCurto ? p.titulo : undefined} aria-label={trilhoCurto ? p.titulo : undefined} aria-current={ativo ? "step" : undefined} data-estado={ok ? "feito" : "aberto"}>
                     <span className="ef-passo-n">{ok && !ativo ? <Check size={14} strokeWidth={3} /> : dois(n + 1)}</span>
-                    <span className="ef-passo-t">{p.titulo}</span>
+                    {!trilhoCurto && <span className="ef-passo-t">{p.titulo}</span>}
                   </button>
                 </li>
               );
             })}
           </ol>
-          <div className="mt-auto border-t border-p-borda px-3 pt-4">
-            <button onClick={async () => { if (pendente.current) await salvar(); aoModoAvancado(); }} className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-p-suave transition hover:text-p-acento">
-              <Settings2 size={14} /> Modo avançado de diagramação
+          <div className={cn("mt-auto border-t border-p-borda pt-4", trilhoCurto ? "flex justify-center px-0" : "px-3")}>
+            <button onClick={async () => { if (pendente.current) await salvar(); aoModoAvancado(); }} title="Modo avançado de diagramação" className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-p-suave transition hover:text-p-acento">
+              <Settings2 size={14} /> {!trilhoCurto && "Modo avançado de diagramação"}
             </button>
           </div>
         </nav>
@@ -522,6 +535,85 @@ function CaixaTexto({ valor, aoMudar, dica, minimo = 160 }: { valor: string; aoM
   );
 }
 
+/**
+ * Escrever a pastoral usando a tela inteira: o texto no centro, numa coluna de
+ * leitura confortável, e — em telas largas — a página do boletim ao lado,
+ * atualizando enquanto se escreve. Esc ou "Concluir" fecha.
+ */
+function EscritaTelaCheia({ b, bloco, nome, pct, palavras, aoTitulo, aoTexto, aoAutor, aoFechar }: {
+  b: Boletim; bloco: NonNullable<Partes["pastoral"]>; nome: string; pct: number; palavras: number;
+  aoTitulo: (v: string) => void; aoTexto: (v: string) => void; aoAutor: (v: string) => void; aoFechar: () => void;
+}) {
+  const [pagina, setPagina] = useState(true);
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => { if (e.key === "Escape") aoFechar(); };
+    window.addEventListener("keydown", tecla);
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", tecla); document.body.style.overflow = antes; };
+  }, [aoFechar]);
+  const paginaId = b.paginas[paginaDo(b, bloco.id)]?.id;
+  const cor = pct > 100 ? "bg-red-600" : pct > 92 ? "bg-amber-500" : "bg-p-acento";
+  return (
+    <Camada>
+      <div className="ef-tela-cheia fixed inset-0 z-[70] flex flex-col bg-p-fundo" role="dialog" aria-modal aria-label={`Escrever ${nome}`}>
+        <header className="ef-vidro flex shrink-0 flex-wrap items-center gap-x-5 gap-y-2 border-b border-p-borda px-4 py-3 sm:px-6">
+          <div className="min-w-0 flex-1">
+            <p className="ef-sobre !text-[10.5px]">Escrevendo · {nome}</p>
+            <input value={bloco.titulo.replace(/\*/g, "")} onChange={(e) => aoTitulo(e.target.value)} placeholder="Título" className="mt-1 w-full bg-transparent text-[22px] font-bold tracking-[-0.015em] text-p-acento outline-none placeholder:text-p-suave/60" />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="hidden w-[170px] sm:block" title="Quanto da página o texto ocupa">
+              <div className="flex justify-between text-[11.5px] font-semibold text-p-suave"><span>Página</span><span className={cn("ef-num", pct > 100 && "text-red-700")}>{Math.round(pct)}%</span></div>
+              <div className="mt-1 h-1.5 bg-p-borda"><div className={cn("h-1.5 transition-[width]", cor)} style={{ width: `${Math.min(100, pct)}%` }} /></div>
+            </div>
+            <span className="ef-num hidden text-[12.5px] font-semibold text-p-suave md:inline">{palavras} {palavras === 1 ? "palavra" : "palavras"}</span>
+            <button type="button" onClick={() => setPagina(!pagina)} className="ef-btn ef-btn-fantasma hidden !h-10 xl:inline-flex" aria-pressed={pagina}><Eye size={16} /> {pagina ? "Esconder página" : "Ver página"}</button>
+            <button type="button" onClick={aoFechar} className="ef-btn ef-btn-pri !h-10"><Check size={16} /> Concluir</button>
+          </div>
+        </header>
+        <div className={cn("grid min-h-0 flex-1", pagina && "xl:grid-cols-[minmax(0,1fr)_clamp(360px,34vw,620px)]")}>
+          <main className="min-h-0 overflow-y-auto">
+            <div className="mx-auto grid w-full max-w-[80ch] gap-5 px-4 py-6 sm:px-8 sm:py-8 2xl:max-w-[104ch]">
+              {pct > 100 && <AlertaCheia pct={pct} linhas={96} />}
+              <div className="ef-texto ef-texto-grande">
+                <div className="ef-texto-barra sticky top-0 z-10">
+                  <button type="button" className="ef-ferramenta" onMouseDown={(e) => { e.preventDefault(); formatar("bold"); }} title="Negrito (Ctrl+B)"><Bold size={15} strokeWidth={2.6} /> Negrito</button>
+                  <button type="button" className="ef-ferramenta" onMouseDown={(e) => { e.preventDefault(); formatar("italic"); }} title="Itálico (Ctrl+I)"><Italic size={15} /> Itálico</button>
+                  <span className="mx-1 h-5 w-px bg-p-borda" />
+                  <button type="button" className="ef-ferramenta" onMouseDown={(e) => { e.preventDefault(); formatar("removeFormat"); }} title="Tira negrito e itálico do trecho selecionado"><RemoveFormatting size={15} /> Limpar</button>
+                  <span className="ml-auto hidden pr-2 text-[12px] text-p-suave lg:inline">Uma linha em branco separa os parágrafos · aceita texto do Word e do WhatsApp</span>
+                </div>
+                <Editavel
+                  valor={bloco.texto}
+                  aoMudar={aoTexto}
+                  modo="paragrafos"
+                  como="div"
+                  dica="Escreva ou cole o texto aqui…"
+                  className="editor-facil-texto block px-6 py-6 text-[18px] leading-[1.8] text-p-texto outline-none sm:px-10 sm:py-8 [&_p+p]:mt-4"
+                  style={{ minHeight: "calc(100dvh - 260px)" }}
+                />
+              </div>
+              <label className="flex max-w-[420px] flex-col gap-1.5">
+                <span className="ef-rotulo">Autor</span>
+                <input value={bloco.autor} onChange={(e) => aoAutor(e.target.value)} placeholder="Pr. Hilário José" className={campo} />
+              </label>
+            </div>
+          </main>
+          {pagina && paginaId && (
+            <aside className="ef-palco hidden min-h-0 flex-col xl:flex" aria-label="A página do boletim">
+              <div className="ef-palco-barra flex shrink-0 items-center px-5 py-3"><p className="ef-palco-selo">Como fica na página</p></div>
+              <div className="ef-palco-cena min-h-0 flex-1 overflow-y-auto px-6 py-6">
+                <FolhasEscaladas boletim={b} somentePagina={paginaId} espaco={0} selecionado={bloco.id} />
+              </div>
+            </aside>
+          )}
+        </div>
+      </div>
+    </Camada>
+  );
+}
+
 function AlertaCheia({ pct, linhas }: { pct: number; linhas: number }) {
   if (pct <= 100) return null;
   const sobra = Math.max(1, Math.ceil(((pct - 100) / 100) * linhas));
@@ -638,7 +730,8 @@ function PassoPastorais(props: PropsPasso & { sel: number; escolher: (i: number)
   );
 }
 
-function PassoArtigo({ bloco, nome, mudarBloco, cheia }: PropsPasso & { bloco: Partes["pastoral"]; nome: string }) {
+function PassoArtigo({ b, bloco, nome, mudarBloco, cheia }: PropsPasso & { bloco: Partes["pastoral"]; nome: string }) {
+  const [telaCheia, setTelaCheia] = useState(false);
   if (!bloco) return <Faltando nome={nome} />;
   const m = (fn: (x: Extract<Bloco, { tipo: "artigo" }>) => void, chave: string) => mudarBloco(bloco.id, (x) => { if (x.tipo === "artigo") fn(x); }, chave);
   const palavras = bloco.texto.trim() ? bloco.texto.trim().split(/\s+/).length : 0;
@@ -654,10 +747,22 @@ function PassoArtigo({ bloco, nome, mudarBloco, cheia }: PropsPasso & { bloco: P
             <p className="ef-rotulo">Texto</p>
             <p className="ef-dica">Uma linha em branco separa os parágrafos.</p>
           </div>
-          <span className="ef-num shrink-0 text-[12.5px] font-semibold text-p-suave">{palavras} {palavras === 1 ? "palavra" : "palavras"}</span>
+          <div className="flex shrink-0 items-center gap-3">
+            <span className="ef-num text-[12.5px] font-semibold text-p-suave">{palavras} {palavras === 1 ? "palavra" : "palavras"}</span>
+            <button type="button" onClick={() => setTelaCheia(true)} className="ef-btn ef-btn-sec !h-9 !px-3"><Maximize2 size={15} /> Tela cheia</button>
+          </div>
         </div>
         <CaixaTexto valor={bloco.texto} aoMudar={(v) => m((x) => { x.texto = v; }, `x${bloco.id}`)} dica="Escreva ou cole o texto aqui…" minimo={340} />
       </div>
+      {telaCheia && (
+        <EscritaTelaCheia
+          b={b} bloco={bloco} nome={nome} pct={cheia(bloco.id)} palavras={palavras}
+          aoTitulo={(v) => m((x) => { x.titulo = v; }, `t${bloco.id}`)}
+          aoTexto={(v) => m((x) => { x.texto = v; }, `x${bloco.id}`)}
+          aoAutor={(v) => m((x) => { x.autor = v; }, `a${bloco.id}`)}
+          aoFechar={() => setTelaCheia(false)}
+        />
+      )}
       <AlertaCheia pct={cheia(bloco.id)} linhas={96} />
       <div>
         <Rotulo htmlFor={`aut-${bloco.id}`} dica="Assinatura no fim do texto.">Autor</Rotulo>

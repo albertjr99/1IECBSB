@@ -16,6 +16,7 @@ import { JanelaPerfil, PainelUsuarios, PainelVersoes } from "@/components/painel
 import { ModuloSuporte } from "@/components/painel/ModuloSuporte";
 import { ModuloMembros } from "@/components/painel/ModulosApp";
 import { ModuloEscalas } from "@/components/painel/ModuloEscalas";
+import { NovaVersao } from "@/components/painel/NovaVersao";
 import { Avatar } from "@/components/painel/Avatar";
 import { ModuloBoletim } from "@/components/painel/boletim/ModuloBoletim";
 import { Contorno, ModuloAgentes, ModuloDeliberacao, ModuloFinancas } from "@/components/painel/Modulos";
@@ -238,6 +239,7 @@ function Painel() {
 
   return (
     <div className={cn("painel ef flex h-screen overflow-hidden bg-p-fundo text-p-texto print:block print:h-auto", tema === "escuro" && "tema-escuro")} style={{ fontFamily: "var(--font-texto)" }}>
+      <NovaVersao />
       {/* Menu lateral (computador) */}
       <Lateral
         className="hidden lg:flex"
