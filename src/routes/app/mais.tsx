@@ -1,17 +1,16 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Bookmark, Camera, ChevronRight, Download, KeyRound, LogOut, Moon, Newspaper, Smartphone, Sun, SunMoon, Type, UserRound, Video, Vote } from "lucide-react";
+import { Bookmark, HandCoins, Camera, ChevronRight, Download, KeyRound, LogOut, Moon, Newspaper, Smartphone, Sun, SunMoon, Type, UserRound, Vote } from "lucide-react";
 import { toast } from "sonner";
-import { appAtualizarPerfil, appBoletins, appDefinirSenha, appEntrarReuniao, appInicio } from "@/lib/api-app";
+import { appAtualizarPerfil, appBoletins, appDefinirSenha } from "@/lib/api-app";
 import { useMembro } from "@/components/app/contexto";
 import { Avatar, fotoQuadrada } from "@/components/painel/Avatar";
-import { salaAberta, type Preferencias } from "@/lib/membros";
+import { type Preferencias } from "@/lib/membros";
 import { cn } from "@/lib/utils";
 import { dataPorExtenso } from "@/lib/boletim";
 
 export const Route = createFileRoute("/app/mais")({ component: Mais });
 
-type Inicio = Awaited<ReturnType<typeof appInicio>>;
 type Livro = { id: string; nome: string };
 
 function Grupo({ titulo, children }: { titulo: string; children: ReactNode }) {
@@ -36,12 +35,10 @@ function Linha({ Icone, titulo, sub, onClick, para, direita }: { Icone: typeof V
 
 function Mais() {
   const { membro, atualizar, sair } = useMembro();
-  const [inicio, setInicio] = useState<Inicio | null>(null);
   const [boletins, setBoletins] = useState<{ id: string; data: string }[]>([]);
   const [livros, setLivros] = useState<Livro[]>([]);
   const [painel, setPainel] = useState<"dados" | "senha" | "instalar" | null>(null);
   useEffect(() => {
-    appInicio().then(setInicio).catch(() => {});
     appBoletins().then(setBoletins).catch(() => {});
     fetch("/biblia/indice.json").then((r) => r.json()).then((i) => setLivros(i.livros)).catch(() => {});
   }, []);
@@ -72,22 +69,10 @@ function Mais() {
         </div>
       </header>
 
-      {inicio && inicio.votacoes.length > 0 && (
-        <Grupo titulo="Votações">
-          {inicio.votacoes.map((v) => (
-            <Linha key={v.id} Icone={Vote} titulo={v.titulo} sub={v.situacao === "encerrada" ? "Encerrada · ver resultado" : v.votou ? "Você já votou" : v.situacao === "agendada" ? `Abre em ${new Date(v.inicio).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : "Aberta — toque para votar"} para={`/votar/${v.token}`} />
-          ))}
-        </Grupo>
-      )}
-
-      {inicio && inicio.reunioes.length > 0 && (
-        <Grupo titulo="Reuniões online">
-          {inicio.reunioes.map((r) => {
-            const aberta = salaAberta({ ...r, presencas: [] });
-            return <Linha key={r.id} Icone={Video} titulo={r.titulo} sub={new Date(r.inicio).toLocaleString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} direita={<span className={cn("text-[11px] font-bold uppercase tracking-[0.12em]", aberta ? "text-[var(--a-azul)]" : "text-[var(--a-suave)]")}>{aberta ? "Entrar" : "Em breve"}</span>} onClick={async () => { try { const { url } = await appEntrarReuniao({ data: { id: r.id } }); window.open(url, "_blank"); } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); } }} />;
-          })}
-        </Grupo>
-      )}
+      <Grupo titulo="Igreja">
+        <Linha Icone={HandCoins} titulo="Dízimos e ofertas" sub="Pix da igreja e suas contribuições" para="/app/ofertar" />
+        <Linha Icone={Vote} titulo="Votações e reuniões online" sub="Na aba Participar" para="/app/participar" />
+      </Grupo>
 
       {boletins.length > 0 && (
         <Grupo titulo="Boletins">

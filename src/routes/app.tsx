@@ -4,7 +4,7 @@
  */
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, Outlet, createFileRoute, useRouterState } from "@tanstack/react-router";
-import { BookOpen, Ellipsis, HandCoins, House, Loader2, Music } from "lucide-react";
+import { BookOpen, Ellipsis, House, Loader2, Music, Users } from "lucide-react";
 import { appCadastrar, appDefinirSenha, appEntrar, appSair, appSessao } from "@/lib/api-app";
 import { primeiroNome, type MembroPublico } from "@/lib/membros";
 import { AppCtx } from "@/components/app/contexto";
@@ -84,13 +84,13 @@ function Abas() {
     { para: "/app", rotulo: "Início", Icone: House, ativo: caminho === "/app" || caminho === "/app/" },
     { para: "/app/biblia", rotulo: "Bíblia", Icone: BookOpen, ativo: caminho.startsWith("/app/biblia") },
     { para: "/app/hinario", rotulo: "Hinário", Icone: Music, ativo: caminho.startsWith("/app/hinario") },
-    { para: "/app/ofertar", rotulo: "Ofertar", Icone: HandCoins, ativo: caminho.startsWith("/app/ofertar") },
-    { para: "/app/mais", rotulo: "Mais", Icone: Ellipsis, ativo: caminho.startsWith("/app/mais") || caminho.startsWith("/app/boletim") },
+    { para: "/app/participar", rotulo: "Participar", Icone: Users, ativo: caminho.startsWith("/app/participar") },
+    { para: "/app/mais", rotulo: "Mais", Icone: Ellipsis, ativo: caminho.startsWith("/app/mais") || caminho.startsWith("/app/boletim") || caminho.startsWith("/app/ofertar") },
   ] as const;
   return (
     <nav className="a-abas" aria-label="Seções do aplicativo">
       {abas.map(({ para, rotulo, Icone, ativo }) => (
-        <Link key={para} to={para} search={{} as never} className="a-aba" aria-current={ativo ? "page" : undefined}>
+        <Link key={para} to={para} search={{} as never} className="a-aba" activeOptions={{ exact: true }} activeProps={{ "aria-current": ativo ? "page" : undefined }} inactiveProps={{ "aria-current": ativo ? "page" : undefined }}>
           <Icone size={22} strokeWidth={ativo ? 2.3 : 1.8} />
           {rotulo}
         </Link>

@@ -1,7 +1,7 @@
 /** Perfil, preferências, favoritos, boletins, a igreja e a conta. */
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { Bookmark, Church, FileText, KeyRound, LogOut, Moon, Shield, Sun, SunMoon, Trash2, Type, UserRound } from "lucide-react-native";
+import { Bookmark, Church, FileText, HandHeart, KeyRound, LogOut, Moon, Shield, Sun, SunMoon, Trash2, Type, UserRound } from "lucide-react-native";
 import { Alert, Pressable, Text, View } from "react-native";
 import Constants from "expo-constants";
 import { Avatar, Cartao, Linha, Logo, Separador, Sobre, T, Tela, Titulo } from "@/componentes/ui";
@@ -30,6 +30,8 @@ export default function Mais() {
         <Linha icone={ic(UserRound)} titulo="Meus dados e foto" onPress={() => router.push("/perfil")} />
         <Separador />
         <Linha icone={ic(Bookmark)} titulo="Versículos guardados" sub={`${membro.favoritos.versos.length} versículo(s)`} onPress={() => router.push("/favoritos")} />
+        <Separador />
+        <Linha icone={ic(HandHeart)} titulo="Dízimos e ofertas" sub="Pix da igreja e suas contribuições" onPress={() => router.push("/ofertar")} />
         <Separador />
         <Linha icone={ic(FileText)} titulo="Boletins" sub="Os boletins dominicais" onPress={() => router.push("/boletins")} />
         <Separador />

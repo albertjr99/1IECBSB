@@ -30,6 +30,7 @@ import { Route as AppBibliaRouteImport } from './routes/app/biblia'
 import { Route as AppHinarioRouteImport } from './routes/app/hinario'
 import { Route as AppMaisRouteImport } from './routes/app/mais'
 import { Route as AppOfertarRouteImport } from './routes/app/ofertar'
+import { Route as AppParticiparRouteImport } from './routes/app/participar'
 import { Route as VotarTokenRouteImport } from './routes/votar.$token'
 import { Route as SiteBoletimDataRouteImport } from './routes/_site/boletim.$data'
 import { Route as SiteHinarioIndexRouteImport } from './routes/_site/hinario.index'
@@ -145,6 +146,11 @@ const AppOfertarRoute = AppOfertarRouteImport.update({
   path: '/ofertar',
   getParentRoute: () => AppRoute,
 } as any)
+const AppParticiparRoute = AppParticiparRouteImport.update({
+  id: '/participar',
+  path: '/participar',
+  getParentRoute: () => AppRoute,
+} as any)
 const VotarTokenRoute = VotarTokenRouteImport.update({
   id: '/votar/$token',
   path: '/votar/$token',
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/app/hinario': typeof AppHinarioRoute
   '/app/mais': typeof AppMaisRoute
   '/app/ofertar': typeof AppOfertarRoute
+  '/app/participar': typeof AppParticiparRoute
   '/votar/$token': typeof VotarTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/app/hinario': typeof AppHinarioRoute
   '/app/mais': typeof AppMaisRoute
   '/app/ofertar': typeof AppOfertarRoute
+  '/app/participar': typeof AppParticiparRoute
   '/votar/$token': typeof VotarTokenRoute
   '/': typeof SiteIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -279,6 +287,7 @@ export interface FileRoutesById {
   '/app/hinario': typeof AppHinarioRoute
   '/app/mais': typeof AppMaisRoute
   '/app/ofertar': typeof AppOfertarRoute
+  '/app/participar': typeof AppParticiparRoute
   '/votar/$token': typeof VotarTokenRoute
   '/_site/': typeof SiteIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -314,6 +323,7 @@ export interface FileRouteTypes {
     | '/app/hinario'
     | '/app/mais'
     | '/app/ofertar'
+    | '/app/participar'
     | '/votar/$token'
     | '/admin/'
     | '/app/'
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/app/hinario'
     | '/app/mais'
     | '/app/ofertar'
+    | '/app/participar'
     | '/votar/$token'
     | '/'
     | '/admin'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/app/hinario'
     | '/app/mais'
     | '/app/ofertar'
+    | '/app/participar'
     | '/votar/$token'
     | '/_site/'
     | '/admin/'
@@ -554,6 +566,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOfertarRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/participar': {
+      id: '/app/participar'
+      path: '/participar'
+      fullPath: '/app/participar'
+      preLoaderRoute: typeof AppParticiparRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/votar/$token': {
       id: '/votar/$token'
       path: '/votar/$token'
@@ -670,6 +689,7 @@ interface AppRouteChildren {
   AppHinarioRoute: typeof AppHinarioRoute
   AppMaisRoute: typeof AppMaisRoute
   AppOfertarRoute: typeof AppOfertarRoute
+  AppParticiparRoute: typeof AppParticiparRoute
   AppIndexRoute: typeof AppIndexRoute
   AppBoletimDataRoute: typeof AppBoletimDataRoute
 }
@@ -679,6 +699,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppHinarioRoute: AppHinarioRoute,
   AppMaisRoute: AppMaisRoute,
   AppOfertarRoute: AppOfertarRoute,
+  AppParticiparRoute: AppParticiparRoute,
   AppIndexRoute: AppIndexRoute,
   AppBoletimDataRoute: AppBoletimDataRoute,
 }

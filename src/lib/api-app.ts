@@ -184,3 +184,37 @@ export const appBoletins = createServerFn({ method: "GET" }).handler(async () =>
   await exigirMembro();
   return (await indice()).filter((b) => b.publicado).slice(0, 12).map((b) => ({ id: b.id, data: b.data }));
 });
+
+/** Votações e reuniões online do membro: abertas, próximas e o histórico recente. */
+export const appParticipar = createServerFn({ method: "GET" }).handler(async () => {
+  const { exigirMembro, lerReunioes } = await import("../server/membros");
+  const { listarVotacoes, votosDa } = await import("../server/votacao");
+  const { situacaoDa } = await import("./votacao");
+  const { salaAberta } = await import("./membros");
+  const eu = await exigirMembro();
+  const agora = Date.now();
+  const votacoes = [];
+  for (const v of await listarVotacoes()) {
+    const e = v.eleitores.find((x) => x.membroId === eu.id);
+    if (!e || v.rascunho) continue;
+    const s = situacaoDa(v);
+    const fim = v.encerradaEm ?? v.fim;
+    if (s === "encerrada" && agora - new Date(fim).getTime() > 120 * 864e5) continue;
+    const votos = await votosDa(v.id);
+    votacoes.push({
+      id: v.id, titulo: v.titulo, descricao: v.descricao, situacao: s, inicio: v.inicio, fim, token: e.token, sigilo: v.sigilo,
+      votou: votos.presenca.some((p) => p.eleitorId === e.id),
+      participacao: { votaram: votos.presenca.length, eleitores: v.eleitores.length },
+    });
+  }
+  const ordemSit = { em_andamento: 0, agendada: 1, encerrada: 2, rascunho: 3 } as const;
+  votacoes.sort((a, b) => ordemSit[a.situacao] - ordemSit[b.situacao] || (a.situacao === "encerrada" ? b.fim.localeCompare(a.fim) : a.inicio.localeCompare(b.inicio)));
+  const reunioes = (await lerReunioes())
+    .filter((r) => new Date(r.inicio).getTime() + r.duracaoMin * 60_000 > agora - 60 * 864e5)
+    .map(({ presencas, ...r }) => {
+      const fimR = new Date(r.inicio).getTime() + r.duracaoMin * 60_000;
+      return { ...r, aoVivo: salaAberta({ ...r, presencas: [] }), passou: fimR < agora, participei: presencas.some((p) => p.membroId === eu.id), presentes: presencas.length };
+    })
+    .sort((a, b) => (a.passou === b.passou ? (a.passou ? b.inicio.localeCompare(a.inicio) : a.inicio.localeCompare(b.inicio)) : a.passou ? 1 : -1));
+  return { votacoes, reunioes };
+});

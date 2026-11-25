@@ -155,18 +155,27 @@ function Biblia() {
       }}
     >
       <header className="sticky top-0 z-30 border-b border-[var(--a-borda)] bg-[color-mix(in_srgb,var(--a-sup)_94%,transparent)] px-3 pb-2.5 pt-[calc(env(safe-area-inset-top)+10px)] backdrop-blur-xl">
-        <div className="flex items-center gap-2">
-          <button onClick={abrirSeletor} className="flex min-w-0 flex-1 items-center gap-1.5 py-1.5 text-left">
-            <span className="truncate text-[19px] font-bold tracking-[-0.01em] text-[var(--a-azul)]">{l?.nome ?? "Bíblia"} {cap}</span>
-            <ChevronDown size={18} className="shrink-0 text-[var(--a-suave)]" />
+        <div className="flex gap-2">
+          <button onClick={() => setBuscando((b) => !b)} className={cn("flex h-11 min-w-0 flex-1 items-center gap-2.5 border px-3 text-left", buscando ? "border-[#00436f]" : "border-[var(--a-borda)] bg-[var(--a-fundo)]")}>
+            <Search size={17} className="shrink-0 text-[var(--a-azul)]" />
+            <span className="truncate text-[14.5px] text-[var(--a-suave)]">Buscar: Jo 3:16, Salmos 23, graça…</span>
           </button>
-          <div className="flex border border-[var(--a-borda)]">
+          <button onClick={() => setAjustes((a) => !a)} className="grid size-11 shrink-0 place-items-center border border-[var(--a-borda)] text-[var(--a-azul)]" aria-label="Ajustes de leitura"><Type size={19} /></button>
+        </div>
+        <div className="mt-2 flex gap-2">
+          <button onClick={abrirSeletor} className="flex h-[52px] min-w-0 flex-1 items-center gap-2 border-[1.5px] border-[#00436f] px-3 text-left" aria-label="Escolher livro">
+            <span className="min-w-0 flex-1"><span className="block text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--a-suave)]">Livro</span><span className="block truncate text-[17px] font-bold text-[var(--a-azul)]">{l?.nome ?? "…"}</span></span>
+            <ChevronDown size={18} className="shrink-0 text-[var(--a-azul)]" />
+          </button>
+          <button onClick={() => { setRascunho({ livro, cap }); setSeletor("capitulo"); }} className="flex h-[52px] w-24 shrink-0 items-center gap-1 border-[1.5px] border-[#00436f] px-3 text-left" aria-label="Escolher capítulo">
+            <span className="flex-1"><span className="block text-[9.5px] font-bold uppercase tracking-[0.16em] text-[var(--a-suave)]">Cap.</span><span className="block text-[17px] font-bold text-[var(--a-azul)]">{cap}</span></span>
+            <ChevronDown size={18} className="shrink-0 text-[var(--a-azul)]" />
+          </button>
+          <div className="flex shrink-0 flex-col border border-[var(--a-borda)]">
             {indice?.versoes.map((x) => (
-              <button key={x.id} onClick={() => trocarVersao(x.id)} className={cn("h-9 px-3 text-[11.5px] font-bold tracking-[0.08em]", x.id === versao ? "bg-[#00436f] text-white" : "text-[var(--a-suave)]")}>{x.sigla}</button>
+              <button key={x.id} onClick={() => trocarVersao(x.id)} className={cn("flex-1 px-2.5 text-[10.5px] font-bold tracking-[0.08em]", x.id === versao ? "bg-[#00436f] text-white" : "text-[var(--a-suave)]")}>{x.sigla}</button>
             ))}
           </div>
-          <button onClick={() => setBuscando((b) => !b)} className="grid size-9 place-items-center text-[var(--a-azul)]" aria-label="Ir para"><Search size={19} /></button>
-          <button onClick={() => setAjustes((a) => !a)} className="grid size-9 place-items-center text-[var(--a-azul)]" aria-label="Letra"><Type size={19} /></button>
         </div>
         {buscando && (
           <div className="mt-2 grid gap-2">
@@ -284,8 +293,8 @@ function Biblia() {
 
       {seletor && indice && v && (
         <Folha
-          titulo={seletor === "livro" ? "Escolha o livro" : seletor === "capitulo" ? `${indice.livros.find((x) => x.id === rascunho.livro)?.nome} · capítulo` : `${indice.livros.find((x) => x.id === rascunho.livro)?.nome} ${rascunho.cap} · versículo`}
-          voltar={seletor === "livro" ? undefined : () => setSeletor(seletor === "versiculo" ? "capitulo" : "livro")}
+          titulo={seletor === "livro" ? "Livros da Bíblia" : seletor === "capitulo" ? `${indice.livros.find((x) => x.id === rascunho.livro)?.nome} · escolha o capítulo` : `${indice.livros.find((x) => x.id === rascunho.livro)?.nome} ${rascunho.cap} · versículo`}
+          voltar={seletor === "versiculo" ? () => setSeletor("capitulo") : undefined}
           fechar={() => setSeletor(null)}
         >
           {seletor === "livro" ? (
@@ -298,24 +307,43 @@ function Biblia() {
                   </div>
                 </div>
               )}
-              <div className="sticky top-0 z-10 grid gap-2 bg-[var(--a-sup)] pb-3 pt-1">
-                <input value={filtro} onChange={(e) => setFiltro(e.target.value)} placeholder="Procurar livro" className="h-11 border border-[var(--a-borda)] bg-[var(--a-fundo)] px-3 text-[16px] outline-none focus:border-[var(--a-azul)]" />
-                {!filtro && (
-                  <div className="grid grid-cols-2 border border-[var(--a-borda)]">
-                    {(["AT", "NT"] as const).map((t) => <button key={t} onClick={() => setTestamento(t)} className={cn("h-10 text-[11.5px] font-bold uppercase tracking-[0.12em]", testamento === t ? "bg-[#00436f] text-white" : "text-[var(--a-suave)]")}>{t === "AT" ? "Antigo Testamento" : "Novo Testamento"}</button>)}
+              <div className="sticky top-0 z-10 bg-[var(--a-sup)] pb-2 pt-1">
+                <input value={filtro} onChange={(e) => setFiltro(e.target.value)} placeholder="Digite o nome do livro" className="h-11 w-full border border-[var(--a-borda)] bg-[var(--a-fundo)] px-3 text-[16px] outline-none focus:border-[var(--a-azul)]" />
+              </div>
+              {(["AT", "NT"] as const).map((t) => {
+                const lista = indice.livros.filter((x) => x.testamento === t && (!filtro || filtroLivro(filtro)(x)));
+                if (!lista.length) return null;
+                return (
+                  <div key={t} className="mt-3">
+                    <p className="mb-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--a-suave)]">{t === "AT" ? "Antigo Testamento" : "Novo Testamento"}</p>
+                    <div className="border-t border-[var(--a-borda)]">
+                      {lista.map((x) => {
+                        const total = v.capitulos[x.id] ?? 1;
+                        const aberto = rascunho.livro === x.id;
+                        return (
+                          <div key={x.id} className="border-b border-[var(--a-borda)]">
+                            <button onClick={() => { if (total === 1) { setLivro(x.id); setCap(1); setSeletor(null); } else setRascunho(aberto ? { livro: "", cap: 1 } : { livro: x.id, cap: 1 }); }} className="flex w-full items-center gap-2 px-1 py-3.5 text-left">
+                              <span className={cn("flex-1 text-[16px]", x.id === livro ? "font-bold text-[var(--a-azul)]" : "font-semibold")}>{x.nome}</span>
+                              <span className="text-[12px] font-semibold text-[var(--a-suave)]">{total} cap.</span>
+                              <ChevronDown size={18} className={cn("text-[var(--a-suave)] transition-transform", aberto && "rotate-180", total === 1 && "-rotate-90")} />
+                            </button>
+                            {aberto && (
+                              <div className="grid grid-cols-[repeat(auto-fill,minmax(50px,1fr))] gap-2 pb-4">
+                                {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
+                                  <button key={n} onClick={() => { setLivro(x.id); setCap(n); setSeletor(null); }} className={cn("grid h-12 place-items-center border text-[15px] font-bold tabular-nums", x.id === livro && n === cap ? "border-[#00436f] bg-[#00436f] text-white" : "border-[var(--a-borda)]")}>{n}</button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-px border border-[var(--a-borda)] bg-[var(--a-borda)]">
-                {indice.livros.filter((x) => (filtro ? filtroLivro(filtro)(x) : x.testamento === testamento)).map((x) => (
-                  <button key={x.id} onClick={() => { setRascunho({ livro: x.id, cap: 1 }); setSeletor((v.capitulos[x.id] ?? 1) > 1 ? "capitulo" : "versiculo"); }} className={cn("bg-[var(--a-sup)] px-4 py-3.5 text-left text-[15px]", x.id === livro ? "font-bold text-[var(--a-azul)]" : "font-medium")}>
-                    {x.nome}<span className="ml-1.5 text-[11.5px] font-semibold text-[var(--a-suave)]">{v.capitulos[x.id]}</span>
-                  </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
           ) : seletor === "capitulo" ? (
-            <Grade total={v.capitulos[rascunho.livro] ?? 1} atual={rascunho.livro === livro ? cap : 0} escolher={(n) => { setRascunho((r) => ({ ...r, cap: n })); setSeletor("versiculo"); }} rodape={<button onClick={() => { setLivro(rascunho.livro); setCap(1); setSeletor(null); }} className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--a-azul)]">Abrir no capítulo 1</button>} />
+            <Grade total={v.capitulos[rascunho.livro] ?? 1} atual={rascunho.livro === livro ? cap : 0} escolher={(n) => { setLivro(rascunho.livro); setCap(n); setSeletor(null); }} rodape={<button onClick={() => { setRascunho((r) => ({ ...r, cap: r.livro === livro ? cap : 1 })); setSeletor("versiculo"); }} className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--a-azul)]">Escolher um versículo</button>} />
           ) : (
             <Versiculos versao={versao} livro={rascunho.livro} cap={rascunho.cap} escolher={escolherVerso} abrirCapitulo={() => { setLivro(rascunho.livro); setCap(rascunho.cap); setSeletor(null); }} />
           )}

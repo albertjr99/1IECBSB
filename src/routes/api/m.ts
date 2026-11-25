@@ -39,6 +39,7 @@ const ACOES: Record<string, Acao> = {
   async contribuir() { const { appContribuir } = await import("@/lib/api-app"); return appContribuir(); },
   async informarContribuicao(d) { const { appInformarContribuicao } = await import("@/lib/api-app"); return appInformarContribuicao({ data: d }); },
   async entrarReuniao(d) { const { appEntrarReuniao } = await import("@/lib/api-app"); return appEntrarReuniao({ data: d }); },
+  async participar() { const { appParticipar } = await import("@/lib/api-app"); return appParticipar(); },
   async boletins() { const { appBoletins } = await import("@/lib/api-app"); return appBoletins(); },
   async boletim(d: { data: string }) {
     const { exigirMembro } = await import("@/server/membros");

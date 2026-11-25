@@ -1,6 +1,9 @@
 /** As cinco abas do app, com a barra inferior na identidade da igreja. */
 import { Tabs } from "expo-router/js-tabs";
-import { BookOpen, HandHeart, Home, Menu, Music } from "lucide-react-native";
+import { BookOpen, Home, Menu, Music, Users } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { AppState } from "react-native";
+import { carregarParticipacao, pendencias } from "@/lib/participar";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -10,13 +13,22 @@ const ABAS = [
   { nome: "index", rotulo: "Início", Icone: Home },
   { nome: "biblia", rotulo: "Bíblia", Icone: BookOpen },
   { nome: "hinario", rotulo: "Hinário", Icone: Music },
-  { nome: "ofertar", rotulo: "Ofertar", Icone: HandHeart },
+  { nome: "participar", rotulo: "Participar", Icone: Users },
   { nome: "mais", rotulo: "Mais", Icone: Menu },
 ] as const;
 
 export default function Abas() {
   const { c } = useTema();
   const ins = useSafeAreaInsets();
+  // número no ícone "Participar": votações esperando o voto + reuniões acontecendo
+  const [aviso, setAviso] = useState(0);
+  useEffect(() => {
+    const ver = () => carregarParticipacao().then((p) => setAviso(pendencias(p))).catch(() => {});
+    ver();
+    const t = setInterval(ver, 60_000);
+    const s = AppState.addEventListener("change", (e) => { if (e === "active") ver(); });
+    return () => { clearInterval(t); s.remove(); };
+  }, []);
   return (
     <Tabs
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: c.fundo } }}
@@ -39,7 +51,14 @@ export default function Abas() {
                 style={{ flex: 1, alignItems: "center", gap: 3, paddingVertical: 4 }}
               >
                 <View style={{ height: 3, width: 22, backgroundColor: ativo ? "#CC2127" : "transparent", marginBottom: 3 }} />
-                <a.Icone size={22} color={cor} strokeWidth={ativo ? 2.3 : 1.8} />
+                <View>
+                  <a.Icone size={22} color={cor} strokeWidth={ativo ? 2.3 : 1.8} />
+                  {a.nome === "participar" && aviso > 0 ? (
+                    <View style={{ position: "absolute", top: -5, right: -10, minWidth: 17, height: 17, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#CC2127", borderWidth: 2, borderColor: c.sup, alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ fontFamily: F.negrito, fontSize: 9.5, color: "#fff" }}>{aviso}</Text>
+                    </View>
+                  ) : null}
+                </View>
                 <Text style={{ fontFamily: ativo ? F.negrito : F.medio, fontSize: 10.5, color: cor }}>{a.rotulo}</Text>
               </Pressable>
             );
@@ -48,6 +67,7 @@ export default function Abas() {
       )}
     >
       {ABAS.map((a) => <Tabs.Screen key={a.nome} name={a.nome} />)}
+      <Tabs.Screen name="ofertar" />
     </Tabs>
   );
 }

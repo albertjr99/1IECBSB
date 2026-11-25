@@ -1,12 +1,12 @@
 /** Início: saudação, o que é para hoje, votações, reuniões, versículo e avisos. */
 import { router, useFocusEffect } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import { BookOpen, CalendarDays, ChevronRight, Church, FileText, Gift, Video, Vote } from "lucide-react-native";
+import { BookOpen, CalendarDays, ChevronRight, FileText, Gift, HandHeart, Video, Vote } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import { Avatar, Cartao, Marcado, Sobre, T, Tela, Titulo } from "@/componentes/ui";
 import { chamar } from "@/lib/api";
 import { gravarCache, lerCache } from "@/lib/cache";
+import { entrarNaSala } from "@/lib/participar";
 import { useMembro } from "@/lib/sessao";
 import { AZUL, F, NOITE, useTema } from "@/lib/tema";
 import type { Inicio } from "@/lib/tipos";
@@ -38,8 +38,7 @@ export default function TelaInicio() {
 
   const entrarReuniao = async (id: string) => {
     try {
-      const { url } = await chamar<{ url: string }>("entrarReuniao", { id });
-      await WebBrowser.openBrowserAsync(url, { presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN, toolbarColor: AZUL });
+      await entrarNaSala(id);
     } catch (e) { Alert.alert("Reunião", e instanceof Error ? e.message : "Não foi possível entrar."); }
   };
 
@@ -120,8 +119,8 @@ export default function TelaInicio() {
       <View style={{ flexDirection: "row", gap: 10 }}>
         {[
           { t: "Boletim", s: d?.boletim ? dataPorExtenso(d.boletim.data).replace(/ de \d{4}$/, "") : "da semana", I: FileText, ir: () => (d?.boletim ? router.push(`/boletim/${d.boletim.data}`) : router.push("/boletins")) },
-          { t: "Programação", s: "cultos e eventos", I: CalendarDays, ir: () => router.push("/igreja") },
-          { t: "A igreja", s: "contatos", I: Church, ir: () => router.push("/igreja?aba=contato") },
+          { t: "Agenda", s: "cultos e eventos", I: CalendarDays, ir: () => router.push("/igreja") },
+          { t: "Ofertar", s: "dízimos e ofertas", I: HandHeart, ir: () => router.push("/ofertar") },
         ].map((a) => (
           <Cartao key={a.t} onPress={a.ir} style={{ flex: 1, padding: 14, gap: 10 }}>
             <a.I color={c.azul} size={22} />

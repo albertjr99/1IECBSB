@@ -123,7 +123,7 @@ export default function Biblia() {
     setLivro(r.livro); setCap(Math.min(r.capitulo, v.capitulos[r.livro]!)); alvo.current = r.versiculo ?? null; if (r.versiculo) setSel([r.versiculo]);
     setFolha(null); setBusca("");
   };
-  const abrirSeletor = () => { setRascunho({ livro, cap }); setTestamento(l?.testamento ?? "NT"); setFiltro(""); leiturasRecentes().then(setRecentes); setFolha("livro"); };
+  const abrirSeletor = () => { setRascunho({ livro, cap }); setFiltro(""); leiturasRecentes().then(setRecentes); setFolha("livro"); };
   const refBusca = indice && busca.trim() ? interpretar(busca, indice.livros) : null;
   const procurar = async () => {
     if (busca.trim().length < 2 || !v) return;
@@ -153,20 +153,37 @@ export default function Biblia() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.sup }}>
-      <View style={{ paddingTop: ins.top + 6, paddingHorizontal: 12, paddingBottom: 8, backgroundColor: c.sup, borderBottomWidth: 1, borderBottomColor: c.borda, flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Pressable onPress={abrirSeletor} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 4, paddingVertical: 8 }}>
-          <Text numberOfLines={1} style={{ fontFamily: F.negrito, fontSize: 19, color: c.escuro ? c.texto : AZUL, flexShrink: 1 }}>{l?.nome ?? "Bíblia"} {cap}</Text>
-          <ChevronDown size={18} color={c.suave} />
-        </Pressable>
-        <View style={{ flexDirection: "row", borderWidth: 1, borderColor: c.borda }}>
-          {indice?.versoes.map((x) => (
-            <Pressable key={x.id} onPress={() => trocarVersao(x.id)} style={{ paddingHorizontal: 11, height: 34, justifyContent: "center", backgroundColor: x.id === v?.id ? AZUL : "transparent" }}>
-              <Text style={{ fontFamily: F.negrito, fontSize: 11.5, letterSpacing: 0.8, color: x.id === v?.id ? "#fff" : c.suave }}>{x.sigla}</Text>
-            </Pressable>
-          ))}
+      <View style={{ paddingTop: ins.top + 8, paddingHorizontal: 14, paddingBottom: 10, gap: 10, backgroundColor: c.sup, borderBottomWidth: 1, borderBottomColor: c.borda }}>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <Pressable onPress={() => setFolha("busca")} accessibilityRole="search" style={{ flex: 1, height: 44, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, backgroundColor: c.fundo, borderWidth: 1, borderColor: c.borda }}>
+            <Search size={18} color={c.azul} />
+            <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.medio, fontSize: 14.5, color: c.suave }}>Buscar: Jo 3:16, Salmos 23, graça…</Text>
+          </Pressable>
+          <Pressable onPress={() => setFolha("ajustes")} accessibilityLabel="Ajustes de leitura" style={{ width: 44, height: 44, borderWidth: 1, borderColor: c.borda, alignItems: "center", justifyContent: "center" }}><Type size={19} color={c.azul} /></Pressable>
         </View>
-        <Pressable hitSlop={8} onPress={() => setFolha("busca")} style={{ width: 34, height: 34, alignItems: "center", justifyContent: "center" }}><Search size={20} color={c.azul} /></Pressable>
-        <Pressable hitSlop={8} onPress={() => setFolha("ajustes")} style={{ width: 34, height: 34, alignItems: "center", justifyContent: "center" }}><Type size={20} color={c.azul} /></Pressable>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <Pressable onPress={abrirSeletor} accessibilityLabel="Escolher livro" style={{ flex: 1, height: 52, paddingHorizontal: 12, borderWidth: 1.5, borderColor: AZUL, flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: F.negrito, fontSize: 9.5, letterSpacing: 1.6, textTransform: "uppercase", color: c.suave }}>Livro</Text>
+              <Text numberOfLines={1} style={{ fontFamily: F.negrito, fontSize: 17, color: c.escuro ? c.texto : AZUL }}>{l?.nome ?? "…"}</Text>
+            </View>
+            <ChevronDown size={18} color={c.azul} />
+          </Pressable>
+          <Pressable onPress={() => { setRascunho({ livro, cap }); setFolha("capitulo"); }} accessibilityLabel="Escolher capítulo" style={{ width: 96, height: 52, paddingHorizontal: 12, borderWidth: 1.5, borderColor: AZUL, flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: F.negrito, fontSize: 9.5, letterSpacing: 1.6, textTransform: "uppercase", color: c.suave }}>Cap.</Text>
+              <Text style={{ fontFamily: F.negrito, fontSize: 17, color: c.escuro ? c.texto : AZUL }}>{cap}</Text>
+            </View>
+            <ChevronDown size={18} color={c.azul} />
+          </Pressable>
+          <View style={{ borderWidth: 1, borderColor: c.borda }}>
+            {indice?.versoes.map((x) => (
+              <Pressable key={x.id} onPress={() => trocarVersao(x.id)} style={{ flex: 1, paddingHorizontal: 10, justifyContent: "center", backgroundColor: x.id === v?.id ? AZUL : "transparent" }}>
+                <Text style={{ fontFamily: F.negrito, fontSize: 10.5, letterSpacing: 0.8, color: x.id === v?.id ? "#fff" : c.suave }}>{x.sigla}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
       </View>
 
       <ScrollView ref={rolagem} {...gesto.panHandlers} contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 20, paddingBottom: 150 }}>
@@ -229,11 +246,11 @@ export default function Biblia() {
         <Pressable onPress={() => setFolha(null)} style={[StyleSheet.absoluteFill, { backgroundColor: "#00142280" }]} />
         <View style={{ maxHeight: "86%", backgroundColor: c.sup, paddingBottom: ins.bottom + 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.borda, gap: 6 }}>
-            {folha === "capitulo" || folha === "versiculo" ? (
-              <Pressable hitSlop={8} onPress={() => setFolha(folha === "versiculo" ? "capitulo" : "livro")} style={{ padding: 4 }}><ChevronLeft size={22} color={c.azul} /></Pressable>
+            {folha === "versiculo" ? (
+              <Pressable hitSlop={8} onPress={() => setFolha("capitulo")} style={{ padding: 4 }}><ChevronLeft size={22} color={c.azul} /></Pressable>
             ) : <View style={{ width: 8 }} />}
             <T f={F.negrito} s={16} linhas={1} style={{ flex: 1 }}>
-              {folha === "livro" ? "Escolha o livro" : folha === "capitulo" ? `${livroRasc?.nome} · capítulo` : folha === "versiculo" ? `${livroRasc?.nome} ${rascunho.cap} · versículo` : folha === "busca" ? "Buscar na Bíblia" : folha === "ajustes" ? "Leitura" : comparacao ? `${refSel()} · ${comparacao.sigla}` : ""}
+              {folha === "livro" ? "Livros da Bíblia" : folha === "capitulo" ? `${livroRasc?.nome} · escolha o capítulo` : folha === "versiculo" ? `${livroRasc?.nome} ${rascunho.cap} · versículo` : folha === "busca" ? "Buscar na Bíblia" : folha === "ajustes" ? "Leitura" : comparacao ? `${refSel()} · ${comparacao.sigla}` : ""}
             </T>
             <Pressable hitSlop={10} onPress={() => setFolha(null)} style={{ padding: 4 }}><X size={22} color={c.suave} /></Pressable>
           </View>
@@ -252,27 +269,42 @@ export default function Biblia() {
                     </ScrollView>
                   </View>
                 ) : null}
-                <TextInput value={filtro} onChangeText={setFiltro} placeholder="Procurar livro" placeholderTextColor={c.suave} style={{ height: 48, borderWidth: 1, borderColor: c.borda, paddingHorizontal: 12, fontFamily: F.medio, fontSize: 16, color: c.texto, backgroundColor: c.fundo }} />
-                {!filtro ? (
-                  <View style={{ flexDirection: "row", borderWidth: 1, borderColor: c.borda }}>
-                    {(["AT", "NT"] as const).map((t) => (
-                      <Pressable key={t} onPress={() => setTestamento(t)} style={{ flex: 1, paddingVertical: 11, alignItems: "center", backgroundColor: testamento === t ? AZUL : "transparent" }}>
-                        <Text style={{ fontFamily: F.negrito, fontSize: 11, letterSpacing: 1.2, textTransform: "uppercase", color: testamento === t ? "#fff" : c.suave }}>{t === "AT" ? "Antigo Testamento" : "Novo Testamento"}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                ) : null}
-                <View style={{ flexDirection: "row", flexWrap: "wrap", borderTopWidth: 1, borderLeftWidth: 1, borderColor: c.borda }}>
-                  {indice.livros.filter((x) => (filtro ? semAcento(x.nome).includes(semAcento(filtro)) : x.testamento === testamento)).map((x) => (
-                    <Pressable key={x.id} onPress={() => { setRascunho({ livro: x.id, cap: 1 }); if ((v.capitulos[x.id] ?? 1) > 1) setFolha("capitulo"); else escolherCapitulo(1, x.id); }} style={{ width: "50%", paddingHorizontal: 14, paddingVertical: 14, borderBottomWidth: 1, borderRightWidth: 1, borderColor: c.borda, flexDirection: "row", alignItems: "baseline", gap: 6 }}>
-                      <T f={x.id === livro ? F.negrito : F.medio} cor={x.id === livro ? c.azul : c.texto} s={15} linhas={1}>{x.nome}</T>
-                      <T s={11.5} f={F.semi} cor={c.suave}>{v.capitulos[x.id]}</T>
-                    </Pressable>
-                  ))}
-                </View>
+                <TextInput value={filtro} onChangeText={setFiltro} placeholder="Digite o nome do livro" placeholderTextColor={c.suave} style={{ height: 48, borderWidth: 1, borderColor: c.borda, paddingHorizontal: 12, fontFamily: F.medio, fontSize: 16, color: c.texto, backgroundColor: c.fundo }} />
+                {(["AT", "NT"] as const).map((t) => {
+                  const lista = indice.livros.filter((x) => x.testamento === t && (!filtro || semAcento(x.nome).includes(semAcento(filtro))));
+                  if (!lista.length) return null;
+                  return (
+                    <View key={t} style={{ gap: 6 }}>
+                      <Text style={{ fontFamily: F.negrito, fontSize: 10.5, letterSpacing: 1.8, textTransform: "uppercase", color: c.suave, marginTop: 6 }}>{t === "AT" ? "Antigo Testamento" : "Novo Testamento"}</Text>
+                      <View style={{ borderTopWidth: 1, borderColor: c.borda }}>
+                        {lista.map((x) => {
+                          const aberto = rascunho.livro === x.id;
+                          const total = v.capitulos[x.id] ?? 1;
+                          return (
+                            <View key={x.id} style={{ borderBottomWidth: 1, borderColor: c.borda }}>
+                              <Pressable onPress={() => { if (total === 1) { setLivro(x.id); setCap(1); setFolha(null); } else setRascunho(aberto ? { livro: "", cap: 1 } : { livro: x.id, cap: 1 }); }} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 4, backgroundColor: pressed ? c.realce : "transparent" })}>
+                                <T f={x.id === livro ? F.negrito : F.semi} cor={x.id === livro ? c.azul : c.texto} s={16} style={{ flex: 1 }}>{x.nome}</T>
+                                <T s={12} f={F.semi} cor={c.suave}>{total} cap.</T>
+                                {total > 1 ? <ChevronDown size={18} color={c.suave} style={{ marginLeft: 8, transform: [{ rotate: aberto ? "180deg" : "0deg" }] }} /> : <ChevronRight size={18} color={c.suave} style={{ marginLeft: 8 }} />}
+                              </Pressable>
+                              {aberto ? (
+                                <View style={{ paddingBottom: 14 }}>
+                                  <Grade total={total} atual={x.id === livro ? cap : 0} escolher={(n) => { setLivro(x.id); setCap(n); setFolha(null); }} />
+                                </View>
+                              ) : null}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  );
+                })}
               </>
             ) : folha === "capitulo" && v ? (
-              <Grade total={v.capitulos[rascunho.livro] ?? 1} atual={rascunho.livro === livro ? cap : 0} escolher={(n) => escolherCapitulo(n)} />
+              <>
+                <Grade total={v.capitulos[rascunho.livro] ?? 1} atual={rascunho.livro === livro ? cap : 0} escolher={(n) => { setLivro(rascunho.livro); setCap(n); setFolha(null); }} />
+                <Pressable onPress={() => escolherCapitulo(rascunho.livro === livro ? cap : 1)} style={{ alignSelf: "center", padding: 8 }}><T f={F.negrito} s={12} cor={c.azul} style={{ letterSpacing: 1.2, textTransform: "uppercase" }}>Escolher um versículo</T></Pressable>
+              </>
             ) : folha === "versiculo" ? (
               versosCap === 0 ? <Carregando /> : versosCap < 0 ? <T cor={c.suave} centro>Sem internet para este livro.</T> : (
                 <>
