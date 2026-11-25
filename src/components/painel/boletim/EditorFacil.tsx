@@ -15,7 +15,7 @@ import { FolhasEscaladas } from "@/components/boletim/Folhas";
 import { Editavel, formatar } from "@/components/boletim/Editavel";
 import { dataPorExtenso, novoIdB, type Bloco, type Boletim, type ItemAviso } from "@/lib/boletim";
 import {
-  colocarNaAgenda, conferir, dataDoItem, mais7, MESES_MAIUSC, ordenarAgenda, paginaDo, partes, type Partes,
+  adicionarPastoral, colocarNaAgenda, conferir, ORDINAIS, retirarPastoral, dataDoItem, mais7, MESES_MAIUSC, ordenarAgenda, paginaDo, partes, type Partes,
 } from "@/lib/boletim-facil";
 import { listarVersoesBoletim, obterBoletimPainel, publicarBoletim, restaurarVersaoBoletim, salvarBoletim } from "@/lib/api-boletim";
 import { IconeWhatsapp } from "@/components/site/Icones";
@@ -24,13 +24,12 @@ import "./editor.css";
 import { Camada } from "../Camada";
 import { quando } from "@/lib/datas";
 
-type IdPasso = "inicio" | "pastoral" | "segunda" | "avisos" | "oracao" | "escala" | "agenda" | "semana" | "aniversariantes" | "publicar";
+type IdPasso = "inicio" | "pastoral" | "avisos" | "oracao" | "escala" | "agenda" | "semana" | "aniversariantes" | "publicar";
 type Passo = { id: IdPasso; titulo: string; Icone: LucideIcon; ajuda: string };
 
 const PASSOS: Passo[] = [
   { id: "inicio", titulo: "Data e versículo", Icone: CalendarDays, ajuda: "O domingo deste boletim e o versículo da semana." },
-  { id: "pastoral", titulo: "Pastoral", Icone: PenLine, ajuda: "O texto principal, na primeira página." },
-  { id: "segunda", titulo: "Segunda pastoral", Icone: BookOpen, ajuda: "O texto da segunda página." },
+  { id: "pastoral", titulo: "Pastorais", Icone: PenLine, ajuda: "Uma, duas, três… quantas houver nesta semana. Cada uma ocupa a sua página." },
   { id: "avisos", titulo: "Avisos", Icone: Megaphone, ajuda: "Os recados para a igreja nesta semana." },
   { id: "oracao", titulo: "Motivos de oração", Icone: HandHeart, ajuda: "Pedidos de oração, numa caixa no fim dos avisos." },
   { id: "escala", titulo: "Escala e porteiros", Icone: ClipboardList, ajuda: "Quem serve hoje e no próximo domingo." },
@@ -73,6 +72,8 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
   const hist = useRef({ passado: [] as Boletim[], futuro: [] as Boletim[], chave: "", quando: 0 });
   const [, setVersaoHist] = useState(0);
   const [passo, setPasso] = useState<IdPasso>("inicio");
+  /** qual pastoral está aberta no passo "Pastorais" */
+  const [artigoSel, setArtigoSel] = useState(0);
   const [vistos, setVistos] = useState<Set<IdPasso>>(() => new Set(["inicio"]));
   const [salvamento, setSalvamento] = useState<Salvamento>("salvo");
   const [conflito, setConflito] = useState("");
@@ -220,9 +221,9 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
     return () => clearTimeout(t);
   }, [ocupacao]);
 
-  const pt = useMemo(() => (b ? partes(b) : {}), [b]);
+  const pt = useMemo<Partes>(() => (b ? partes(b) : { artigos: [] }), [b]);
   const blocoDoPasso = (p: IdPasso, d: Partes): string | undefined => ({
-    inicio: d.avisos?.id, pastoral: d.pastoral?.id, segunda: d.segunda?.id, avisos: d.avisos?.id, oracao: d.avisos?.id,
+    inicio: d.avisos?.id, pastoral: (d.artigos?.[artigoSel] ?? d.artigos?.[0])?.id, avisos: d.avisos?.id, oracao: d.avisos?.id,
     escala: d.escala?.id, agenda: d.agenda?.id, semana: d.semana?.id, aniversariantes: d.aniversariantes?.id, publicar: undefined,
   } as Record<IdPasso, string | undefined>)[p];
 
@@ -366,8 +367,7 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
                   </div>
                 )}
                 {passo === "inicio" && <PassoInicio {...props} />}
-                {passo === "pastoral" && <PassoArtigo {...props} bloco={pt.pastoral} nome="pastoral" />}
-                {passo === "segunda" && <PassoArtigo {...props} bloco={pt.segunda} nome="segunda pastoral" />}
+                {passo === "pastoral" && <PassoPastorais {...props} sel={Math.min(artigoSel, Math.max(0, pt.artigos.length - 1))} escolher={setArtigoSel} />}
                 {passo === "avisos" && <PassoAvisos {...props} desfazer={desfazer} />}
                 {passo === "oracao" && <PassoOracao {...props} />}
                 {passo === "escala" && <PassoEscala {...props} />}
@@ -428,7 +428,9 @@ export function EditorFacil({ id, lembretes: lembretesIniciais = [], aoVoltar, a
                 aoOcupacao={aoOcupacao}
                 selecionado={blocoDoPasso(passo, pt) ?? null}
                 aoSelecionar={(blocoId) => {
-                  const alvo = (["pastoral", "segunda", "avisos", "escala", "agenda", "semana", "aniversariantes"] as IdPasso[]).find((p) => blocoDoPasso(p, pt) === blocoId);
+                  const ia = pt.artigos.findIndex((x) => x.id === blocoId);
+                  if (ia >= 0) { setArtigoSel(ia); ir("pastoral"); return; }
+                  const alvo = (["avisos", "escala", "agenda", "semana", "aniversariantes"] as IdPasso[]).find((p) => blocoDoPasso(p, pt) === blocoId);
                   if (alvo) ir(alvo);
                 }}
               />
@@ -582,6 +584,56 @@ function PassoInicio({ b, mudar }: PropsPasso) {
           </div>
         </div>
       </Secao>
+    </>
+  );
+}
+
+function PassoPastorais(props: PropsPasso & { sel: number; escolher: (i: number) => void }) {
+  const { pt, mudar, sel, escolher } = props;
+  const lista = pt.artigos;
+  const nome = (i: number) => (lista.length > 1 ? `${ORDINAIS[i] ?? `${i + 1}ª`} pastoral` : "Pastoral");
+  const atual = lista[sel];
+  const adicionar = () => {
+    mudar((d) => { adicionarPastoral(d); });
+    escolher(lista.length);
+  };
+  const retirar = () => {
+    if (!atual) return;
+    const temTexto = atual.texto.trim() || atual.titulo.trim();
+    if (temTexto && !confirm(`Retirar a ${nome(sel).toLowerCase()} (“${atual.titulo.replace(/\*/g, "") || "sem título"}”) deste boletim? A página dela sai junto.`)) return;
+    mudar((d) => { retirarPastoral(d, atual.id); });
+    escolher(Math.max(0, sel - 1));
+  };
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Pastorais deste boletim">
+        {lista.map((a, i) => (
+          <button
+            key={a.id}
+            role="tab"
+            aria-selected={i === sel}
+            onClick={() => escolher(i)}
+            className={cn("inline-flex h-11 max-w-[260px] items-center gap-2.5 border px-4 text-left text-[13.5px] font-semibold transition", i === sel ? "border-p-acento bg-p-acento text-white" : "border-p-borda-forte bg-p-superficie text-p-texto-2 hover:border-p-acento")}
+          >
+            <span className="ef-num shrink-0 text-[12px] opacity-80">{dois(i + 1)}</span>
+            <span className="truncate">{a.titulo.replace(/\*/g, "") || nome(i)}</span>
+          </button>
+        ))}
+        <button onClick={adicionar} disabled={lista.length >= 6} className="inline-flex h-11 items-center gap-2 border border-dashed border-p-borda-forte px-4 text-[13px] font-semibold text-p-acento transition hover:border-p-acento hover:bg-p-sutil disabled:opacity-40">
+          <Plus size={16} /> Adicionar pastoral
+        </button>
+      </div>
+      {atual ? (
+        <>
+          <PassoArtigo key={atual.id} {...props} bloco={atual} nome={nome(sel).toLowerCase()} />
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-p-borda pt-5">
+            <p className="text-[13px] text-p-suave">{lista.length === 1 ? "Este boletim tem uma pastoral." : `Este boletim tem ${lista.length} pastorais, cada uma na sua página.`}</p>
+            <Botaozinho perigo onClick={retirar}><Trash2 size={15} /> Retirar esta pastoral</Botaozinho>
+          </div>
+        </>
+      ) : (
+        <p className="border border-dashed border-p-borda-forte px-5 py-6 text-[14.5px] text-p-suave">Este boletim está sem pastoral. Use “Adicionar pastoral” para incluir uma.</p>
+      )}
     </>
   );
 }

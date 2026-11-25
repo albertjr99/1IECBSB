@@ -4,7 +4,7 @@
  */
 import { createContext, useLayoutEffect, useRef, type ClipboardEvent, type CSSProperties, type KeyboardEvent } from "react";
 import type { Bloco, Boletim } from "@/lib/boletim";
-import { escapar, htmlParaMarcado, marcadoParaEdicao, type ModoTexto } from "./marcacao";
+import { escapar, espacosComuns, htmlParaMarcado, marcadoParaEdicao, type ModoTexto } from "./marcacao";
 
 /** Presente só no editor do painel: liga a edição direta nas folhas. */
 export type Edicao = {
@@ -83,7 +83,9 @@ export function Editavel({ valor, aoMudar, modo = "linha", como: Tag = "span", d
 
   const colar = (e: ClipboardEvent<HTMLElement>) => {
     e.preventDefault();
-    const t = e.clipboardData.getData("text/plain").replace(/\r/g, "");
+    // Word, WhatsApp e Google Docs costumam colar "espaços que não quebram" (U+00A0…):
+    // com eles a linha nunca vira e o texto passa da margem. Viram espaços comuns.
+    const t = espacosComuns(e.clipboardData.getData("text/plain").replace(/\r/g, ""));
     if (!t) return;
     if (modo === "linha") { document.execCommand("insertText", false, t.replace(/\s*\n\s*/g, " ")); return; }
     if (modo === "linhas" || !t.includes("\n")) {

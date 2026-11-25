@@ -13,6 +13,8 @@ const SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const sem = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().trim();
 
 export type Partes = {
+  /** todas as pastorais (uma, duas, três… conforme a semana) */
+  artigos: BlocoArtigo[];
   pastoral?: BlocoArtigo;
   segunda?: BlocoArtigo;
   avisos?: BlocoAvisos;
@@ -28,6 +30,7 @@ export function partes(b: Boletim): Partes {
   const artigos = todos.filter((x): x is BlocoArtigo => x.tipo === "artigo");
   const tabelas = todos.filter((x): x is BlocoTabela => x.tipo === "tabela");
   return {
+    artigos,
     pastoral: artigos[0],
     segunda: artigos[1],
     avisos: todos.find((x): x is BlocoAvisos => x.tipo === "avisos"),
@@ -36,6 +39,47 @@ export function partes(b: Boletim): Partes {
     agenda: todos.find((x): x is BlocoAgenda => x.tipo === "agenda"),
     aniversariantes: todos.find((x): x is BlocoAniversariantes => x.tipo === "aniversariantes"),
   };
+}
+
+export const ORDINAIS = ["Primeira", "Segunda", "Terceira", "Quarta", "Quinta", "Sexta"];
+
+/** O passo do editor fácil que cuida de uma página (para "texto demais na página N"). */
+function passoDaPagina(p: Boletim["paginas"][number]) {
+  const tipos = p.blocos.map((x) => x.tipo);
+  if (tipos.includes("artigo")) return "pastoral";
+  if (tipos.includes("avisos")) return "avisos";
+  if (tipos.includes("agenda")) return "agenda";
+  return "escala";
+}
+
+/** Rótulo da pastoral pela posição: "Pastoral", "Segunda da pastoral", "Terceira pastoral"… */
+export const rotuloPastoral = (i: number) => (i === 0 ? "Pastoral" : i === 1 ? "Segunda da pastoral" : `${ORDINAIS[i] ?? `${i + 1}ª`} pastoral`);
+
+/** Mais uma pastoral, numa página nova logo depois da última (no mesmo desenho dela). */
+export function adicionarPastoral(b: Boletim): string {
+  const pt = partes(b);
+  const ultima = pt.artigos[pt.artigos.length - 1];
+  const depois = ultima ? paginaDo(b, ultima.id) : 0;
+  const novo: BlocoArtigo = {
+    id: novoIdB("art"), tipo: "artigo", largura: "inteira", ajuste: 100,
+    rotulo: rotuloPastoral(pt.artigos.length), rotuloLado: "esquerda",
+    colunas: ultima?.colunas ?? 2, proporcao: ultima?.proporcao ?? 0.5,
+    titulo: "", texto: "", autor: "",
+  };
+  b.paginas.splice(depois + 1, 0, { id: novoIdB("pg"), blocos: [novo] });
+  return novo.id;
+}
+
+/** Tira uma pastoral; a página some junto se ficar vazia. */
+export function retirarPastoral(b: Boletim, id: string) {
+  const pi = paginaDo(b, id);
+  if (pi < 0) return;
+  const pg = b.paginas[pi]!;
+  pg.blocos = pg.blocos.filter((x) => x.id !== id);
+  if (!pg.blocos.length && b.paginas.length > 1) b.paginas.splice(pi, 1);
+  // renumera os rótulos padrão ("Terceira pastoral" vira "Segunda da pastoral"…); rótulo próprio fica
+  const padrao = new Set(ORDINAIS.map((_, i) => rotuloPastoral(i).toLowerCase()));
+  partes(b).artigos.forEach((x, i) => { if (padrao.has((x.rotulo ?? "").trim().toLowerCase())) x.rotulo = rotuloPastoral(i); });
 }
 
 /** Em qual página (índice) está um bloco. */
@@ -114,7 +158,7 @@ export function prepararProximo(base: Boletim, datasOcupadas: string[], minimo =
   }
   const pt = partes(c);
   const lembretes: string[] = [];
-  for (const a of [pt.pastoral, pt.segunda]) if (a) { a.titulo = ""; a.texto = ""; a.ajuste = 100; }
+  for (const a of pt.artigos) { a.titulo = ""; a.texto = ""; a.ajuste = 100; }
   if (pt.avisos) pt.avisos.ajuste = 100;
   if (pt.escala) {
     for (const l of pt.escala.linhas) l.celulas = [l.celulas[0], l.celulas[2], ""];
@@ -148,11 +192,11 @@ export function conferir(b: Boletim, ocupacao: Record<string, number>): Conferen
   const domingo = new Date(`${b.data}T12:00:00`).getDay() === 0;
   l.push({ ok: domingo, texto: domingo ? `Data: domingo, ${dataPorExtenso(b.data)}` : `A data (${dataPorExtenso(b.data)}) não é um domingo`, passo: "inicio" });
   l.push({ ok: Boolean(b.versiculo?.trim()), texto: b.versiculo?.trim() ? "Versículo da semana preenchido" : "Falta o versículo da semana", passo: "inicio" });
-  for (const [a, nome, passo] of [[pt.pastoral, "pastoral", "pastoral"], [pt.segunda, "segunda pastoral", "segunda"]] as const) {
-    if (!a) continue;
+  pt.artigos.forEach((a, i) => {
+    const nome = pt.artigos.length > 1 ? `${ORDINAIS[i] ?? `${i + 1}ª`} pastoral` : "pastoral";
     const ok = Boolean(a.titulo.trim() && a.texto.trim());
-    l.push({ ok, texto: ok ? `${nome[0]!.toUpperCase()}${nome.slice(1)}: “${a.titulo.replace(/\*/g, "")}”` : `Falta o título ou o texto da ${nome}`, passo, grave: !ok });
-  }
+    l.push({ ok, texto: ok ? `${nome[0]!.toUpperCase()}${nome.slice(1)}: “${a.titulo.replace(/\*/g, "")}”` : `Falta o título ou o texto da ${nome}`, passo: "pastoral", grave: !ok });
+  });
   if (pt.avisos) {
     const brancos = pt.avisos.itens.filter((x) => !x.titulo.trim() && !x.texto.trim()).length;
     if (brancos) l.push({ ok: false, texto: `${brancos} ${brancos === 1 ? "aviso está em branco" : "avisos estão em branco"} — preencha ou apague`, passo: "avisos" });
@@ -175,7 +219,7 @@ export function conferir(b: Boletim, ocupacao: Record<string, number>): Conferen
     ok: !cheias.length,
     grave: cheias.length > 0,
     texto: cheias.length ? `Texto demais na página ${cheias.map((x) => x.n).join(" e ")} — encurte um pouco` : "Tudo cabe nas páginas",
-    passo: cheias[0] ? (cheias[0].n === 1 ? "pastoral" : cheias[0].n === 2 ? "segunda" : cheias[0].n === 3 ? "avisos" : "escala") : "publicar",
+    passo: cheias[0] ? passoDaPagina(b.paginas[cheias[0].n - 1]!) : "publicar",
   });
   return l;
 }

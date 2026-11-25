@@ -7,7 +7,7 @@ export const escapar = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&l
 
 /** Texto marcado → HTML (quebras viram <br>). */
 export function marcadoHtml(texto: string) {
-  return escapar(texto)
+  return escapar(espacosComuns(texto))
     .replace(/\*\*\*([^*]+)\*\*\*/g, "<strong><em>$1</em></strong>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*\n]+)\*/g, "<em>$1</em>")
@@ -43,8 +43,11 @@ function inline(n: Node): string {
 export type ModoTexto = "linha" | "linhas" | "paragrafos";
 
 /** HTML de um campo editável → texto marcado. */
+/** Espaços "que não quebram" (colados do Word/WhatsApp) → espaço comum, para a linha virar na margem. */
+export const espacosComuns = (t: string) => t.replace(/[\u00A0\u2007\u202F\u2060\uFEFF]/g, (c) => (c === "\u2060" || c === "\uFEFF" ? "" : " "));
+
 export function htmlParaMarcado(el: HTMLElement, modo: ModoTexto): string {
-  const bruto = Array.from(el.childNodes).map(inline).join("");
+  const bruto = espacosComuns(Array.from(el.childNodes).map(inline).join(""));
   if (modo === "paragrafos") {
     return bruto
       .split(new RegExp(`${SEP}+`))
