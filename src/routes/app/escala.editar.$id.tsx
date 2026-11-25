@@ -8,6 +8,7 @@ import { buscarHinos } from "@/lib/hinario";
 import { dataBR, isoParaLocal, localParaIso } from "@/lib/datas";
 import { cn } from "@/lib/utils";
 import { Cabecalho, Folha, Rotulo } from "@/components/escalas/comum";
+import { Rosto } from "@/components/escalas/Rosto";
 
 export const Route = createFileRoute("/app/escala/editar/$id")({
   validateSearch: (s: Record<string, unknown>): { min: string; dia?: string } => ({ min: typeof s.min === "string" ? s.min : "", ...(typeof s.dia === "string" ? { dia: s.dia } : {}) }),
@@ -106,7 +107,7 @@ function EditarEscala() {
                 {vagas.map((v) => (
                   <div key={v.chave} className="mt-1.5 flex items-center gap-2">
                     <button onClick={() => setEscolher(v.chave)} className={cn("flex h-11 min-w-0 flex-1 items-center gap-2 border px-3 text-left text-[15px]", v.membroId ? "border-[var(--a-borda)] bg-[var(--a-sup)] font-semibold" : "border-dashed border-[var(--a-borda)] text-[var(--a-suave)]")}>
-                      <UserRound size={16} className="shrink-0 text-[var(--a-suave)]" />
+                      {v.membroId ? <Rosto id={v.membroId} nome={nomes[v.membroId] ?? ""} foto={equipe.find((p) => p.membroId === v.membroId)?.foto} tam={28} /> : <UserRound size={16} className="shrink-0 text-[var(--a-suave)]" />}
                       <span className="truncate">{v.membroId ? nomes[v.membroId] ?? "—" : "Escolher pessoa"}</span>
                       {v.membroId && ausentes.has(v.membroId) && <CalendarOff size={15} className="ml-auto shrink-0 text-[var(--a-vermelho)]" aria-label="Marcou ausência" />}
                     </button>
@@ -133,9 +134,10 @@ function EditarEscala() {
                       <button disabled={i === f.musicas.length - 1} onClick={() => mudar((x) => { const [a] = x.musicas.splice(i, 1); x.musicas.splice(i + 1, 0, a!); })} className="grid size-8 place-items-center text-[var(--a-suave)] disabled:opacity-30" aria-label="Descer"><ArrowDown size={15} /></button>
                       <button onClick={() => mudar((x) => { x.musicas.splice(i, 1); })} className="grid size-8 place-items-center text-[var(--a-suave)]" aria-label="Tirar"><Trash2 size={15} /></button>
                     </div>
-                    <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-2 pl-7">
+                    <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-2 pl-7 [&>input:last-child]:col-start-2">
                       <select value={mu.tom ?? ""} onChange={(e) => mudar((x) => { x.musicas[i]!.tom = e.target.value || undefined; })} className="a-campo !h-10 !px-2 !text-[14px]"><option value="">Tom</option>{TONS.map((t) => <option key={t}>{t}</option>)}</select>
-                      <input value={mu.link ?? ""} onChange={(e) => mudar((x) => { x.musicas[i]!.link = e.target.value || undefined; })} placeholder="Link (YouTube, cifra)" className="a-campo !h-10 !text-[14px]" inputMode="url" />
+                      <input value={mu.link ?? ""} onChange={(e) => mudar((x) => { x.musicas[i]!.link = e.target.value || undefined; })} placeholder="Link para ouvir (YouTube…)" className="a-campo !h-10 !text-[14px]" inputMode="url" />
+                      <input value={mu.cifra ?? ""} onChange={(e) => mudar((x) => { x.musicas[i]!.cifra = e.target.value || undefined; })} placeholder="Link da cifra (Cifra Club…)" className="a-campo !h-10 !text-[14px]" inputMode="url" />
                     </div>
                   </li>
                 ))}
@@ -192,6 +194,7 @@ function Escolha({ equipe, funcaoId, atual, ausentes, jaNaEscala, ausencias, dia
     const aus = ausencias.find((a) => a.membroId === p.membroId && a.de <= dia && dia <= a.ate);
     return (
       <button onClick={() => aoEscolher(p.membroId)} className={cn("flex w-full items-center gap-3 border-b border-[var(--a-borda)] px-1 py-2.5 text-left last:border-0", p.membroId === atual && "bg-[var(--a-realce)]")}>
+        <Rosto id={p.membroId} nome={p.nome} foto={p.foto} tam={40} className={aus ? "opacity-50" : ""} />
         <span className="min-w-0 flex-1">
           <span className={cn("block text-[15px] font-semibold", aus && "text-[var(--a-suave)]")}>{p.nome}</span>
           <span className="block text-[12px] text-[var(--a-suave)]">{p.vezes90 ? `${p.vezes90}× em 90 dias` : "Não serviu nos últimos 90 dias"}{p.ultima ? ` · última ${dataBR(diaDe(p.ultima))}` : ""}{jaNaEscala.has(p.membroId) ? " · já está nesta escala" : ""}</span>
@@ -227,7 +230,7 @@ function AdicionarMusica({ usadas, aoFechar, aoAdicionar }: { usadas: Min["music
       )}
       {ja.length > 0 && (
         <div><Rotulo>Já tocadas no ministério</Rotulo>{ja.map((u) => (
-          <button key={u.titulo} onClick={() => aoAdicionar({ id: "", titulo: u.titulo, artista: u.artista, tom: u.tom, link: u.link })} className="flex w-full items-center gap-3 border-b border-[var(--a-borda)] py-2.5 text-left last:border-0">
+          <button key={u.titulo} onClick={() => aoAdicionar({ id: "", titulo: u.titulo, artista: u.artista, tom: u.tom, link: u.link, cifra: u.cifra })} className="flex w-full items-center gap-3 border-b border-[var(--a-borda)] py-2.5 text-left last:border-0">
             <span className="min-w-0 flex-1"><span className="block truncate text-[15px]">{u.titulo}</span><span className="text-[12px] text-[var(--a-suave)]">{[u.artista, u.tom && `tom ${u.tom}`, `${u.vezes}×`].filter(Boolean).join(" · ")}</span></span><Plus size={16} className="text-[var(--a-azul)]" />
           </button>
         ))}</div>

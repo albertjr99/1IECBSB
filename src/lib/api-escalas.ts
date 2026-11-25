@@ -11,7 +11,7 @@ import type { Escala, ItemRoteiro, MinisterioApp, Musica, Resposta, Serie } from
 
 type Nomes = Record<string, string>;
 
-export type VagaVista = { id: string; funcaoId: string; funcao: string; membroId?: string; nome?: string; resposta: Resposta; motivo?: string; respondidoEm?: string };
+export type VagaVista = { id: string; funcaoId: string; funcao: string; membroId?: string; nome?: string; foto?: string; resposta: Resposta; motivo?: string; respondidoEm?: string };
 
 export type EscalaVista = {
   id: string; ministerioId: string; ministerio: string; icone: string; titulo: string; inicio: string; local?: string; observacoes?: string;
@@ -21,12 +21,16 @@ export type EscalaVista = {
   historico?: Escala["historico"];
 };
 
+/** Versão da foto de cada membro (o app busca a imagem em /api/foto/<id>?v=…). */
+type Fotos = Record<string, string>;
+let fotosAtuais: Fotos = {};
+
 function vista(e: Escala, m: MinisterioApp, nomes: Nomes, euId: string, lider: boolean): EscalaVista {
   const fn = new Map(m.funcoes.map((f) => [f.id, f.nome]));
   const ordem = new Map(m.funcoes.map((f, i) => [f.id, i]));
   const vagas = [...e.vagas]
     .sort((a, b) => (ordem.get(a.funcaoId) ?? 99) - (ordem.get(b.funcaoId) ?? 99))
-    .map((v) => ({ id: v.id, funcaoId: v.funcaoId, funcao: fn.get(v.funcaoId) ?? "Função removida", membroId: v.membroId, nome: v.membroId ? nomes[v.membroId] ?? "Membro removido" : undefined, resposta: v.resposta, respondidoEm: v.respondidoEm, ...(lider || v.membroId === euId ? { motivo: v.motivo } : {}) }));
+    .map((v) => ({ id: v.id, funcaoId: v.funcaoId, funcao: fn.get(v.funcaoId) ?? "Função removida", membroId: v.membroId, nome: v.membroId ? nomes[v.membroId] ?? "Membro removido" : undefined, foto: v.membroId ? fotosAtuais[v.membroId] : undefined, resposta: v.resposta, respondidoEm: v.respondidoEm, ...(lider || v.membroId === euId ? { motivo: v.motivo } : {}) }));
   return {
     id: e.id, ministerioId: m.id, ministerio: m.nome, icone: m.icone, titulo: e.titulo, inicio: e.inicio, local: e.local, observacoes: e.observacoes,
     situacao: e.situacao, serieId: e.serieId, vagas, roteiro: e.roteiro, musicas: e.musicas,
@@ -39,7 +43,10 @@ function vista(e: Escala, m: MinisterioApp, nomes: Nomes, euId: string, lider: b
 
 async function nomesDosMembros(): Promise<Nomes> {
   const { lerMembros } = await import("../server/membros");
-  return Object.fromEntries((await lerMembros()).map((m) => [m.id, m.nome]));
+  const { versaoDaFoto } = await import("../server/fotos-membros");
+  const l = await lerMembros();
+  fotosAtuais = Object.fromEntries(l.filter((m) => m.foto).map((m) => [m.id, versaoDaFoto(m.foto!)]));
+  return Object.fromEntries(l.map((m) => [m.id, m.nome]));
 }
 
 async function avisar(ids: string[], titulo: string, texto: string, escalaId: string) {
@@ -204,7 +211,7 @@ export const escMinisterio = createServerFn({ method: "GET" })
     const eu = await exigirMembro();
     const { m } = await exigirLider(data.id, eu.id);
     const membros = await lerMembros();
-    const nomes = Object.fromEntries(membros.map((x) => [x.id, x.nome]));
+    const nomes = await nomesDosMembros();
     const todas = await lerEscalas();
     const doMin = todas.filter((e) => e.ministerioId === m.id);
     const agora = Date.now();
@@ -217,14 +224,14 @@ export const escMinisterio = createServerFn({ method: "GET" })
     for (const e of doMin.filter((x) => x.situacao === "publicada")) for (const mu of e.musicas) {
       const k = mu.hino ? `h${mu.hino}` : mu.titulo.trim().toLowerCase();
       const ja = musicasUsadas.get(k);
-      musicasUsadas.set(k, { ...(ja ?? mu), tom: mu.tom || ja?.tom, link: mu.link || ja?.link, vezes: (ja?.vezes ?? 0) + 1 });
+      musicasUsadas.set(k, { ...(ja ?? mu), tom: mu.tom || ja?.tom, link: mu.link || ja?.link, cifra: mu.cifra || ja?.cifra, vezes: (ja?.vezes ?? 0) + 1 });
     }
     return {
       ministerio: m,
       equipe: m.membros.map((x) => {
         const minhas = passadas.filter((e) => e.vagas.some((v) => v.membroId === x.membroId));
         return {
-          membroId: x.membroId, nome: nomes[x.membroId] ?? "Membro removido", lider: Boolean(x.lider), funcoes: x.funcoes,
+          membroId: x.membroId, nome: nomes[x.membroId] ?? "Membro removido", foto: fotosAtuais[x.membroId], lider: Boolean(x.lider), funcoes: x.funcoes,
           funcoesNomes: x.funcoes.map((f) => fn.get(f)).filter(Boolean) as string[],
           vezes90: minhas.length, ultima: minhas[minhas.length - 1]?.inicio,
           faltas: minhas.filter((e) => e.vagas.some((v) => v.membroId === x.membroId && v.resposta === "recusado")).length,
@@ -234,7 +241,7 @@ export const escMinisterio = createServerFn({ method: "GET" })
       series: (await lerSeries()).filter((s) => s.ministerioId === m.id),
       ausencias: ind.filter((i) => ids.has(i.membroId)).map((i) => ({ ...i, nome: nomes[i.membroId] ?? "" })).sort((a, b) => a.de.localeCompare(b.de)),
       /** para incluir gente nova no ministério */
-      membrosIgreja: membros.filter((x) => x.situacao === "ativo" && !ids.has(x.id)).map((x) => ({ id: x.id, nome: x.nome })).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")),
+      membrosIgreja: membros.filter((x) => x.situacao === "ativo" && !ids.has(x.id)).map((x) => ({ id: x.id, nome: x.nome, foto: fotosAtuais[x.id] })).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")),
       musicasUsadas: [...musicasUsadas.values()].sort((a, b) => b.vezes - a.vezes).slice(0, 200),
     };
   });
@@ -277,11 +284,12 @@ export const escSalvar = createServerFn({ method: "POST" })
       return { id: v.id && a ? v.id : novoId("v"), funcaoId: v.funcaoId, membroId: v.membroId || undefined, resposta: "pendente" as const };
     });
     const limpa = (s?: string) => (s ?? "").trim().slice(0, 600) || undefined;
+    const url = (s?: string) => { const t = (s ?? "").trim(); return !t ? undefined : /^https?:\/\//i.test(t) ? t.slice(0, 400) : /^[\w-]+(\.[\w-]+)+(\/|$)/.test(t) ? `https://${t}`.slice(0, 400) : undefined; };
     const base = {
       titulo: data.titulo.trim().slice(0, 80), inicio: new Date(data.inicio).toISOString(), local: limpa(data.local)?.slice(0, 80), observacoes: limpa(data.observacoes),
       vagas,
       roteiro: (data.roteiro ?? []).filter((r) => r.item.trim()).map((r) => ({ id: r.id || novoId("r"), item: r.item.trim().slice(0, 120), minutos: r.minutos && r.minutos > 0 ? Math.min(600, Math.round(r.minutos)) : undefined, obs: limpa(r.obs)?.slice(0, 200) })),
-      musicas: (data.musicas ?? []).filter((x) => x.titulo.trim()).map((x) => ({ id: x.id || novoId("mu"), hino: x.hino, titulo: x.titulo.trim().slice(0, 120), artista: limpa(x.artista)?.slice(0, 80), tom: limpa(x.tom)?.slice(0, 8), link: x.link && /^https?:\/\//.test(x.link.trim()) ? x.link.trim().slice(0, 400) : undefined, obs: limpa(x.obs)?.slice(0, 200) })),
+      musicas: (data.musicas ?? []).filter((x) => x.titulo.trim()).map((x) => ({ id: x.id || novoId("mu"), hino: x.hino, titulo: x.titulo.trim().slice(0, 120), artista: limpa(x.artista)?.slice(0, 80), tom: limpa(x.tom)?.slice(0, 8), link: url(x.link), cifra: url(x.cifra), obs: limpa(x.obs)?.slice(0, 200) })),
     };
     const eraPublicada = e?.situacao === "publicada";
     const mudouHorario = e && e.inicio !== base.inicio;
@@ -513,4 +521,19 @@ export const excluirMinisterioPainel = createServerFn({ method: "POST" })
     await gravarSeries((await lerSeries()).filter((x) => x.ministerioId !== m.id));
     await registrar(s.nome, "Excluiu ministério (escalas)", m.nome);
     return { ok: true };
+  });
+
+/** Equipes e escalas fictícias para testar (e para tirar depois). */
+export const exemplosPainel = createServerFn({ method: "POST" })
+  .validator((d: { acao: "criar" | "remover" | "ver" }) => d)
+  .handler(async ({ data }) => {
+    const { exigirAcesso } = await import("../server/auth");
+    const { registrar } = await import("../server/armazem");
+    const { criarExemplos, removerExemplos, haExemplos } = await import("../server/exemplo");
+    const s = await exigirAcesso("escalas");
+    if (data.acao === "ver") return { existem: await haExemplos() };
+    if (data.acao === "criar") { const r = await criarExemplos(); await registrar(s.nome, "Criou dados de exemplo (escalas)", `${r.pessoas} pessoas`); return { existem: true, ...r }; }
+    const r = await removerExemplos();
+    await registrar(s.nome, "Removeu dados de exemplo (escalas)", `${r.pessoas} pessoas`);
+    return { existem: false, ...r };
   });

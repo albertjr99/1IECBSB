@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { AlertTriangle, Clock, ExternalLink, History, ListOrdered, MapPin, Music, Pencil, Send, Share2, StickyNote, Trash2 } from "lucide-react";
+import { AlertTriangle, Clock, Guitar, Headphones, History, ListOrdered, MapPin, Music, Pencil, Send, Share2, StickyNote, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { escExcluir, escResponder, escSalvar, escVer } from "@/lib/api-escalas";
 import { diaDe, duracaoRoteiro, textoDaEscala } from "@/lib/escalas";
 import { dataComDia, dataHora, hora } from "@/lib/datas";
 import { cn } from "@/lib/utils";
 import { IconeMinisterio } from "@/components/escalas/icones";
+import { Rosto } from "@/components/escalas/Rosto";
 import { Cabecalho, Folha, Rotulo, Selo, compartilharTexto, falta } from "@/components/escalas/comum";
 
 export const Route = createFileRoute("/app/escala/$id")({ component: VerEscala });
@@ -102,8 +103,9 @@ function VerEscala() {
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--a-suave)]">{f.nome}</p>
                 {vagas.map((v) => (
                   <div key={v.id} className="mt-1.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={cn("text-[15px] font-semibold", !v.membroId && "italic text-[var(--a-suave)]", e.minhas.includes(v.id) && "text-[var(--a-azul)]")}>{v.nome ?? "A definir"}</span>
+                    <div className="flex items-center justify-between gap-2.5">
+                      {v.membroId ? <Rosto id={v.membroId} nome={v.nome ?? ""} foto={v.foto} tam={34} /> : <span className="size-[34px] shrink-0 rounded-full border border-dashed border-[var(--a-borda)]" />}
+                      <span className={cn("min-w-0 flex-1 text-[15px] font-semibold", !v.membroId && "italic text-[var(--a-suave)]", e.minhas.includes(v.id) && "text-[var(--a-azul)]")}>{v.nome ?? "A definir"}</span>
                       {v.membroId && e.situacao === "publicada" && <Selo r={v.resposta} pequeno />}
                     </div>
                     {lider && v.motivo && <p className="text-[12.5px] text-[var(--a-vermelho)]">“{v.motivo}”</p>}
@@ -125,7 +127,12 @@ function VerEscala() {
                   <span className="min-w-0 flex-1">
                     {mu.hino ? <Link to="/app/hinario" search={{ n: mu.hino }} className="text-[15px] font-semibold text-[var(--a-azul)] underline-offset-4 hover:underline">{mu.hino} · {mu.titulo}</Link> : <span className="text-[15px] font-semibold">{mu.titulo}</span>}
                     {(mu.artista || mu.obs) && <span className="block text-[12.5px] text-[var(--a-suave)]">{[mu.artista, mu.obs].filter(Boolean).join(" · ")}</span>}
-                    {mu.link && <a href={mu.link} target="_blank" rel="noopener" className="mt-1 inline-flex items-center gap-1 text-[12.5px] font-semibold text-[var(--a-azul)]"><ExternalLink size={13} /> Ouvir / cifra</a>}
+                    {(mu.link || mu.cifra) && (
+                      <span className="mt-1.5 flex gap-2">
+                        {mu.link && <a href={mu.link} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 bg-[var(--a-realce)] px-2.5 py-1 text-[12.5px] font-bold text-[var(--a-azul)]"><Headphones size={14} /> Ouvir</a>}
+                        {mu.cifra && <a href={mu.cifra} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 bg-[var(--a-realce)] px-2.5 py-1 text-[12.5px] font-bold text-[var(--a-azul)]"><Guitar size={14} /> Cifra</a>}
+                      </span>
+                    )}
                   </span>
                   {mu.tom && <span className="shrink-0 border border-[var(--a-borda)] px-2 py-0.5 text-[13px] font-bold">{mu.tom}</span>}
                 </li>

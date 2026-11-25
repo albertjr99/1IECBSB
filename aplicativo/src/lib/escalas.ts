@@ -7,7 +7,7 @@ import type { Funcao, Indisponibilidade, ItemRoteiro, MinisterioApp, Musica, Res
 
 export * from "./escalas-regras";
 
-export type VagaVista = { id: string; funcaoId: string; funcao: string; membroId?: string; nome?: string; resposta: Resposta; motivo?: string; respondidoEm?: string };
+export type VagaVista = { id: string; funcaoId: string; funcao: string; membroId?: string; nome?: string; foto?: string; resposta: Resposta; motivo?: string; respondidoEm?: string };
 export type EscalaVista = {
   id: string; ministerioId: string; ministerio: string; icone: string; titulo: string; inicio: string; local?: string; observacoes?: string;
   situacao: "rascunho" | "publicada"; serieId?: string; vagas: VagaVista[]; roteiro: ItemRoteiro[]; musicas: Musica[];
@@ -16,10 +16,10 @@ export type EscalaVista = {
 export type MeuMinisterio = { id: string; nome: string; icone: string; lider: boolean; funcoes: string[]; pessoas: number; rascunhos: number; recusas: number };
 export type InicioEscalas = { ministerios: MeuMinisterio[]; proximas: EscalaVista[]; recentes: EscalaVista[]; pendentes: number; ausencias: Indisponibilidade[] };
 export type VerEscala = { escala: EscalaVista; ministerio: { id: string; nome: string; icone: string; repertorio: boolean; funcoes: Funcao[] }; lider: boolean; alertas: Record<string, string[]> };
-export type PessoaEquipe = { membroId: string; nome: string; lider: boolean; funcoes: string[]; funcoesNomes: string[]; vezes90: number; ultima?: string; faltas: number };
+export type PessoaEquipe = { membroId: string; nome: string; foto?: string; lider: boolean; funcoes: string[]; funcoesNomes: string[]; vezes90: number; ultima?: string; faltas: number };
 export type DadosMinisterio = {
   ministerio: MinisterioApp; equipe: PessoaEquipe[]; escalas: EscalaVista[]; series: Serie[];
-  ausencias: (Indisponibilidade & { nome: string })[]; membrosIgreja: { id: string; nome: string }[]; musicasUsadas: (Musica & { vezes: number })[];
+  ausencias: (Indisponibilidade & { nome: string })[]; membrosIgreja: { id: string; nome: string; foto?: string }[]; musicasUsadas: (Musica & { vezes: number })[];
 };
 
 export const carregarEscalas = () => chamar<InicioEscalas>("escalas");

@@ -37,6 +37,7 @@ import { Route as SiteHinarioIndexRouteImport } from './routes/_site/hinario.ind
 import { Route as SiteHinarioNumeroRouteImport } from './routes/_site/hinario.$numero'
 import { Route as SiteMinisteriosIdRouteImport } from './routes/_site/ministerios_.$id'
 import { Route as ApiEscalasLembretesRouteImport } from './routes/api/escalas.lembretes'
+import { Route as ApiFotoIdRouteImport } from './routes/api/foto.$id'
 import { Route as ApiHubRetornoRouteImport } from './routes/api/hub.retorno'
 import { Route as ApiHubSincronizarRouteImport } from './routes/api/hub.sincronizar'
 import { Route as AppBoletimDataRouteImport } from './routes/app/boletim.$data'
@@ -185,6 +186,11 @@ const ApiEscalasLembretesRoute = ApiEscalasLembretesRouteImport.update({
   path: '/api/escalas/lembretes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiFotoIdRoute = ApiFotoIdRouteImport.update({
+  id: '/api/foto/$id',
+  path: '/api/foto/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiHubRetornoRoute = ApiHubRetornoRouteImport.update({
   id: '/api/hub/retorno',
   path: '/api/hub/retorno',
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/hinario/$numero': typeof SiteHinarioNumeroRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
   '/api/escalas/lembretes': typeof ApiEscalasLembretesRoute
+  '/api/foto/$id': typeof ApiFotoIdRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/app/boletim/$data': typeof AppBoletimDataRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/hinario/$numero': typeof SiteHinarioNumeroRoute
   '/ministerios/$id': typeof SiteMinisteriosIdRoute
   '/api/escalas/lembretes': typeof ApiEscalasLembretesRoute
+  '/api/foto/$id': typeof ApiFotoIdRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/app/boletim/$data': typeof AppBoletimDataRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   '/_site/hinario/$numero': typeof SiteHinarioNumeroRoute
   '/_site/ministerios_/$id': typeof SiteMinisteriosIdRoute
   '/api/escalas/lembretes': typeof ApiEscalasLembretesRoute
+  '/api/foto/$id': typeof ApiFotoIdRoute
   '/api/hub/retorno': typeof ApiHubRetornoRoute
   '/api/hub/sincronizar': typeof ApiHubSincronizarRoute
   '/app/boletim/$data': typeof AppBoletimDataRoute
@@ -367,6 +376,7 @@ export interface FileRouteTypes {
     | '/hinario/$numero'
     | '/ministerios/$id'
     | '/api/escalas/lembretes'
+    | '/api/foto/$id'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
     | '/app/boletim/$data'
@@ -403,6 +413,7 @@ export interface FileRouteTypes {
     | '/hinario/$numero'
     | '/ministerios/$id'
     | '/api/escalas/lembretes'
+    | '/api/foto/$id'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
     | '/app/boletim/$data'
@@ -441,6 +452,7 @@ export interface FileRouteTypes {
     | '/_site/hinario/$numero'
     | '/_site/ministerios_/$id'
     | '/api/escalas/lembretes'
+    | '/api/foto/$id'
     | '/api/hub/retorno'
     | '/api/hub/sincronizar'
     | '/app/boletim/$data'
@@ -460,6 +472,7 @@ export interface RootRouteChildren {
   VotarTokenRoute: typeof VotarTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ApiEscalasLembretesRoute: typeof ApiEscalasLembretesRoute
+  ApiFotoIdRoute: typeof ApiFotoIdRoute
   ApiHubRetornoRoute: typeof ApiHubRetornoRoute
   ApiHubSincronizarRoute: typeof ApiHubSincronizarRoute
   ImpressaoBoletimIdRoute: typeof ImpressaoBoletimIdRoute
@@ -664,6 +677,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEscalasLembretesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/foto/$id': {
+      id: '/api/foto/$id'
+      path: '/api/foto/$id'
+      fullPath: '/api/foto/$id'
+      preLoaderRoute: typeof ApiFotoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/hub/retorno': {
       id: '/api/hub/retorno'
       path: '/api/hub/retorno'
@@ -797,6 +817,7 @@ const rootRouteChildren: RootRouteChildren = {
   VotarTokenRoute: VotarTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
   ApiEscalasLembretesRoute: ApiEscalasLembretesRoute,
+  ApiFotoIdRoute: ApiFotoIdRoute,
   ApiHubRetornoRoute: ApiHubRetornoRoute,
   ApiHubSincronizarRoute: ApiHubSincronizarRoute,
   ImpressaoBoletimIdRoute: ImpressaoBoletimIdRoute,

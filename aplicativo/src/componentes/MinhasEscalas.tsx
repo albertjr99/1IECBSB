@@ -1,12 +1,14 @@
 /** Aba "Escalas" do Participar: quando eu sirvo, meus ministérios e minhas ausências. */
+import { Rostos } from "./Pessoa";
 import { router } from "expo-router";
 import { CalendarOff, CheckCircle2, ChevronRight, CircleDashed, Crown, Plus, Trash2, XCircle } from "lucide-react-native";
 import { useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { Botao, Cartao, Sobre, T } from "./ui";
 import { Folha, Rotulo } from "./Folha";
+import { CampoData } from "./Calendario";
 import { IconeMinisterio } from "./IconeMinisterio";
-import { dataDigitada, diaDe, marcarAusencia, mascaraData, removerAusencia, responderEscala, type EscalaVista, type InicioEscalas, type Resposta } from "@/lib/escalas";
+import { diaDe, marcarAusencia, removerAusencia, responderEscala, type EscalaVista, type InicioEscalas, type Resposta } from "@/lib/escalas";
 import { AZUL, F, VERMELHO, useTema } from "@/lib/tema";
 import { dataBR, dataComDia, emBrasilia, hojeBrasilia } from "@/lib/util";
 
@@ -83,7 +85,10 @@ export function MinhasEscalas({ d, recarregar }: { d: InicioEscalas; recarregar:
                   {minhas.map((v) => <View key={v.id} style={{ backgroundColor: c.realce, paddingHorizontal: 10, paddingVertical: 4 }}><T s={13} f={F.negrito} cor={c.azul}>{v.funcao}</T></View>)}
                   {minhas[0] ? <Selo r={minhas[0].resposta} /> : null}
                 </View>
-                <T s={12.5} cor={c.suave}>{e.confirmados} de {e.preenchidas} confirmados{e.musicas.length ? ` · ${e.musicas.length} músicas` : ""}</T>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 }}>
+                  <Rostos pessoas={e.vagas.filter((v) => v.membroId).map((v) => ({ id: v.membroId, nome: v.nome ?? "", foto: v.foto }))} />
+                  <T s={12.5} cor={c.suave} style={{ flex: 1 }}>{e.confirmados} de {e.preenchidas} confirmados{e.musicas.length ? ` · ${e.musicas.length} músicas` : ""}</T>
+                </View>
               </Pressable>
               {pendente ? (
                 <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: c.borda }}>
@@ -120,7 +125,7 @@ export function MinhasEscalas({ d, recarregar }: { d: InicioEscalas; recarregar:
       <View style={{ gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Sobre>Minhas ausências</Sobre>
-          <Pressable hitSlop={8} onPress={() => { const h = dataBR(hojeBrasilia()); setAusencia({ de: h, ate: h, motivo: "" }); }} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={16} color={c.azul} /><T s={12} f={F.negrito} cor={c.azul} style={{ letterSpacing: 1.2, textTransform: "uppercase" }}>Marcar</T></Pressable>
+          <Pressable hitSlop={8} onPress={() => { const h = hojeBrasilia(); setAusencia({ de: h, ate: h, motivo: "" }); }} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={16} color={c.azul} /><T s={12} f={F.negrito} cor={c.azul} style={{ letterSpacing: 1.2, textTransform: "uppercase" }}>Marcar</T></Pressable>
         </View>
         {d.ausencias.length === 0 ? <T s={13.5} cor={c.suave}>Vai viajar ou não poderá servir em algumas datas? Marque aqui e a liderança já vê ao montar a escala.</T> : (
           <Cartao style={{ padding: 0 }}>
@@ -152,15 +157,11 @@ export function MinhasEscalas({ d, recarregar }: { d: InicioEscalas; recarregar:
       <Folha aberta={!!ausencia} titulo="Marcar ausência" aoFechar={() => setAusencia(null)}>
         {ausencia ? (
           <>
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ flex: 1, gap: 6 }}><Rotulo>De</Rotulo><CampoTexto value={ausencia.de} onChangeText={(t) => setAusencia({ ...ausencia, de: mascaraData(t) })} keyboardType="number-pad" placeholder="dd/mm/aaaa" /></View>
-              <View style={{ flex: 1, gap: 6 }}><Rotulo>Até</Rotulo><CampoTexto value={ausencia.ate} onChangeText={(t) => setAusencia({ ...ausencia, ate: mascaraData(t) })} keyboardType="number-pad" placeholder="dd/mm/aaaa" /></View>
-            </View>
+            <CampoData rotulo="Primeiro dia fora" valor={ausencia.de} minimo={hojeBrasilia()} aoMudar={(v) => setAusencia({ ...ausencia, de: v, ate: ausencia.ate < v ? v : ausencia.ate })} />
+            <CampoData rotulo="Último dia fora" valor={ausencia.ate} minimo={ausencia.de} aoMudar={(v) => setAusencia({ ...ausencia, ate: v })} />
             <View style={{ gap: 6 }}><Rotulo>Motivo (opcional, só a liderança vê)</Rotulo><CampoTexto value={ausencia.motivo} onChangeText={(t) => setAusencia({ ...ausencia, motivo: t })} placeholder="Ex.: viagem" maxLength={120} /></View>
             <Botao onPress={async () => {
-              const de = dataDigitada(ausencia.de), ate = dataDigitada(ausencia.ate);
-              if (!de || !ate) { Alert.alert("Ausência", "Confira as datas (dd/mm/aaaa)."); return; }
-              try { await marcarAusencia(de, ate, ausencia.motivo); setAusencia(null); recarregar(); } catch (x) { Alert.alert("Ausência", x instanceof Error ? x.message : "Erro"); }
+              try { await marcarAusencia(ausencia.de, ausencia.ate, ausencia.motivo); setAusencia(null); recarregar(); } catch (x) { Alert.alert("Ausência", x instanceof Error ? x.message : "Erro"); }
             }}>Salvar</Botao>
           </>
         ) : null}

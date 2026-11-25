@@ -12,13 +12,15 @@ import { Lora_500Medium_Italic } from "@expo-google-fonts/lora/500Medium_Italic"
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
 import { router, Stack } from "expo-router";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRef, useCallback, useEffect, useMemo, useState } from "react";
 import { Platform, useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Aguardando, CriarSenha, Entrar } from "@/componentes/Acesso";
+import { Aguardando, Bloqueio, CriarSenha, Entrar } from "@/componentes/Acesso";
+import { biometriaLigada } from "@/lib/biometria";
 import { Aviso } from "@/componentes/ui";
 import { carregarToken, chamar, definirToken, ErroApi, quandoExpirar, temToken } from "@/lib/api";
 import { gravarCache, lerCache, limparCache } from "@/lib/cache";
@@ -35,7 +37,8 @@ export default function Raiz() {
     Lora_400Regular, Lora_400Regular_Italic, Lora_500Medium_Italic,
   });
   const sistema = useColorScheme();
-  const [estado, setEstado] = useState<"carregando" | "fora" | "dentro" | "sem-rede">("carregando");
+  const [estado, setEstado] = useState<"carregando" | "fora" | "dentro" | "sem-rede" | "bloqueado">("carregando");
+  const desbloqueado = useRef(false);
   const [membro, setMembro] = useState<Membro | null>(null);
 
   const escuro = membro?.prefs.tema === "escuro" || (membro?.prefs.tema !== "claro" && sistema === "dark");
@@ -45,6 +48,8 @@ export default function Raiz() {
   const carregar = useCallback(async () => {
     await carregarToken();
     if (!temToken()) { setEstado("fora"); return; }
+    // biometria ativada: o app abre trancado até o rosto/digital confirmar
+    if (!desbloqueado.current && (await biometriaLigada())) { setEstado("bloqueado"); return; }
     const guardado = await lerCache<Membro>("membro");
     if (guardado) { setMembro(guardado); setEstado("dentro"); }
     try {
@@ -95,7 +100,8 @@ export default function Raiz() {
   if (!fontes || estado === "carregando") return <View style={{ flex: 1, backgroundColor: "#00436F" }} />;
 
   let conteudo: React.ReactNode;
-  if (estado === "sem-rede") conteudo = <View style={{ flex: 1, justifyContent: "center", backgroundColor: c.fundo }}><Aviso texto="Sem conexão com a internet. Conecte-se para entrar no aplicativo." acao={() => { setEstado("carregando"); carregar(); }} /></View>;
+  if (estado === "bloqueado") conteudo = <Bloqueio aoAbrir={() => { desbloqueado.current = true; setEstado("carregando"); carregar(); }} aoSenha={async () => { await definirToken(null); setEstado("fora"); }} />;
+  else if (estado === "sem-rede") conteudo = <View style={{ flex: 1, justifyContent: "center", backgroundColor: c.fundo }}><Aviso texto="Sem conexão com a internet. Conecte-se para entrar no aplicativo." acao={() => { setEstado("carregando"); carregar(); }} /></View>;
   else if (estado === "fora" || !membro) conteudo = <Entrar aoEntrar={(m) => { setMembro(m); gravarCache("membro", m); setEstado("dentro"); }} />;
   else if (membro.situacao !== "ativo") conteudo = <Aguardando membro={membro} sair={() => sessao?.sair()} recarregar={carregar} />;
   else if (membro.trocarSenha) conteudo = <CriarSenha membro={membro} pronto={carregar} />;
@@ -106,11 +112,13 @@ export default function Raiz() {
   );
 
   return (
+    <KeyboardProvider>
     <SafeAreaProvider>
       <TemaCtx.Provider value={{ c, letra }}>
         <StatusBar style={estado === "dentro" && ativo ? (escuro ? "light" : "dark") : "light"} />
         {conteudo}
       </TemaCtx.Provider>
     </SafeAreaProvider>
+    </KeyboardProvider>
   );
 }

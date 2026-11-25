@@ -2,6 +2,7 @@
  * Bíblia (ARA e NVI): escolha fácil de livro → capítulo → versículo, títulos de
  * seção, deslizar para trocar de capítulo, comparar versões, guardar e compartilhar.
  */
+import { useAlturaTeclado } from "@/lib/teclado";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams } from "expo-router";
@@ -45,6 +46,7 @@ export default function Biblia() {
   const [achados, setAchados] = useState<{ total: number; achados: { livro: string; capitulo: number; versiculo: number; texto: string }[] } | null>(null);
   const [procurando, setProcurando] = useState(false);
   const [testBusca, setTestBusca] = useState<"" | "AT" | "NT">("");
+  const teclado = useAlturaTeclado();
   const rolagem = useRef<ScrollViewInstance>(null);
   const alvo = useRef<number | null>(null);
 
@@ -242,9 +244,9 @@ export default function Biblia() {
       ) : null}
 
       <Modal visible={!!folha} animationType="slide" transparent onRequestClose={() => setFolha(null)}>
-        <View style={{ flex: 1, justifyContent: "flex-end" }}>
+        <View style={{ flex: 1, justifyContent: "flex-end", paddingTop: ins.top + 12 }}>
         <Pressable onPress={() => setFolha(null)} style={[StyleSheet.absoluteFill, { backgroundColor: "#00142280" }]} />
-        <View style={{ maxHeight: "86%", backgroundColor: c.sup, paddingBottom: ins.bottom + 8 }}>
+        <View style={{ maxHeight: teclado ? "100%" : "86%", backgroundColor: c.sup, marginBottom: teclado, paddingBottom: teclado ? 8 : ins.bottom + 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.borda, gap: 6 }}>
             {folha === "versiculo" ? (
               <Pressable hitSlop={8} onPress={() => setFolha("capitulo")} style={{ padding: 4 }}><ChevronLeft size={22} color={c.azul} /></Pressable>

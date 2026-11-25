@@ -29,6 +29,8 @@ export type Membro = {
   ultimaLeitura?: { versao: string; livro: string; capitulo: number };
   /** aparelhos com o app das lojas (Expo push token) */
   aparelhos?: { token: string; plataforma: string; em: string }[];
+  /** pessoa fictícia criada para testes (some com "Remover exemplos") */
+  exemplo?: boolean;
 };
 
 export type MembroPublico = Omit<Membro, "hash" | "aparelhos">;

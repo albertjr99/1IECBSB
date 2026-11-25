@@ -99,7 +99,7 @@ export function ModuloMembros() {
             <li key={m.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-p-borda px-4 py-3.5 last:border-0">
               <Avatar nome={m.nome} foto={m.foto} tamanho={42} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[14.5px] font-bold text-p-texto">{m.nome}</p>
+                <p className="truncate text-[14.5px] font-bold text-p-texto">{m.nome}{m.exemplo && <span className="ml-2 border border-dashed border-p-borda-forte px-1.5 py-0.5 align-middle text-[10.5px] font-semibold uppercase tracking-[0.1em] text-p-suave">Exemplo</span>}</p>
                 <p className="mt-0.5 flex flex-wrap gap-x-3 text-[12.5px] text-p-suave">
                   <span>{m.celular}</span>{m.email && <span>{m.email}</span>}{m.nascimento && <span>nasc. {dataBR(m.nascimento)}</span>}
                   <span className="inline-flex items-center gap-1.5"><span className={cn("size-1.5 rounded-full", m.situacao === "ativo" ? (m.trocarSenha ? "bg-amber-400" : "bg-emerald-500") : m.situacao === "pendente" ? "bg-red-500" : "bg-p-borda-forte")} />{m.situacao === "ativo" && m.trocarSenha ? "Aguardando o primeiro acesso" : SITUACAO_MEMBRO_ROTULO[m.situacao]}</span>

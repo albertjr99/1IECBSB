@@ -3,9 +3,9 @@
  * e define quem lidera; a liderança monta as escalas pelo app (celular ou site).
  */
 import { useEffect, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, CalendarCheck, Crown, Loader2, Music, Pencil, Plus, Search, Smartphone, Trash2, Users, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarCheck, Crown, FlaskConical, Loader2, Music, Pencil, Plus, Search, Smartphone, Trash2, Users, X } from "lucide-react";
 import { toast } from "sonner";
-import { excluirMinisterioPainel, ministeriosPainel, salvarMinisterioPainel } from "@/lib/api-escalas";
+import { excluirMinisterioPainel, exemplosPainel, ministeriosPainel, salvarMinisterioPainel } from "@/lib/api-escalas";
 import { ICONES_MINISTERIO, MODELOS_MINISTERIO, type MinisterioApp } from "@/lib/escalas";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./Avatar";
@@ -49,6 +49,8 @@ export function ModuloEscalas() {
         <p>2. No app, a liderança abre <strong className="text-p-texto">Participar → Escalas</strong>, monta a escala (ou uma repetição semanal/mensal) e publica.</p>
         <p>3. Cada escalado recebe a notificação, confirma ou avisa que não poderá, e é lembrado na véspera.</p>
       </section>
+
+      <Exemplos aoMudar={carregar} />
 
       {!dados ? <Loader2 className="mx-auto animate-spin text-p-suave" /> : dados.ministerios.length === 0 ? (
         <p className="border border-dashed border-p-borda-forte px-6 py-12 text-center text-[14.5px] text-p-suave">Nenhum ministério ainda. Comece por “Novo ministério” — há modelos prontos para Louvor, Multimídia, Recepção e outros.</p>
@@ -204,5 +206,35 @@ function EditorMinisterio({ form, setForm, membros, aoSalvar }: { form: Form; se
         </div>
       </div>
     </Camada>
+  );
+}
+
+function Exemplos({ aoMudar }: { aoMudar: () => void }) {
+  const [existem, setExistem] = useState<boolean | null>(null);
+  const [indo, setIndo] = useState(false);
+  useEffect(() => { exemplosPainel({ data: { acao: "ver" } }).then((r) => setExistem(r.existem)).catch(() => setExistem(false)); }, []);
+  const fazer = async (acao: "criar" | "remover") => {
+    if (acao === "remover" && !confirm("Remover todas as pessoas, ministérios e escalas de exemplo? Pessoas e escalas reais não são tocadas.")) return;
+    setIndo(true);
+    try {
+      const r = await exemplosPainel({ data: { acao } });
+      setExistem(r.existem);
+      toast.success(acao === "criar" ? "Exemplos criados: 26 pessoas fictícias, ministérios e escalas." : "Exemplos removidos.");
+      aoMudar();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro"); } finally { setIndo(false); }
+  };
+  if (existem === null) return null;
+  return (
+    <section className="ef-peca grid gap-3 border-dashed px-6 py-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+      <div>
+        <p className="ef-h2 flex items-center gap-2"><FlaskConical size={16} /> Dados de exemplo para testar</p>
+        <p className="mt-1.5 text-[14px] text-p-suave">{existem
+          ? "Há pessoas, ministérios e escalas fictícias no sistema (marcados como exemplo). Quem já estava no Louvor continua e aparece na escala do próximo domingo para testar a confirmação."
+          : "Cria 26 pessoas fictícias, os ministérios de Louvor, Multimídia, Recepção, Infantil e Púlpito (aproveitando os que já existem), escalas das últimas semanas e das próximas, com respostas, músicas e ausências. Ninguém recebe notificação."}</p>
+      </div>
+      {existem
+        ? <button disabled={indo} onClick={() => fazer("remover")} className="ef-btn ef-btn-perigo !h-11 !px-4">{indo ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} Remover exemplos</button>
+        : <button disabled={indo} onClick={() => fazer("criar")} className="ef-btn ef-btn-sec !h-11">{indo ? <Loader2 size={15} className="animate-spin" /> : <FlaskConical size={15} />} Criar equipes de exemplo</button>}
+    </section>
   );
 }

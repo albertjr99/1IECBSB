@@ -1,8 +1,11 @@
 /** Perfil, preferências, favoritos, boletins, a igreja e a conta. */
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { Bookmark, Church, FileText, HandHeart, KeyRound, LogOut, Moon, Shield, Sun, SunMoon, Trash2, Type, UserRound } from "lucide-react-native";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Fingerprint, Bookmark, Church, FileText, HandHeart, KeyRound, LogOut, Moon, Shield, Sun, SunMoon, Trash2, Type, UserRound } from "lucide-react-native";
+import { Alert, Pressable, Switch, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { biometriaDoAparelho, biometriaLigada, desligarBiometria, ligarBiometria, type Biometria } from "@/lib/biometria";
+import { tokenAtual } from "@/lib/api";
 import Constants from "expo-constants";
 import { Avatar, Cartao, Linha, Logo, Separador, Sobre, T, Tela, Titulo } from "@/componentes/ui";
 import { API } from "@/lib/api";
@@ -15,6 +18,13 @@ export default function Mais() {
   const { c } = useTema();
   const ic = (I: typeof UserRound) => <I size={20} color={c.azul} />;
   const prefs = (p: Partial<Preferencias>) => salvarPerfil({ prefs: { ...membro.prefs, ...p } }).catch(() => {});
+  const [bio, setBio] = useState<Biometria | null>(null);
+  const [bioLigada, setBioLigada] = useState(false);
+  useEffect(() => { biometriaDoAparelho().then(setBio); biometriaLigada().then(setBioLigada); }, []);
+  const alternarBio = async (v: boolean) => {
+    if (v) { const t = tokenAtual(); if (t && (await ligarBiometria(t, membro.nome))) setBioLigada(true); }
+    else { await desligarBiometria(); setBioLigada(false); }
+  };
 
   return (
     <Tela>
@@ -64,6 +74,12 @@ export default function Mais() {
 
       <Sobre style={{ marginTop: 6 }}>Conta</Sobre>
       <Cartao>
+{bio?.ok ? (
+          <>
+            <Linha icone={ic(Fingerprint)} titulo={`Entrar com ${bio.nome}`} sub={bioLigada ? "Ativado: o app abre com a sua biometria" : "Entre sem digitar a senha"} direita={<Switch value={bioLigada} onValueChange={alternarBio} trackColor={{ true: AZUL }} />} />
+            <Separador />
+          </>
+        ) : null}
         <Linha icone={ic(KeyRound)} titulo="Trocar senha" onPress={() => router.push("/perfil?senha=1")} />
         <Separador />
         <Linha icone={ic(Shield)} titulo="Privacidade" onPress={() => WebBrowser.openBrowserAsync(`${API}/privacidade`, { toolbarColor: AZUL })} />

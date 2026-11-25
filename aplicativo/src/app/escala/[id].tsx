@@ -1,6 +1,7 @@
 /** Uma escala: minha resposta, a equipe, músicas, roteiro; para a liderança, alertas e ações. */
+import { FotoPessoa } from "@/componentes/Pessoa";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { AlertTriangle, Clock, ExternalLink, History, MapPin, Pencil, Send, Share2, StickyNote, Trash2 } from "lucide-react-native";
+import { AlertTriangle, Clock, Guitar, Headphones, History, MapPin, Pencil, Send, Share2, StickyNote, Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Alert, Linking, Pressable, Share, Text, View } from "react-native";
 import { Aviso, Botao, Cartao, Carregando, Sobre, T, Tela } from "@/componentes/ui";
@@ -102,7 +103,8 @@ export default function Escala() {
               <T s={11} f={F.negrito} cor={c.suave} style={{ letterSpacing: 1.4, textTransform: "uppercase" }}>{f.nome}</T>
               {vagas.map((v) => (
                 <View key={v.id} style={{ gap: 2 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                    {v.membroId ? <FotoPessoa id={v.membroId} nome={v.nome ?? ""} foto={v.foto} tam={38} /> : <View style={{ width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderStyle: "dashed", borderColor: c.borda }} />}
                     <Text style={{ flex: 1, fontFamily: v.membroId ? F.semi : "Montserrat_400Regular_Italic", fontSize: 15, color: !v.membroId ? c.suave : e.minhas.includes(v.id) ? c.azul : c.texto }}>{v.nome ?? "A definir"}</Text>
                     {v.membroId && e.situacao === "publicada" ? <Selo r={v.resposta} pequeno /> : null}
                   </View>
@@ -125,7 +127,12 @@ export default function Escala() {
                 <View style={{ flex: 1, gap: 2 }}>
                   {mu.hino ? <Pressable onPress={() => router.push(`/hino/${mu.hino}`)}><T f={F.semi} s={15} cor={c.azul}>{mu.hino} · {mu.titulo}</T></Pressable> : <T f={F.semi} s={15}>{mu.titulo}</T>}
                   {mu.artista || mu.obs ? <T s={12.5} cor={c.suave}>{[mu.artista, mu.obs].filter(Boolean).join(" · ")}</T> : null}
-                  {mu.link ? <Pressable onPress={() => Linking.openURL(mu.link!)} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}><ExternalLink size={13} color={c.azul} /><T s={12.5} f={F.semi} cor={c.azul}>Ouvir / cifra</T></Pressable> : null}
+                  {mu.link || mu.cifra ? (
+                    <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
+                      {mu.link ? <Pressable onPress={() => Linking.openURL(mu.link!)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: c.realce }}><Headphones size={15} color={c.azul} /><T s={13} f={F.negrito} cor={c.azul}>Ouvir</T></Pressable> : null}
+                      {mu.cifra ? <Pressable onPress={() => Linking.openURL(mu.cifra!)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: c.realce }}><Guitar size={15} color={c.azul} /><T s={13} f={F.negrito} cor={c.azul}>Cifra</T></Pressable> : null}
+                    </View>
+                  ) : null}
                 </View>
                 {mu.tom ? <View style={{ borderWidth: 1, borderColor: c.borda, paddingHorizontal: 8, paddingVertical: 2 }}><T s={13} f={F.negrito}>{mu.tom}</T></View> : null}
               </View>

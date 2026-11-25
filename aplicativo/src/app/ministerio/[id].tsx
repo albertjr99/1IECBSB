@@ -1,14 +1,16 @@
 /** Liderança do ministério: escalas, repetições, equipe e ausências. */
+import { FotoPessoa, Rostos } from "@/componentes/Pessoa";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { AlertTriangle, CalendarOff, CalendarPlus, ChevronRight, Crown, Pencil, Plus, Repeat, Search, Settings2, Trash2, UserPlus, X } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { Aviso, Botao, Cartao, Carregando, T, Tela } from "@/componentes/ui";
 import { Folha, Rotulo } from "@/componentes/Folha";
+import { CampoData, CampoHora } from "@/componentes/Calendario";
 import { IconeMinisterio } from "@/componentes/IconeMinisterio";
 import { CampoTexto, falta, horaBR } from "@/componentes/MinhasEscalas";
 import {
-  FREQUENCIA_ROTULO, SEMANA_DO_MES, carregarMinisterio, dataDigitada, descreverSerie, diaDe, excluirSerie, horaValida, mascaraData, mascaraHora, salvarEquipe, salvarSerie,
+  FREQUENCIA_ROTULO, SEMANA_DO_MES, carregarMinisterio, descreverSerie, diaDe, excluirSerie, salvarEquipe, salvarSerie,
   type DadosMinisterio, type Frequencia, type Serie,
 } from "@/lib/escalas";
 import { AZUL, F, VERMELHO, useTema } from "@/lib/tema";
@@ -61,7 +63,7 @@ export default function Ministerio() {
 
       {aba === "escalas" ? (
         <>
-          <Botao icone={<CalendarPlus size={17} color="#fff" />} onPress={() => router.push({ pathname: "/escala/editar", params: { min: m.id } })}>Nova escala</Botao>
+          <Botao icone={<CalendarPlus size={17} color="#fff" />} onPress={() => router.push({ pathname: "/escala/editar", params: { min: m.id } })}>Montar nova escala</Botao>
           {!futuras.length ? <Cartao style={{ padding: 18 }}><T s={14} cor={c.suave}>Nenhuma escala por vir. Crie uma, ou uma repetição (ex.: todo domingo às 10h) para as datas aparecerem sozinhas.</T></Cartao> : futuras.map((e) => {
             const recusas = e.vagas.filter((v) => v.resposta === "recusado").length;
             const dia = diaDe(e.inicio);
@@ -79,6 +81,7 @@ export default function Ministerio() {
                     {e.situacao === "publicada" && e.preenchidas < e.total ? <T s={11.5} f={F.negrito} cor={VERMELHO}>{e.total - e.preenchidas} a definir</T> : null}
                     {recusas ? <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}><AlertTriangle size={12} color={VERMELHO} /><T s={11.5} f={F.negrito} cor={VERMELHO}>{recusas} não poderá(ão)</T></View> : null}
                   </View>
+                  {e.preenchidas ? <View style={{ marginTop: 4 }}><Rostos pessoas={e.vagas.filter((v) => v.membroId).map((v) => ({ id: v.membroId, nome: v.nome ?? "", foto: v.foto }))} tam={26} max={7} /></View> : null}
                 </View>
                 <ChevronRight size={18} color={c.suave} />
               </Cartao>
@@ -96,9 +99,9 @@ export default function Ministerio() {
       {aba === "repeticoes" ? (
         <>
           <T s={13.5} cor={c.suave}>A repetição cria sozinha as próximas datas (até 10 semanas à frente) como rascunho, com as vagas prontas. Você só escolhe as pessoas e publica.</T>
-          <Botao icone={<Repeat size={17} color="#fff" />} onPress={() => setSerie({ titulo: "Culto de domingo", hora: "10:00", diaSemana: 0, frequencia: "semanal", desde: dataBR(hojeBrasilia()), ate: "", vagas: m.funcoes.map((f) => f.id), roteiro: [] })}>Nova repetição</Botao>
+          <Botao icone={<Repeat size={17} color="#fff" />} onPress={() => setSerie({ titulo: "Culto de domingo", hora: "10:00", diaSemana: 0, frequencia: "semanal", desde: hojeBrasilia(), ate: "", vagas: m.funcoes.map((f) => f.id), roteiro: [] })}>Nova repetição</Botao>
           {!d.series.length ? <Cartao style={{ padding: 18 }}><T s={14} cor={c.suave}>Nenhuma repetição ainda.</T></Cartao> : d.series.map((s) => (
-            <Cartao key={s.id} onPress={() => setSerie({ ...s, desde: dataBR(s.desde), ate: s.ate ? dataBR(s.ate) : "", aplicar: true })} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <Cartao key={s.id} onPress={() => setSerie({ ...s, desde: s.desde, ate: s.ate ?? "", aplicar: true })} style={{ padding: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
               <Repeat size={18} color={c.azul} />
               <View style={{ flex: 1 }}><T f={F.negrito} s={15.5}>{s.titulo}</T><T s={12.5} cor={c.suave}>{descreverSerie(s)}{s.ate ? ` · até ${dataBR(s.ate)}` : ""} · {s.vagas.length} vagas</T></View>
               <Pencil size={16} color={c.azul} />
@@ -115,7 +118,8 @@ export default function Ministerio() {
           </View>
           <Cartao style={{ padding: 0 }}>
             {d.equipe.map((p, i) => (
-              <Pressable key={p.membroId} onPress={() => setPessoa({ membroId: p.membroId, nome: p.nome, funcoes: [...p.funcoes] })} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: c.borda }}>
+              <Pressable key={p.membroId} onPress={() => setPessoa({ membroId: p.membroId, nome: p.nome, funcoes: [...p.funcoes] })} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: c.borda }}>
+                <FotoPessoa id={p.membroId} nome={p.nome} foto={p.foto} tam={44} />
                 <View style={{ flex: 1, gap: 1 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><T f={F.semi} s={15}>{p.nome}</T>{p.lider ? <Crown size={13} color={VERMELHO} /> : null}</View>
                   <T s={12.5} cor={c.suave} linhas={1}>{p.funcoesNomes.join(", ") || "Sem função"}</T>
@@ -162,12 +166,11 @@ export default function Ministerio() {
                 </View>
               ) : null}
             </View>
-            <View style={{ gap: 6 }}><Rotulo>Horário</Rotulo><CampoTexto value={serie.hora} onChangeText={(t) => setSerie({ ...serie, hora: mascaraHora(t) })} keyboardType="number-pad" placeholder="hh:mm" /></View>
-            {horaValida(serie.hora) ? <T s={13} f={F.semi} cor={c.azul}>{descreverSerie(serie)}</T> : null}
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ flex: 1, gap: 6 }}><Rotulo>A partir de</Rotulo><CampoTexto value={serie.desde} onChangeText={(t) => setSerie({ ...serie, desde: mascaraData(t) })} keyboardType="number-pad" placeholder="dd/mm/aaaa" /></View>
-              <View style={{ flex: 1, gap: 6 }}><Rotulo>Até (opcional)</Rotulo><CampoTexto value={serie.ate} onChangeText={(t) => setSerie({ ...serie, ate: mascaraData(t) })} keyboardType="number-pad" placeholder="dd/mm/aaaa" /></View>
-            </View>
+            <CampoHora rotulo="Horário" valor={serie.hora} aoMudar={(v) => setSerie({ ...serie, hora: v })} />
+            <View style={{ backgroundColor: c.realce, padding: 12 }}><T s={14} f={F.negrito} cor={c.azul}>{descreverSerie(serie)}</T></View>
+            <CampoData rotulo="Começa em" valor={serie.desde} aoMudar={(v) => setSerie({ ...serie, desde: v })} />
+            <CampoData rotulo="Termina em (opcional)" valor={serie.ate} minimo={serie.desde} vazio="Sem data para terminar" aoMudar={(v) => setSerie({ ...serie, ate: v })} />
+            {serie.ate ? <Pressable onPress={() => setSerie({ ...serie, ate: "" })}><T s={12.5} f={F.semi} cor={c.suave} style={{ textDecorationLine: "underline" }}>Tirar a data de término</T></Pressable> : null}
             <View style={{ gap: 6 }}>
               <Rotulo>Vagas em cada data</Rotulo>
               <Cartao style={{ padding: 0 }}>
@@ -188,9 +191,7 @@ export default function Ministerio() {
             <View style={{ gap: 6 }}><Rotulo>Local (opcional)</Rotulo><CampoTexto value={serie.local ?? ""} onChangeText={(t) => setSerie({ ...serie, local: t })} /></View>
             {serie.id ? <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}><Switch value={!!serie.aplicar} onValueChange={(v) => setSerie({ ...serie, aplicar: v })} trackColor={{ true: AZUL }} /><T s={13.5} style={{ flex: 1 }}>Aplicar também às próximas datas ainda em rascunho (as publicadas não mudam)</T></View> : null}
             <Botao carregando={ocupado} onPress={async () => {
-              const desde = dataDigitada(serie.desde), ate = serie.ate ? dataDigitada(serie.ate) : "";
-              if (!desde || (serie.ate && !ate)) return Alert.alert("Repetição", "Confira as datas (dd/mm/aaaa).");
-              if (await acao(() => salvarSerie({ ...serie, ministerioId: m.id, desde, ate: ate || undefined }))) { setSerie(null); setAba("escalas"); }
+              if (await acao(() => salvarSerie({ ...serie, ministerioId: m.id, ate: serie.ate || undefined }))) { setSerie(null); setAba("escalas"); }
             }}>Salvar</Botao>
             {serie.id ? <Pressable onPress={() => Alert.alert("Parar a repetição", "As próximas datas em rascunho saem; as já publicadas continuam.", [{ text: "Voltar", style: "cancel" }, { text: "Parar", style: "destructive", onPress: async () => { if (await acao(() => excluirSerie(serie.id!))) setSerie(null); } }])} style={{ flexDirection: "row", justifyContent: "center", gap: 6 }}><Trash2 size={15} color={VERMELHO} /><T s={12.5} f={F.semi} cor={VERMELHO}>Parar a repetição</T></Pressable> : null}
           </>
@@ -219,7 +220,7 @@ export default function Ministerio() {
         </View>
         {d.membrosIgreja.filter((p) => !busca || norm(p.nome).includes(norm(busca))).slice(0, 30).map((p) => (
           <Pressable key={p.id} onPress={() => { setIncluir(false); setPessoa({ membroId: p.id, nome: p.nome, funcoes: [], nova: true }); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: c.borda }}>
-            <T s={15}>{p.nome}</T><Plus size={17} color={c.azul} />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}><FotoPessoa id={p.id} nome={p.nome} foto={p.foto} tam={36} /><T s={15}>{p.nome}</T></View><Plus size={17} color={c.azul} />
           </Pressable>
         ))}
         {!d.membrosIgreja.length ? <T s={13.5} cor={c.suave}>Todos os membros aprovados já estão no ministério.</T> : null}

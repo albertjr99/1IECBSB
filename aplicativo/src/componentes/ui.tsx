@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SvgXml } from "react-native-svg";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { CRUZ, HORIZONTAL, HORIZONTAL_NEGATIVO, SIMBOLO, SIMBOLO_NEGATIVO } from "@/lib/marca";
 import { AZUL, F, RAIO, VERMELHO, useTema } from "@/lib/tema";
 import { iniciais } from "@/lib/util";
@@ -130,13 +131,14 @@ export function Tela({ children, titulo, voltar, direita, atualizar, atualizando
       {semRolagem ? (
         <View style={[{ flex: 1, paddingTop: cab ? 0 : ins.top }, conteudoStyle]}>{children}</View>
       ) : (
-        <ScrollView
+        <KeyboardAwareScrollView
+          bottomOffset={28}
           contentContainerStyle={[{ paddingTop: cab ? 18 : ins.top + 14, paddingBottom: 120, paddingHorizontal: 18, gap: 16 }, conteudoStyle]}
           refreshControl={atualizar ? <RefreshControl refreshing={!!atualizando} onRefresh={atualizar} tintColor={c.azul} colors={[AZUL]} /> : undefined}
           keyboardShouldPersistTaps="handled"
         >
           {children}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       )}
     </View>
   );

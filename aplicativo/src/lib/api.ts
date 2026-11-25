@@ -26,6 +26,7 @@ const guardar = {
 export async function carregarToken() { token = await guardar.ler(); return token; }
 export async function definirToken(t: string | null) { token = t; await guardar.gravar(t); }
 export const temToken = () => !!token;
+export const tokenAtual = () => token;
 export function quandoExpirar(fn: () => void) { aoExpirar = fn; }
 
 export class ErroApi extends Error { constructor(msg: string, public sessao = false, public rede = false) { super(msg); } }

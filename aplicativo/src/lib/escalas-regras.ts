@@ -24,6 +24,8 @@ export type MinisterioApp = {
   /** louvor e afins: escalas têm músicas (com o hinário) */
   repertorio: boolean;
   criadoEm: string;
+  /** criado pelos dados de exemplo */
+  exemplo?: boolean;
 };
 
 export type Resposta = "pendente" | "confirmado" | "recusado";
@@ -47,8 +49,10 @@ export type Musica = {
   titulo: string;
   artista?: string;
   tom?: string;
-  /** YouTube, cifra… */
+  /** para ouvir (YouTube, Spotify…) */
   link?: string;
+  /** cifra (Cifra Club, PDF…) */
+  cifra?: string;
   obs?: string;
 };
 
@@ -70,6 +74,7 @@ export type Escala = {
   criadoEm: string;
   alteradoEm: string;
   historico: { em: string; quem: string; o: string }[];
+  exemplo?: boolean;
 };
 
 export type Frequencia = "semanal" | "quinzenal" | "mensal";
@@ -99,6 +104,7 @@ export type Serie = {
   /** datas (yyyy-mm-dd) que o líder apagou e não devem voltar */
   excluidas?: string[];
   ativa: boolean;
+  exemplo?: boolean;
 };
 
 export type Indisponibilidade = {
@@ -110,6 +116,7 @@ export type Indisponibilidade = {
   /** só os líderes veem */
   motivo?: string;
   criadoEm: string;
+  exemplo?: boolean;
 };
 
 // ─── Modelos prontos ────────────────────────────────────────────────────────
@@ -219,7 +226,7 @@ export function textoDaEscala(
   }
   if (e.musicas.length) {
     linhas.push("", "*Músicas*");
-    e.musicas.forEach((m, i) => linhas.push(`${i + 1}. ${m.hino ? `${m.hino} – ` : ""}${m.titulo}${m.tom ? ` (${m.tom})` : ""}${m.link ? `\n   ${m.link}` : ""}`));
+    e.musicas.forEach((m, i) => linhas.push(`${i + 1}. ${m.hino ? `${m.hino} – ` : ""}${m.titulo}${m.tom ? ` (${m.tom})` : ""}${m.link ? `\n   Ouvir: ${m.link}` : ""}${m.cifra ? `\n   Cifra: ${m.cifra}` : ""}`));
   }
   if (e.roteiro.length) {
     linhas.push("", "*Roteiro*");

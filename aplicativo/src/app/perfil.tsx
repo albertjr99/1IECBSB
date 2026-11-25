@@ -1,4 +1,6 @@
 /** Dados do membro, foto e troca de senha. */
+import { CampoData } from "@/componentes/Calendario";
+import { hojeBrasilia } from "@/lib/util";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
@@ -17,7 +19,7 @@ export default function Perfil() {
   const { c } = useTema();
   const [celular, setCelular] = useState(membro.celular);
   const [email, setEmail] = useState(membro.email);
-  const [nasc, setNasc] = useState(membro.nascimento ? membro.nascimento.split("-").reverse().join("/") : "");
+  const [nasc, setNasc] = useState(membro.nascimento ?? "");
   const [salvando, setSalvando] = useState(false);
   const [atual, setAtual] = useState("");
   const [nova, setNova] = useState("");
@@ -33,8 +35,7 @@ export default function Perfil() {
   const salvar = async () => {
     setSalvando(true);
     try {
-      const [d, mm, a] = nasc.split("/");
-      await salvarPerfil({ celular, email, nascimento: d && mm && a?.length === 4 ? `${a}-${mm}-${d}` : membro.nascimento });
+      await salvarPerfil({ celular, email, nascimento: nasc || membro.nascimento });
       Alert.alert("Pronto", "Seus dados foram atualizados.");
     } catch (e) { Alert.alert("Dados", e instanceof Error ? e.message : "Erro"); }
     finally { setSalvando(false); }
@@ -61,7 +62,7 @@ export default function Perfil() {
           <Cartao style={{ padding: 16, gap: 14 }}>
             <Campo rotulo="Celular" value={celular} onChangeText={(t) => setCelular(mascaraCelular(t))} keyboardType="phone-pad" />
             <Campo rotulo="E-mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-            <Campo rotulo="Data de nascimento" value={nasc} onChangeText={(t) => { const d = t.replace(/\D/g, "").slice(0, 8); setNasc([d.slice(0, 2), d.slice(2, 4), d.slice(4)].filter(Boolean).join("/")); }} keyboardType="number-pad" placeholder="dd/mm/aaaa" />
+            <CampoData rotulo="Data de nascimento" valor={nasc} aoMudar={setNasc} maximo={hojeBrasilia()} anos />
             <Botao onPress={salvar} carregando={salvando}>Salvar</Botao>
           </Cartao>
           <T s={12.5} cor={c.suave}>Para corrigir o nome, fale com a secretaria.</T>
