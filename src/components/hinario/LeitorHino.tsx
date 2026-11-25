@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import "./hinario.css";
 
 function Parte({ p, tam }: { p: ParteHino; tam: number }) {
+  if (p.tipo === "subtitulo") return <p className="hn-secao">{p.linhas.join(" ")}</p>;
   if (p.tipo === "coro")
     return (
       <div className="hn-coro">
@@ -56,7 +57,7 @@ export function LeitorHino({ hino, anterior, proximo, irPara, escuro }: { hino: 
           <span className="hn-numero">{hino.numero}</span>
           <div>
             <h1>{hino.titulo}</h1>
-            {hino.autor && <p className="hn-autor">{hino.autor}</p>}
+            {(hino.autor || hino.referencia) && <p className="hn-autor">{[hino.referencia, hino.autor].filter(Boolean).join(" · ")}</p>}
           </div>
         </div>
         <div className="hn-ferramentas">
@@ -70,6 +71,12 @@ export function LeitorHino({ hino, anterior, proximo, irPara, escuro }: { hino: 
       </header>
 
       <div className="hn-corpo">{hino.partes.map((p, i) => <Parte key={i} p={p} tam={tam} />)}</div>
+      {(hino.nota || hino.credito) && (
+        <div className="hn-rodape">
+          {hino.nota && <p><strong>Observação:</strong> {hino.nota}</p>}
+          {hino.credito && <p>{hino.credito}</p>}
+        </div>
+      )}
 
       <nav className="hn-navega">
         {anterior ? <button type="button" onClick={() => irPara(anterior)}><ChevronLeft size={17} /> Hino {anterior}</button> : <span />}
@@ -103,7 +110,7 @@ function ModoCulto({ hino, fechar }: { hino: HinoCompleto; fechar: () => void })
         <button type="button" onClick={fechar} aria-label="Fechar"><X size={22} /></button>
       </div>
       <button type="button" className="hn-telao-palco" onClick={() => ir(1)}>
-        <p className="hn-telao-rotulo">{p.tipo === "coro" ? "Coro" : `Estrofe ${p.n}`}</p>
+        <p className="hn-telao-rotulo">{p.tipo === "coro" ? "Coro" : `Estrofe ${p.n ?? 1}`}</p>
         <div key={i} className={cn("hn-telao-texto", p.tipo === "coro" && "hn-telao-coro")}>
           {p.linhas.map((l, k) => <p key={k}>{l}</p>)}
         </div>

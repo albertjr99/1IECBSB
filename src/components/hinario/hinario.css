@@ -24,6 +24,10 @@
 .hn-coro p { font-style: italic; color: var(--hn-azul); }
 .hn-escuro .hn-coro p { color: var(--hn-texto); }
 .hn-coro-rotulo { font: 700 10px/1 "Montserrat", sans-serif !important; font-style: normal !important; letter-spacing: .24em; text-transform: uppercase; color: var(--hn-suave) !important; margin-bottom: 10px; }
+.hn-secao { display: flex; align-items: center; gap: 12px; margin-top: 8px; font: 700 11px/1.3 "Montserrat", sans-serif; letter-spacing: .2em; text-transform: uppercase; color: var(--hn-azul); }
+.hn-secao::after { content: ""; flex: 1; height: 1px; background: var(--hn-linha); }
+.hn-rodape { display: grid; gap: 6px; margin-top: 8px; padding: 14px 16px; border-left: 3px solid var(--hn-linha); font-size: 13px; line-height: 1.5; color: var(--hn-suave); }
+.hn-rodape strong { color: var(--hn-azul); }
 .hn-navega { display: flex; justify-content: space-between; gap: 12px; padding-top: 22px; margin-top: 18px; border-top: 1px solid var(--hn-linha); }
 .hn-navega button { display: inline-flex; align-items: center; gap: 6px; font: 700 12px "Montserrat"; letter-spacing: .12em; text-transform: uppercase; color: var(--hn-azul); padding: 10px 0; }
 @media (max-width: 520px) { .hn-coro { margin-left: 0; } .hn-numero { min-width: 62px; font-size: 28px; } }

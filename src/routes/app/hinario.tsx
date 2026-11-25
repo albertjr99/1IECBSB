@@ -4,7 +4,7 @@ import { ArrowRight, ChevronLeft, Clock, Hash, Heart, Search } from "lucide-reac
 import { appAtualizarPerfil } from "@/lib/api-app";
 import { useMembro } from "@/components/app/contexto";
 import { LeitorHino } from "@/components/hinario/LeitorHino";
-import { acharHino, buscarHinos, HINARIO } from "@/lib/hinario";
+import { acharHino, buscarHinos, primeiraLinha, HINARIO } from "@/lib/hinario";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/hinario")({
@@ -82,7 +82,7 @@ function Hinario() {
           <li key={h.numero}>
             <button onClick={() => nav({ search: { n: h.numero } })} className="flex w-full items-center gap-4 px-4 py-3.5 text-left">
               <span className="w-11 shrink-0 text-[19px] font-extrabold tabular-nums text-[var(--a-azul)]">{h.numero}</span>
-              <span className="min-w-0 flex-1"><span className="block truncate text-[15px] font-bold">{h.titulo}</span><span className="block truncate font-[Lora] text-[13px] italic text-[var(--a-suave)]">{h.partes[0]?.linhas[0]}</span></span>
+              <span className="min-w-0 flex-1"><span className="block truncate text-[15px] font-bold">{h.titulo}</span><span className="block truncate font-[Lora] text-[13px] italic text-[var(--a-suave)]">{primeiraLinha(h)}</span></span>
               {favs.has(h.numero) && <Heart size={15} className="shrink-0 fill-[var(--a-vermelho)] text-[var(--a-vermelho)]" />}
             </button>
           </li>

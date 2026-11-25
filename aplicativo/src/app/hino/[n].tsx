@@ -41,7 +41,7 @@ export default function TelaHino() {
     <Tela voltar titulo="Hinário" fundo={c.sup} direita={
       <View style={{ flexDirection: "row" }}>
         <Pressable hitSlop={8} onPress={alternar} style={{ padding: 8 }}><Heart size={22} color={fav ? "#CC2127" : c.suave} fill={fav ? "#CC2127" : "transparent"} /></Pressable>
-        {h ? <Pressable hitSlop={8} onPress={() => Share.share({ message: `${h.numero}. ${h.titulo}\n\n${h.partes.map((p) => (p.tipo === "coro" ? `Coro:\n${p.linhas.join("\n")}` : `${p.n}. ${p.linhas.join("\n")}`)).join("\n\n")}` })} style={{ padding: 8 }}><Share2 size={21} color={c.azul} /></Pressable> : null}
+        {h ? <Pressable hitSlop={8} onPress={() => Share.share({ message: `${h.numero}. ${h.titulo}\n\n${h.partes.map((p) => (p.tipo === "coro" ? `Coro:\n${p.linhas.join("\n")}` : p.tipo === "subtitulo" ? p.linhas.join(" ").toUpperCase() : `${p.n}. ${p.linhas.join("\n")}`)).join("\n\n")}` })} style={{ padding: 8 }}><Share2 size={21} color={c.azul} /></Pressable> : null}
       </View>
     }>
       {!h ? <Aviso texto="Hino não encontrado." /> : (
@@ -52,7 +52,7 @@ export default function TelaHino() {
               <View style={{ minWidth: 64, paddingHorizontal: 10, paddingVertical: 8, backgroundColor: AZUL, alignItems: "center" }}><Text style={{ fontFamily: F.extra, fontSize: 30, color: "#fff" }}>{h.numero}</Text></View>
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={{ fontFamily: F.negrito, fontSize: 24, lineHeight: 29, color: c.escuro ? c.texto : AZUL }}>{h.titulo}</Text>
-                {h.autor ? <T s={13} cor={c.suave}>{h.autor}</T> : null}
+                {h.autor || h.referencia ? <T s={13} cor={c.suave}>{[h.referencia, h.autor].filter(Boolean).join(" · ")}</T> : null}
               </View>
             </View>
             <View style={{ flexDirection: "row", gap: 8 }}>
@@ -64,7 +64,12 @@ export default function TelaHino() {
               </Pressable>
             </View>
           </View>
-          {h.partes.map((p, k) => p.tipo === "coro" ? (
+          {h.partes.map((p, k) => p.tipo === "subtitulo" ? (
+            <View key={k} style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }}>
+              <Text style={{ fontFamily: F.negrito, fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: c.azul }}>{p.linhas.join(" ")}</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: c.borda }} />
+            </View>
+          ) : p.tipo === "coro" ? (
             <View key={k} style={{ marginLeft: 8, padding: 16, backgroundColor: c.realce, borderLeftWidth: 3, borderLeftColor: AZUL, gap: 2 }}>
               <Text style={{ fontFamily: F.negrito, fontSize: 10, letterSpacing: 2.2, textTransform: "uppercase", color: c.suave, marginBottom: 8 }}>Coro</Text>
               {p.linhas.map((l, j) => <Text key={j} style={{ fontFamily: F.verso, fontSize: tam, lineHeight: tam * 1.6, color: c.escuro ? c.texto : AZUL }}>{l}</Text>)}
@@ -75,6 +80,12 @@ export default function TelaHino() {
               <View style={{ flex: 1 }}>{p.linhas.map((l, j) => <Text key={j} style={{ fontFamily: F.leitura, fontSize: tam, lineHeight: tam * 1.6, color: c.texto }}>{l}</Text>)}</View>
             </View>
           ))}
+          {h.nota || h.credito ? (
+            <View style={{ borderLeftWidth: 3, borderLeftColor: c.borda, paddingLeft: 12, gap: 4 }}>
+              {h.nota ? <T s={13} cor={c.suave}><T s={13} f={F.negrito} cor={c.azul}>Observação: </T>{h.nota}</T> : null}
+              {h.credito ? <T s={12.5} cor={c.suave}>{h.credito}</T> : null}
+            </View>
+          ) : null}
           <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: c.borda, paddingTop: 16, marginTop: 6 }}>
             {HINARIO[i - 1] ? <Pressable onPress={() => vizinho(-1)} style={{ flexDirection: "row", alignItems: "center", gap: 4, padding: 6 }}><ChevronLeft size={18} color={c.azul} /><T f={F.negrito} s={12.5} cor={c.azul}>Hino {HINARIO[i - 1]!.numero}</T></Pressable> : <View />}
             {HINARIO[i + 1] ? <Pressable onPress={() => vizinho(1)} style={{ flexDirection: "row", alignItems: "center", gap: 4, padding: 6 }}><T f={F.negrito} s={12.5} cor={c.azul}>Hino {HINARIO[i + 1]!.numero}</T><ChevronRight size={18} color={c.azul} /></Pressable> : <View />}
@@ -110,7 +121,7 @@ function ModoCulto({ hino, fechar }: { hino: HinoCompleto; fechar: () => void })
         <Pressable onPress={() => ir(1)} style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 26 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 26 }}>
             <SvgXml xml={CRUZ} width={7} height={13} />
-            <Text style={{ fontFamily: F.negrito, fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "#D9E6EF" }}>{p.tipo === "coro" ? "Coro" : `Estrofe ${p.n}`}</Text>
+            <Text style={{ fontFamily: F.negrito, fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "#D9E6EF" }}>{p.tipo === "coro" ? "Coro" : `Estrofe ${p.n ?? 1}`}</Text>
           </View>
           {p.linhas.map((l, k) => <Text key={`${i}-${k}`} style={{ fontFamily: p.tipo === "coro" ? F.versoMedio : F.leitura, fontSize: tam, lineHeight: tam * 1.42, color: "#fff", textAlign: "center" }}>{l}</Text>)}
         </Pressable>

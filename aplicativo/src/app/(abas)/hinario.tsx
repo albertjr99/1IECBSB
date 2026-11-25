@@ -6,7 +6,7 @@ import { useCallback, useMemo, useState } from "react";
 import { FlatList, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Aviso, Sobre, T, Titulo } from "@/componentes/ui";
-import { acharHino, buscarHinos } from "@/lib/hinario";
+import { acharHino, buscarHinos, primeiraLinha } from "@/lib/hinario";
 import { hinosRecentes } from "@/lib/historico";
 import { useMembro } from "@/lib/sessao";
 import { AZUL, F, useTema } from "@/lib/tema";
@@ -82,7 +82,7 @@ export default function Hinario() {
             <Text style={{ width: 48, fontFamily: F.extra, fontSize: 20, color: c.azul, fontVariant: ["tabular-nums"] }}>{h.numero}</Text>
             <View style={{ flex: 1 }}>
               <T f={F.negrito} s={15.5} linhas={1}>{h.titulo}</T>
-              <T s={13} f={F.verso} cor={c.suave} linhas={1}>{h.partes[0]?.linhas[0]}</T>
+              <T s={13} f={F.verso} cor={c.suave} linhas={1}>{primeiraLinha(h)}</T>
             </View>
             {favs.has(h.numero) ? <Heart size={16} color="#CC2127" fill="#CC2127" /> : null}
           </Pressable>

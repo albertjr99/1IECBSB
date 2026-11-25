@@ -3,7 +3,7 @@
     "name": "1ª IEC Brasília",
     "slug": "iecb-membros",
     "scheme": "iecb",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -12,7 +12,7 @@
     "description": "Aplicativo dos membros da Primeira Igreja Evangélica Congregacional de Brasília.",
     "ios": {
       "bundleIdentifier": "br.org.iecbrasilia.membros",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "supportsTablet": false,
       "config": {
         "usesNonExemptEncryption": false
@@ -24,7 +24,7 @@
     },
     "android": {
       "package": "br.org.iecbrasilia.membros",
-      "versionCode": 5,
+      "versionCode": 6,
       "adaptiveIcon": {
         "backgroundColor": "#00436F",
         "foregroundImage": "./assets/android-icon-foreground.png",

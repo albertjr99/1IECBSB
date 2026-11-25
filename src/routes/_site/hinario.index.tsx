@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Search } from "lucide-react";
 import { CapaPagina } from "@/components/site/Layout";
-import { acharHino, buscarHinos } from "@/lib/hinario";
+import { acharHino, buscarHinos, primeiraLinha } from "@/lib/hinario";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_site/hinario/")({
@@ -49,7 +49,7 @@ function Hinario() {
                 <span className="w-12 flex-none text-[24px] font-extrabold leading-none tracking-[-0.02em] text-marca tabular-nums">{h.numero}</span>
                 <span className="min-w-0">
                   <span className="block text-[16px] font-bold leading-snug text-marca-funda group-hover:text-marca">{h.titulo}</span>
-                  <span className="mt-1 block truncate font-escritura text-[14px] italic text-tinta-suave">{h.partes[0]?.linhas[0]}</span>
+                  <span className="mt-1 block truncate font-escritura text-[14px] italic text-tinta-suave">{primeiraLinha(h)}</span>
                 </span>
               </Link>
             </li>
